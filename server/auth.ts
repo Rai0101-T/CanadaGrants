@@ -10,10 +10,7 @@ import memorystore from "memorystore";
 
 declare global {
   namespace Express {
-    // Define User interface to match our schema User type
-    interface User extends Omit<import('@shared/schema').User, 'password'> {
-      // Any additional fields can be added here if needed
-    }
+    interface User extends User {}
   }
 }
 
@@ -52,21 +49,18 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(
-      { usernameField: 'email' },
-      async (email, password, done) => {
-        try {
-          const user = await storage.getUserByEmail(email);
-          if (!user || !(await comparePasswords(password, user.passwordHash))) {
-            return done(null, false);
-          } else {
-            return done(null, user);
-          }
-        } catch (err) {
-          return done(err);
+    new LocalStrategy(async (username, password, done) => {
+      try {
+        const user = await storage.getUserByUsername(username);
+        if (!user || !(await comparePasswords(password, user.password))) {
+          return done(null, false);
+        } else {
+          return done(null, user);
         }
+      } catch (err) {
+        return done(err);
       }
-    ),
+    }),
   );
 
   passport.serializeUser((user, done) => {
@@ -99,9 +93,7 @@ export function setupAuth(app: Express) {
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         ...req.body,
-        passwordHash: hashedPassword,
-        createdAt: new Date().toISOString(),
-        password: undefined // Remove password from the object
+        password: hashedPassword,
       });
 
       req.login(user, (err) => {
@@ -114,12 +106,12 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: User | false, info: any) => {
+    passport.authenticate("local", (err, user, info) => {
       if (err) return next(err);
       if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
+        return res.status(401).json({ message: "Invalid username or password" });
       }
-      req.login(user, (err: any) => {
+      req.login(user, (err) => {
         if (err) return next(err);
         return res.json(user);
       });

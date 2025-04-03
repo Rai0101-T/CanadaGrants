@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Grant } from "@shared/schema";
 import GrantCard from "@/components/grant-card";
 import FederalGrantFilters from "@/components/federal-grant-filters";
+import GrantCarousel from "@/components/grant-carousel";
 
 export default function FederalGrants() {
   const [filters, setFilters] = useState({
@@ -92,7 +93,24 @@ export default function FederalGrants() {
     });
   }, [grants, filters]);
   
-  // Removed unused code for filter sections
+  // Group grants by funding amount for carousel display
+  const highValueGrants = useMemo(() => {
+    if (!filteredGrants) return [];
+    return filteredGrants.filter(grant => parseInt(grant.fundingAmount.replace(/[^0-9]/g, '')) > 500000);
+  }, [filteredGrants]);
+  
+  const competitiveGrants = useMemo(() => {
+    if (!filteredGrants) return [];
+    return filteredGrants.filter(grant => grant.competitionLevel === "High");
+  }, [filteredGrants]);
+  
+  const newGrants = useMemo(() => {
+    if (!filteredGrants) return [];
+    // Sort by date and get the 10 most recent
+    return [...filteredGrants]
+      .sort((a, b) => new Date(b.deadline).getTime() - new Date(a.deadline).getTime())
+      .slice(0, 10);
+  }, [filteredGrants]);
 
   return (
     <div className="bg-black text-white min-h-screen pt-24 px-4 pb-16">
@@ -120,7 +138,31 @@ export default function FederalGrants() {
             Error loading federal grants. Please try again later.
           </div>
         ) : filteredGrants.length > 0 ? (
-          <div className="space-y-12">            
+          <div className="space-y-12">
+            {/* High Value Grants Carousel */}
+            {highValueGrants.length > 0 && (
+              <GrantCarousel
+                title="High Value Grants"
+                grants={highValueGrants}
+              />
+            )}
+            
+            {/* Competitive Grants Carousel */}
+            {competitiveGrants.length > 0 && (
+              <GrantCarousel
+                title="Highly Competitive Grants"
+                grants={competitiveGrants}
+              />
+            )}
+            
+            {/* New Grants Carousel */}
+            {newGrants.length > 0 && (
+              <GrantCarousel
+                title="Upcoming Deadlines"
+                grants={newGrants}
+              />
+            )}
+            
             {/* All Filtered Grants */}
             <div>
               <h2 className="text-2xl font-bold mb-4">All Federal Grants</h2>
