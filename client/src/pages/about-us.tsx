@@ -12,11 +12,12 @@ export default function AboutUs() {
       
       {/* Modern Banner with Gradient Overlay */}
       <div className="w-full h-72 md:h-96 relative overflow-hidden">
-        {/* Dark, cinematic Netflix-inspired background */}
+        {/* Canadian business/skyline background */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1574267432553-4b4628081c31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2831&q=80')"
+            backgroundImage: "url('https://images.unsplash.com/photo-1503614472-8c93d56e92ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2011&q=80')",
+            filter: "brightness(0.5)"
           }}
         ></div>
         
