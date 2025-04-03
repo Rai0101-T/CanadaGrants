@@ -129,9 +129,55 @@ export default function PrivateGrants() {
     });
   }, [grants, filters]);
   
+  // Generate a dynamic page title based on selected filters
+  const pageTitle = useMemo(() => {
+    if (filters.organization && filters.organization !== "all_organizations") {
+      // Map filter values to display names
+      const orgMap: Record<string, string> = {
+        'rogers': 'Rogers Communications',
+        'td': 'TD Bank Group',
+        'shopify': 'Shopify Inc.',
+        'rbc': 'Royal Bank of Canada',
+        'desjardins': 'Desjardins Group'
+      };
+      return `${orgMap[filters.organization] || filters.organization} Grants`;
+    } else if (filters.industry && filters.industry !== "all_industries") {
+      // Capitalize the industry name
+      return `${filters.industry.charAt(0).toUpperCase() + filters.industry.slice(1)} Grants`;
+    } else if (filters.grantAmount && filters.grantAmount !== "any_amount") {
+      const amountMap: Record<string, string> = {
+        'under_10k': 'Small',
+        '10k_50k': 'Medium',
+        '50k_100k': 'Medium-Large',
+        '100k_500k': 'Large',
+        'over_500k': 'Major'
+      };
+      return `${amountMap[filters.grantAmount] || ''} Private Grants`;
+    } else if (filters.deadline && filters.deadline !== "any_deadline") {
+      const deadlineMap: Record<string, string> = {
+        'ongoing': 'Ongoing',
+        '30_days': 'Urgent (30 Days)',
+        '60_days': 'Soon (60 Days)',
+        '90_days': 'Upcoming (90 Days)',
+        'this_year': 'This Year\'s'
+      };
+      return `${deadlineMap[filters.deadline] || ''} Private Grants`;
+    }
+    return "All Private Grants";
+  }, [filters]);
+
+  // Determine if any filters are applied
+  const isFiltered = useMemo(() => {
+    return filters.organization !== "all_organizations" && filters.organization !== "" ||
+           filters.industry !== "all_industries" && filters.industry !== "" ||
+           filters.grantAmount !== "any_amount" && filters.grantAmount !== "" ||
+           filters.deadline !== "any_deadline" && filters.deadline !== "";
+  }, [filters]);
+
   // Group grants by funding organization for carousel display
   const organizationGroups = useMemo(() => {
-    if (!filteredGrants || filteredGrants.length === 0) return {};
+    // Don't show organization groups when filters are applied
+    if (isFiltered || !filteredGrants || filteredGrants.length === 0) return {};
     
     return filteredGrants.reduce((acc, grant) => {
       const orgName = grant.fundingOrganization || grant.category;
@@ -143,11 +189,13 @@ export default function PrivateGrants() {
       }
       return acc;
     }, {} as Record<string, Grant[]>);
-  }, [filteredGrants]);
+  }, [filteredGrants, isFiltered]);
   
   // Get high value grants (over $100K)
   const highValueGrants = useMemo(() => {
-    if (!filteredGrants) return [];
+    // Don't show high value grants section when filters are applied
+    if (isFiltered || !filteredGrants) return [];
+    
     return filteredGrants.filter(grant => {
       const amountStr = grant.fundingAmount.replace(/[^0-9\-]/g, '');
       let amount = 0;
@@ -159,7 +207,7 @@ export default function PrivateGrants() {
       }
       return amount > 100000;
     });
-  }, [filteredGrants]);
+  }, [filteredGrants, isFiltered]);
 
   return (
     <div className="bg-black text-white min-h-screen pt-24 px-4 pb-16">
@@ -205,9 +253,9 @@ export default function PrivateGrants() {
               />
             )}
             
-            {/* All Private Grants */}
+            {/* Grants Section with Dynamic Title */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">All Private Grants</h2>
+              <h2 className="text-2xl font-bold mb-4">{pageTitle}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />
