@@ -30,13 +30,9 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">Business Grants</a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary transition-colors">Research Funding</a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary transition-colors">Arts & Culture</a>
+                  <Link href="/private-grants">
+                    <a className="hover:text-primary transition-colors">Private Grants</a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -48,16 +44,10 @@ export default function Footer() {
                   <a href="#" className="hover:text-primary transition-colors">How It Works</a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">Success Stories</a>
-                </li>
-                <li>
                   <a href="#" className="hover:text-primary transition-colors">FAQ</a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-primary transition-colors">Contact Us</a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary transition-colors">Careers</a>
                 </li>
               </ul>
             </div>

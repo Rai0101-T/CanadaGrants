@@ -2,8 +2,14 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Grant } from "@shared/schema";
 import GrantCard from "@/components/grant-card";
-import FederalGrantFilters from "@/components/federal-grant-filters";
 import GrantCarousel from "@/components/grant-carousel";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function PrivateGrants() {
   const [filters, setFilters] = useState({
@@ -13,9 +19,9 @@ export default function PrivateGrants() {
     deadline: "",
   });
   
-  // Fetch all federal grants (Since we don't have private grants API yet, we'll reuse federal grants for now)
+  // Fetch all private grants
   const { data: grants, isLoading, isError } = useQuery<Grant[]>({
-    queryKey: ["/api/grants/type/federal"],
+    queryKey: ["/api/grants/type/private"],
   });
   
   // Apply all filters to grants
@@ -132,10 +138,87 @@ export default function PrivateGrants() {
           </p>
           
           <div className="mt-6 mb-6">
-            <FederalGrantFilters 
-              onFilterChange={setFilters}
-              className="mb-4" 
-            />
+            <div className={`flex flex-col md:flex-row gap-3 mb-4`}>
+              {/* Organization Filter */}
+              <div className="w-full md:w-1/4">
+                <Select
+                  value={filters.department}
+                  onValueChange={(value) => setFilters({...filters, department: value})}
+                >
+                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
+                    <SelectValue placeholder="Organization" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 text-white border-gray-700">
+                    <SelectItem value="all_departments">All Organizations</SelectItem>
+                    <SelectItem value="rogers">Rogers Foundation</SelectItem>
+                    <SelectItem value="bell">Bell Let's Talk Fund</SelectItem>
+                    <SelectItem value="td">TD Friends of the Environment</SelectItem>
+                    <SelectItem value="rbc">RBC Foundation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Industry Filter */}
+              <div className="w-full md:w-1/4">
+                <Select 
+                  value={filters.industry}
+                  onValueChange={(value) => setFilters({...filters, industry: value})}
+                >
+                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
+                    <SelectValue placeholder="Industry" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 text-white border-gray-700">
+                    <SelectItem value="all_industries">All Industries</SelectItem>
+                    <SelectItem value="technology">Technology</SelectItem>
+                    <SelectItem value="healthcare">Healthcare</SelectItem>
+                    <SelectItem value="education">Education</SelectItem>
+                    <SelectItem value="environment">Environment</SelectItem>
+                    <SelectItem value="social">Social Initiatives</SelectItem>
+                    <SelectItem value="arts">Arts & Culture</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Grant Amount Filter */}
+              <div className="w-full md:w-1/4">
+                <Select
+                  value={filters.grantAmount}
+                  onValueChange={(value) => setFilters({...filters, grantAmount: value})}
+                >
+                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
+                    <SelectValue placeholder="Grant Amount" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 text-white border-gray-700">
+                    <SelectItem value="any_amount">Any Amount</SelectItem>
+                    <SelectItem value="under_10k">Under $10,000</SelectItem>
+                    <SelectItem value="10k_50k">$10,000 - $50,000</SelectItem>
+                    <SelectItem value="50k_100k">$50,000 - $100,000</SelectItem>
+                    <SelectItem value="100k_500k">$100,000 - $500,000</SelectItem>
+                    <SelectItem value="over_500k">Over $500,000</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Deadline Filter */}
+              <div className="w-full md:w-1/4">
+                <Select
+                  value={filters.deadline}
+                  onValueChange={(value) => setFilters({...filters, deadline: value})}
+                >
+                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
+                    <SelectValue placeholder="Application Deadline" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 text-white border-gray-700">
+                    <SelectItem value="any_deadline">Any Deadline</SelectItem>
+                    <SelectItem value="ongoing">Ongoing/No Deadline</SelectItem>
+                    <SelectItem value="30_days">Within 30 Days</SelectItem>
+                    <SelectItem value="60_days">Within 60 Days</SelectItem>
+                    <SelectItem value="90_days">Within 90 Days</SelectItem>
+                    <SelectItem value="this_year">This Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </div>
 
