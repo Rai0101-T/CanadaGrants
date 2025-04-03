@@ -100,10 +100,10 @@ export default function Header() {
                   My List
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => navigate("/grant-sherpa")} 
+                  onClick={() => navigate("/grant-scribe")} 
                   className="cursor-pointer"
                 >
-                  GrantSherpa
+                  GrantScribe
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => logoutMutation.mutate()} 
@@ -150,8 +150,8 @@ export default function Header() {
               </Link>
             </li>
             <li>
-              <Link href="/grant-sherpa">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">GrantSherpa</a>
+              <Link href="/grant-scribe">
+                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">GrantScribe</a>
               </Link>
             </li>
             <li>

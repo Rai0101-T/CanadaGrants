@@ -9,7 +9,7 @@ import FederalGrants from "@/pages/federal-grants";
 import ProvincialGrants from "@/pages/provincial-grants";
 import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
-import GrantScribe from "@/pages/grant-sherpa"; // File name remains same but component renamed
+import GrantScribe from "@/pages/grant-scribe";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
