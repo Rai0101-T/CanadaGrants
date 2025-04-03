@@ -5,12 +5,30 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User } from "@shared/schema";
+import { User, InsertUser } from "@shared/schema";
 import memorystore from "memorystore";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    // Manually define interface to avoid circular reference
+    interface User {
+      id: number;
+      username: string;
+      email: string;
+      passwordHash: string;
+      createdAt: string;
+      isBusiness: boolean | null;
+      businessName: string | null;
+      businessType: string | null;
+      businessDescription: string | null;
+      industry: string | null;
+      province: string | null;
+      employeeCount: string | null;
+      yearFounded: string | null;
+      website: string | null;
+      phoneNumber: string | null;
+      address: string | null;
+    }
   }
 }
 
@@ -49,18 +67,24 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
-        } else {
-          return done(null, user);
+    new LocalStrategy(
+      {
+        usernameField: 'email', // Use email as the username field
+        passwordField: 'password'
+      },
+      async (email, password, done) => {
+        try {
+          const user = await storage.getUserByEmail(email);
+          if (!user || !(await comparePasswords(password, user.passwordHash))) {
+            return done(null, false);
+          } else {
+            return done(null, user);
+          }
+        } catch (err) {
+          return done(err);
         }
-      } catch (err) {
-        return done(err);
       }
-    }),
+    ),
   );
 
   passport.serializeUser((user, done) => {
@@ -91,10 +115,18 @@ export function setupAuth(app: Express) {
       }
       
       const hashedPassword = await hashPassword(password);
-      const user = await storage.createUser({
+      
+      // Create user with passwordHash and createdAt
+      const userData: Omit<InsertUser, 'password'> & { passwordHash: string, createdAt: string } = {
         ...req.body,
-        password: hashedPassword,
-      });
+        passwordHash: hashedPassword,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Remove password from userData as it's not in our schema
+      delete (userData as any).password;
+      
+      const user = await storage.createUser(userData as any);
 
       req.login(user, (err) => {
         if (err) return next(err);
@@ -106,10 +138,10 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: User, info: any) => {
       if (err) return next(err);
       if (!user) {
-        return res.status(401).json({ message: "Invalid username or password" });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
       req.login(user, (err) => {
         if (err) return next(err);

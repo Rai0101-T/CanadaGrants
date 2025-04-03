@@ -79,18 +79,20 @@ export default function AuthPage() {
         industry, 
         province,
         businessDescription,
-        isBusiness 
+        // Ignore confirmPassword as it's not in our schema
+        ...rest
       } = data;
       
+      // Create user object according to our schema 
       await registerMutation.mutateAsync({
         username,
         email,
-        password,
+        password, // Will be hashed on the server
         industry,
         province,
         businessDescription,
         isBusiness: true, // Always set to true since this is for businesses
-        createdAt: new Date().toISOString()
+        ...rest
       });
       
       toast({

@@ -70,6 +70,7 @@ export const signUpSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters").max(50),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
   isBusiness: z.boolean().default(false),
   // Business profile fields (optional)
   businessName: z.string().optional(),
@@ -82,6 +83,9 @@ export const signUpSchema = z.object({
   website: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   phoneNumber: z.string().optional(),
   address: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 // Business profile update schema
