@@ -25,9 +25,23 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { user, loginMutation, registerMutation } = useAuth();
 
+  // Get redirect path from sessionStorage if it exists
+  const getRedirectPath = () => {
+    if (typeof window !== 'undefined') {
+      const redirectPath = sessionStorage.getItem('redirectAfterAuth');
+      if (redirectPath) {
+        // Clear the stored path to avoid future redirects
+        sessionStorage.removeItem('redirectAfterAuth');
+        return redirectPath;
+      }
+    }
+    return "/";
+  };
+  
   // Redirect if already logged in
   if (user) {
-    navigate("/");
+    const redirectPath = getRedirectPath();
+    navigate(redirectPath);
     return null;
   }
 
@@ -59,11 +73,17 @@ export default function AuthPage() {
   const onLogin = async (data: z.infer<typeof signInSchema>) => {
     try {
       await loginMutation.mutateAsync(data);
+      
+      // Get the redirect path after successful login
+      const redirectPath = getRedirectPath();
+      
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      navigate("/");
+      
+      // Redirect to the saved path or default path
+      navigate(redirectPath);
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -101,11 +121,16 @@ export default function AuthPage() {
         address: rest.address
       });
       
+      // Get the redirect path after successful registration
+      const redirectPath = getRedirectPath();
+      
       toast({
         title: "Registration successful",
         description: "Your account has been created.",
       });
-      navigate("/");
+      
+      // Redirect to the saved path or default path
+      navigate(redirectPath);
     } catch (error) {
       console.error("Registration error:", error);
     }

@@ -22,6 +22,10 @@ export function ProtectedRoute({
   }
 
   if (!user) {
+    // Save the route the user was trying to access
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('redirectAfterAuth', path);
+    }
     return (
       <Route path={path}>
         <Redirect to="/auth" />

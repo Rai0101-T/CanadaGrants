@@ -62,6 +62,11 @@ export default function Header() {
                 </Link>
               </li>
               <li>
+                <Link href="/private-grants">
+                  <a className="text-gray-300 hover:text-primary transition-colors">Private Grants</a>
+                </Link>
+              </li>
+              <li>
                 <Link href="/my-list">
                   <a className="text-gray-300 hover:text-primary transition-colors">My List</a>
                 </Link>
@@ -142,6 +147,11 @@ export default function Header() {
             <li>
               <Link href="/provincial-grants">
                 <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Provincial</a>
+              </Link>
+            </li>
+            <li>
+              <Link href="/private-grants">
+                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Private</a>
               </Link>
             </li>
             <li>

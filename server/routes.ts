@@ -55,12 +55,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get grants by type (federal or provincial)
+  // Get grants by type (federal, provincial, or private)
   apiRouter.get("/grants/type/:type", async (req: Request, res: Response) => {
     try {
       const type = req.params.type;
-      if (type !== "federal" && type !== "provincial") {
-        return res.status(400).json({ message: "Invalid grant type. Must be 'federal' or 'provincial'" });
+      if (type !== "federal" && type !== "provincial" && type !== "private") {
+        return res.status(400).json({ message: "Invalid grant type. Must be 'federal', 'provincial', or 'private'" });
       }
       
       const grants = await storage.getGrantsByType(type);

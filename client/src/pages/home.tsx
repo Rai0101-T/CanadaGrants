@@ -170,6 +170,63 @@ export default function Home() {
             <GrantRow grants={(provincialQuery.data || []).slice(0, 6)} />
           )}
         </section>
+        
+        {/* GrantScribe Feature Section */}
+        <section className="mb-12 bg-gradient-to-r from-gray-900 to-black border border-gray-800 rounded-lg overflow-hidden">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="p-8">
+              <div className="inline-block bg-primary/10 px-4 py-2 rounded-full text-primary font-medium mb-4">
+                NEW FEATURE
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">Introducing GrantScribe</h2>
+              <p className="text-gray-300 mb-6">
+                Our AI-powered grant writing assistant helps craft compelling grant applications, 
+                check for plagiarism, and generate innovative ideas tailored to your business needs 
+                and the specific requirements of each grant.
+              </p>
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">✓</span>
+                  <span className="text-gray-300">AI-powered application assistance</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">✓</span>
+                  <span className="text-gray-300">Plagiarism detection</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">✓</span>
+                  <span className="text-gray-300">Custom idea generation for your business</span>
+                </li>
+              </ul>
+              {user ? (
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2" 
+                  onClick={() => window.location.href = '/grant-scribe'}
+                >
+                  Start Using GrantScribe
+                </Button>
+              ) : (
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2" 
+                  onClick={() => window.location.href = '/auth'}
+                >
+                  Sign Up to Use GrantScribe
+                </Button>
+              )}
+            </div>
+            <div className="bg-[url('https://images.unsplash.com/photo-1598018553943-93e826806d68?auto=format&fit=crop&w=600&h=500&q=80')] bg-cover bg-center relative">
+              <div className="absolute inset-0 bg-black/40"></div>
+              <div className="absolute inset-0 flex items-center justify-center p-8">
+                <div className="bg-black/80 p-6 rounded-lg max-w-xs">
+                  <h3 className="text-xl font-bold text-white mb-2">Boost Your Success Rate</h3>
+                  <p className="text-gray-300 text-sm">
+                    Businesses using GrantScribe have reported a 40% higher success rate on their grant applications.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

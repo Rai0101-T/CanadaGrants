@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -48,7 +48,19 @@ export const grants = pgTable("grants", {
   applicationProcess: text("application_process").array(),
   documents: text("required_documents").array(),
   contactEmail: text("contact_email"),
-  contactPhone: text("contact_phone")
+  contactPhone: text("contact_phone"),
+  // New structured fields
+  whoCanApply: text("who_can_apply").array(),
+  industryFocus: text("industry_focus").array(),
+  locationRestrictions: text("location_restrictions"),
+  otherRequirements: text("other_requirements").array(),
+  applicationDates: text("application_dates"),
+  applicationLink: text("application_link"),
+  howToApply: text("how_to_apply").array(),
+  reviewProcess: text("review_process"),
+  restrictions: text("restrictions").array(),
+  faqQuestions: text("faq_questions").array(),
+  faqAnswers: text("faq_answers").array()
 });
 
 // User grants list (favorites) with application status tracking

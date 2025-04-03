@@ -7,6 +7,7 @@ import Footer from "@/components/layout/footer";
 import Home from "@/pages/home";
 import FederalGrants from "@/pages/federal-grants";
 import ProvincialGrants from "@/pages/provincial-grants";
+import PrivateGrants from "@/pages/private-grants";
 import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
 import GrantScribe from "@/pages/grant-scribe";
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/federal-grants" component={FederalGrants} />
           <Route path="/provincial-grants" component={ProvincialGrants} />
+          <Route path="/private-grants" component={PrivateGrants} />
           <Route path="/grant/:id" component={GrantDetails} />
           <ProtectedRoute path="/my-list" component={MyList} />
           <ProtectedRoute path="/grant-scribe" component={GrantScribe} />

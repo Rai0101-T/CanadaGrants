@@ -264,7 +264,52 @@ export class MemStorage implements IStorage {
           "Business number and CRA information"
         ],
         contactEmail: "cdap-support@canada.ca",
-        contactPhone: "+1-800-328-6189"
+        contactPhone: "+1-800-328-6189",
+        // New structured fields
+        whoCanApply: [
+          "Small and medium-sized businesses",
+          "For-profit organizations",
+          "Incorporated businesses",
+          "Businesses with physical locations"
+        ],
+        industryFocus: [
+          "Technology",
+          "Retail",
+          "Manufacturing",
+          "Professional services",
+          "Healthcare"
+        ],
+        locationRestrictions: "Available across all Canadian provinces and territories",
+        otherRequirements: [
+          "Minimum annual revenue of $500,000",
+          "Must have been in business for at least 1 year",
+          "Must have at least 1 employee"
+        ],
+        applicationDates: "Applications accepted until March 31, 2025",
+        applicationLink: "https://innovation.ised-isde.canada.ca/innovation/s/tsrcsgypj/application",
+        howToApply: [
+          "Online application through the CDAP portal",
+          "Digital needs questionnaire completion",
+          "Virtual meeting with a digital advisor",
+          "Final submission through secure online portal"
+        ],
+        reviewProcess: "Applications are reviewed within 4-6 weeks, with funding decisions made within 2 months of submission",
+        restrictions: [
+          "Funds cannot be used for hardware purchases",
+          "Cannot be combined with certain other federal digital programs",
+          "All funded activities must be completed within 12 months",
+          "Maximum funding caps apply based on business size and revenue"
+        ],
+        faqQuestions: [
+          "Can I apply for both CDAP streams?", 
+          "What if my business revenue is less than $500,000?",
+          "How are digital advisors matched with businesses?"
+        ],
+        faqAnswers: [
+          "No, businesses must select either the Boost Your Business Technology or Grow Your Business Online stream based on their needs.",
+          "Businesses with revenue below $500,000 may be eligible for the Grow Your Business Online stream, which has different requirements.",
+          "Advisors are matched based on your industry, location, and specific digital needs identified in your application."
+        ]
       },
       {
         title: "Strategic Innovation Fund (SIF)",
@@ -674,6 +719,183 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.novascotia.ca/ocean-tech",
         featured: false,
+        createdAt: new Date().toISOString()
+      },
+      
+      // Private Grants
+      {
+        title: "Rogers Innovation Fund",
+        description: "Support for technology startups and innovation projects across Canada.",
+        type: "private",
+        imageUrl: "https://images.unsplash.com/photo-1581091226033-c6e0f4f4d398?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Ongoing",
+        fundingAmount: "$50K-250K",
+        category: "Technology",
+        eligibilityCriteria: [
+          "Canadian registered business",
+          "Innovative technology solution",
+          "Growth potential",
+          "Minimum viable product developed",
+          "Market validation"
+        ],
+        pros: [
+          "Industry-specific mentorship",
+          "Access to Rogers technology ecosystem",
+          "No equity requirements",
+          "Marketing support",
+          "Rolling application process"
+        ],
+        cons: [
+          "Competitive selection process",
+          "Technology focus only",
+          "Progress milestone requirements",
+          "Limited to specific technology sectors",
+          "Requires detailed business plan"
+        ],
+        websiteUrl: "https://rogersinnovation.ca",
+        featured: true,
+        province: null,
+        fundingOrganization: "Rogers Communications",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "TD Environmental Action Grant",
+        description: "Funding for community-based environmental initiatives and conservation projects.",
+        type: "private",
+        imageUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Mar 15, 2024",
+        fundingAmount: "$5K-25K",
+        category: "Environment",
+        eligibilityCriteria: [
+          "Registered charity or non-profit",
+          "Environmental focus",
+          "Community impact",
+          "Clear sustainability plan",
+          "Canadian operation"
+        ],
+        pros: [
+          "Simple application process",
+          "Fast funding decision",
+          "Environmental expertise support",
+          "Networking opportunities",
+          "Volunteer support available"
+        ],
+        cons: [
+          "Smaller funding amounts",
+          "Requires community partner",
+          "Urban focus preferred",
+          "One-time funding only",
+          "Limited to environmental projects"
+        ],
+        websiteUrl: "https://td.com/environmentalgrants",
+        featured: false,
+        province: null,
+        fundingOrganization: "TD Bank Group",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "Shopify Capital Resilience Fund",
+        description: "Financial support for small and medium e-commerce businesses affected by economic challenges.",
+        type: "private",
+        imageUrl: "https://images.unsplash.com/photo-1607083206968-13611e3d76db?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Ongoing",
+        fundingAmount: "$10K-500K",
+        category: "E-commerce",
+        eligibilityCriteria: [
+          "Shopify merchant",
+          "Minimum 6 months on platform",
+          "Canadian business registration",
+          "Good standing account",
+          "Demonstrated growth potential"
+        ],
+        pros: [
+          "Revenue-based repayment model",
+          "No credit check required",
+          "Fast approval process",
+          "No fixed payment schedule",
+          "No equity dilution"
+        ],
+        cons: [
+          "Must be Shopify merchant",
+          "Higher total repayment amount",
+          "Percentage of sales withheld daily",
+          "Limited use requirements",
+          "May affect cash flow"
+        ],
+        websiteUrl: "https://shopify.ca/capital",
+        featured: true,
+        province: null,
+        fundingOrganization: "Shopify Inc.",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "RBC Future Launch Scholarship",
+        description: "Support for students pursuing education in emerging technological fields and innovation.",
+        type: "private",
+        imageUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Jan 31, 2024",
+        fundingAmount: "$1.5K-5K",
+        category: "Education",
+        eligibilityCriteria: [
+          "Canadian citizen or permanent resident",
+          "Enrolled in post-secondary education",
+          "Studying technology, innovation, or engineering",
+          "Demonstrated leadership",
+          "Community involvement"
+        ],
+        pros: [
+          "Merit-based selection",
+          "Networking opportunities",
+          "Mentorship program access",
+          "No repayment required",
+          "Additional resources provided"
+        ],
+        cons: [
+          "Highly competitive",
+          "Limited to specific fields",
+          "One-time award",
+          "Detailed application process",
+          "Requires recommendation letters"
+        ],
+        websiteUrl: "https://rbc.com/futurelaunch",
+        featured: false,
+        province: null,
+        fundingOrganization: "Royal Bank of Canada",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "Desjardins Social Impact Grant",
+        description: "Funding for social enterprises and community initiatives addressing social challenges in Quebec and Ontario.",
+        type: "private",
+        imageUrl: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Apr 30, 2024",
+        fundingAmount: "$20K-75K",
+        category: "Social Enterprise",
+        eligibilityCriteria: [
+          "Registered social enterprise or non-profit",
+          "Quebec or Ontario based",
+          "Clear social impact metrics",
+          "Sustainable business model",
+          "At least 1 year in operation"
+        ],
+        pros: [
+          "Bi-lingual support available",
+          "Business development assistance",
+          "Connection to cooperative network",
+          "Financial training included",
+          "Multi-year funding possible"
+        ],
+        cons: [
+          "Geographic restrictions",
+          "Requires impact measurement plan",
+          "Quarterly reporting required",
+          "Must attend training sessions",
+          "Matching component recommended"
+        ],
+        websiteUrl: "https://desjardins.com/socialimpact",
+        featured: false,
+        province: null,
+        fundingOrganization: "Desjardins Group",
         createdAt: new Date().toISOString()
       }
     ];

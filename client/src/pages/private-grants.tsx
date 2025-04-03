@@ -5,7 +5,7 @@ import GrantCard from "@/components/grant-card";
 import FederalGrantFilters from "@/components/federal-grant-filters";
 import GrantCarousel from "@/components/grant-carousel";
 
-export default function FederalGrants() {
+export default function PrivateGrants() {
   const [filters, setFilters] = useState({
     department: "",
     industry: "",
@@ -13,7 +13,7 @@ export default function FederalGrants() {
     deadline: "",
   });
   
-  // Fetch all federal grants
+  // Fetch all federal grants (Since we don't have private grants API yet, we'll reuse federal grants for now)
   const { data: grants, isLoading, isError } = useQuery<Grant[]>({
     queryKey: ["/api/grants/type/federal"],
   });
@@ -93,32 +93,42 @@ export default function FederalGrants() {
     });
   }, [grants, filters]);
   
-  // Group grants by funding amount for carousel display
+  // Group grants by funding organization for carousel display
+  const organizationGroups = useMemo(() => {
+    if (!filteredGrants) return {};
+    
+    return filteredGrants.reduce((acc, grant) => {
+      if (grant.fundingOrganization) {
+        if (!acc[grant.fundingOrganization]) {
+          acc[grant.fundingOrganization] = [];
+        }
+        acc[grant.fundingOrganization].push(grant);
+      }
+      return acc;
+    }, {} as Record<string, Grant[]>);
+  }, [filteredGrants]);
+  
+  // Get the top organizations with most grants
+  const topOrganizations = useMemo(() => {
+    return Object.entries(organizationGroups)
+      .sort(([, grantsA], [, grantsB]) => grantsB.length - grantsA.length)
+      .slice(0, 5)
+      .map(([organization]) => organization);
+  }, [organizationGroups]);
+  
+  // Get high value grants
   const highValueGrants = useMemo(() => {
     if (!filteredGrants) return [];
-    return filteredGrants.filter(grant => parseInt(grant.fundingAmount.replace(/[^0-9]/g, '')) > 500000);
-  }, [filteredGrants]);
-  
-  const competitiveGrants = useMemo(() => {
-    if (!filteredGrants) return [];
-    return filteredGrants.filter(grant => grant.competitionLevel === "High");
-  }, [filteredGrants]);
-  
-  const newGrants = useMemo(() => {
-    if (!filteredGrants) return [];
-    // Sort by date and get the 10 most recent
-    return [...filteredGrants]
-      .sort((a, b) => new Date(b.deadline).getTime() - new Date(a.deadline).getTime())
-      .slice(0, 10);
+    return filteredGrants.filter(grant => parseInt(grant.fundingAmount.replace(/[^0-9]/g, '')) > 200000);
   }, [filteredGrants]);
 
   return (
     <div className="bg-black text-white min-h-screen pt-24 px-4 pb-16">
       <div className="container mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Federal Grants</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Private Grants</h1>
           <p className="text-gray-400 max-w-3xl">
-            Discover federal funding opportunities available across Canada. These grants are provided by the Canadian government to support various projects, businesses, and initiatives nationwide.
+            Discover foundation and corporate funding opportunities across Canada. These grants are provided by private organizations, foundations, and corporations to support various projects, businesses, and initiatives.
           </p>
           
           <div className="mt-6 mb-6">
@@ -135,21 +145,32 @@ export default function FederalGrants() {
           </div>
         ) : isError ? (
           <div className="text-center py-10 text-red-500">
-            Error loading federal grants. Please try again later.
+            Error loading private grants. Please try again later.
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
+            {/* Organization-specific Carousel Sections */}
+            {topOrganizations.map(organization => (
+              organizationGroups[organization] && organizationGroups[organization].length > 0 && (
+                <GrantCarousel
+                  key={organization}
+                  title={`${organization} Grants`}
+                  grants={organizationGroups[organization]}
+                />
+              )
+            ))}
+            
             {/* High Value Grants Carousel */}
             {highValueGrants.length > 0 && (
               <GrantCarousel
-                title="High Value Grants"
+                title="High Value Private Grants"
                 grants={highValueGrants}
               />
             )}
             
             {/* All Filtered Grants */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">All Federal Grants</h2>
+              <h2 className="text-2xl font-bold mb-4">All Private Grants</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />
@@ -159,7 +180,7 @@ export default function FederalGrants() {
           </div>
         ) : (
           <div className="text-center py-10 text-gray-400">
-            No federal grants found with the selected filters.
+            No private grants found matching your filter criteria. Try adjusting your filters.
           </div>
         )}
       </div>
