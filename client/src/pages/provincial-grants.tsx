@@ -72,8 +72,12 @@ export default function ProvincialGrants() {
             Explore province-specific funding opportunities across Canada. These grants are provided by provincial governments to support local projects, businesses, and initiatives.
           </p>
           
-          <div className="mt-6 mb-2 border-b border-gray-800 pb-2">
-            <IndustryFilter onFilterChange={setIndustryFilter} />
+          <div className="mt-6 mb-6">
+            <IndustryFilter 
+              onFilterChange={setIndustryFilter} 
+              type="dropdown"
+              className="mb-4" 
+            />
           </div>
         </div>
 
