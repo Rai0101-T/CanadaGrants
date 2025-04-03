@@ -126,173 +126,188 @@ export class MemStorage implements IStorage {
     );
   }
 
-  // Initialize with sample grants data
+  // Initialize with real grants data from Innovation Canada
   private initializeGrants() {
     const grantsData: InsertGrant[] = [
-      // Federal Grants
+      // Federal Grants from Innovation Canada
       {
-        title: "Business Development Grant",
-        description: "Up to $100,000 funding for small business innovation projects.",
+        title: "Canada Digital Adoption Program (CDAP)",
+        description: "The Canada Digital Adoption Program (CDAP) helps small and medium-sized businesses increase their online presence and adopt digital technologies.",
         type: "federal",
         imageUrl: "https://images.unsplash.com/photo-1577433218939-37da32ff896b?auto=format&fit=crop&w=500&h=280&q=80",
-        deadline: "Dec 31, 2023",
-        fundingAmount: "$25K-100K",
-        category: "Business",
+        deadline: "Mar 31, 2025",
+        fundingAmount: "$15K-$100K",
+        category: "Digital Technology",
+        industry: "Technology",
+        province: "All",
+        competitionLevel: "Medium",
         eligibilityCriteria: [
-          "Canadian-owned business",
-          "In operation for at least 2 years",
-          "Annual revenue between $500K and $10M",
-          "Fewer than 100 employees",
-          "Clear growth strategy with job creation potential"
+          "Canadian small or medium-sized business",
+          "For-profit organization",
+          "Registered or incorporated business",
+          "Consumer-facing business with a physical location",
+          "Minimum annual revenue of $500,000"
         ],
         pros: [
-          "Non-repayable funding (no need to pay back)",
-          "Covers up to 75% of eligible project costs",
-          "Quick application process (30 days)",
-          "Dedicated support officer assigned to each project",
-          "Can be combined with other funding sources"
+          "Up to $15,000 in grants to work with an e-commerce advisor",
+          "0% interest loans from BDC up to $100,000 for implementation",
+          "Access to a network of digital advisors",
+          "Additional support from youth e-commerce advisors",
+          "Combines both funding and expertise"
         ],
         cons: [
-          "Requires detailed business plan submission",
-          "Quarterly reporting requirements",
-          "Highly competitive application process",
-          "Restricted to specific industry sectors",
-          "Must maintain operations in Canada for 5+ years"
+          "Different streams have different eligibility requirements",
+          "Complex application process",
+          "Requires detailed implementation plans",
+          "May have wait times for advisor matching",
+          "Funding depends on business size and needs"
         ],
-        websiteUrl: "https://www.canada.ca/business-grants",
+        websiteUrl: "https://innovation.ised-isde.canada.ca/innovation/s/tsrcsgypj",
         featured: true,
         createdAt: new Date().toISOString()
       },
       {
-        title: "Innovation Fund",
-        description: "For businesses developing new technologies and processes.",
+        title: "Strategic Innovation Fund (SIF)",
+        description: "The Strategic Innovation Fund supports large-scale, transformative, and collaborative projects that promote sustainable economic growth and innovation excellence across all sectors of the economy.",
         type: "federal",
         imageUrl: "https://images.unsplash.com/photo-1611095210561-67f0832b1ca3?auto=format&fit=crop&w=500&h=280&q=80",
-        deadline: "Jan 15, 2024",
-        fundingAmount: "$100K-1M",
+        deadline: "Ongoing",
+        fundingAmount: "$10M+",
         category: "Technology",
+        industry: "Multiple",
+        province: "All",
+        competitionLevel: "High",
         eligibilityCriteria: [
-          "Canadian-based company",
-          "Innovative technological advancement",
-          "Potential for market disruption",
-          "Job creation potential",
-          "Sustainability focus"
+          "For-profit corporations incorporated under Canadian laws",
+          "Large-scale projects ($10M+ in eligible costs)",
+          "Collaborative with multiple parties",
+          "Innovation leading to productivity improvements",
+          "Positive economic impact and job creation"
         ],
         pros: [
-          "Large funding amounts available",
-          "Multi-year support possible",
-          "Access to government research facilities",
-          "Intellectual property remains with recipient",
-          "International partnership opportunities"
+          "Substantial funding for transformative projects",
+          "Support for multiple project streams and sectors",
+          "Can fund up to 50% of eligible costs",
+          "Focused on technology development and adoption",
+          "Promotes technology transfer and supply chain integration"
         ],
         cons: [
-          "Extensive application documentation",
-          "Requires matching funds from applicant",
-          "Long review process (3-6 months)",
-          "Strict milestone reporting",
-          "Limited to specific technology sectors"
+          "Highly competitive application process",
+          "Extensive due diligence and application requirements",
+          "Long assessment timelines",
+          "Requires matching funds and other financing",
+          "Detailed reporting and performance measurements"
         ],
-        websiteUrl: "https://www.canada.ca/innovation-fund",
-        featured: false,
+        websiteUrl: "https://innovation.ised-isde.canada.ca/innovation/s/tsr0zznhs",
+        featured: true,
         createdAt: new Date().toISOString()
       },
       {
-        title: "Arts and Culture Fund",
-        description: "Supporting Canadian artists and cultural projects nationwide.",
+        title: "Canada Cultural Spaces Fund (CCSF)",
+        description: "The CCSF supports the improvement of physical conditions for arts, heritage, culture and creative innovation by contributing to projects that improve, renovate and create spaces for the arts and heritage.",
         type: "federal",
         imageUrl: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=500&h=280&q=80",
-        deadline: "Feb 1, 2024",
-        fundingAmount: "$5K-75K",
+        deadline: "Ongoing",
+        fundingAmount: "$15K-$15M",
         category: "Arts",
+        industry: "Culture",
+        province: "All",
+        competitionLevel: "Medium",
         eligibilityCriteria: [
-          "Canadian artist or cultural organization",
-          "Project with cultural significance",
-          "Public presentation component",
-          "Professional experience in the field",
-          "Clear project timeline and budget"
+          "Not-for-profit arts and heritage organizations",
+          "Provincial/territorial/municipal governments and agencies",
+          "Indigenous organizations",
+          "Equivalent Indigenous peoples' institutions or organizations",
+          "Must own or have a long-term lease on the property"
         ],
         pros: [
-          "Support for diverse cultural expressions",
-          "No repayment required",
-          "Networking opportunities with other artists",
-          "Public exposure through government channels",
-          "Additional tour funding available"
+          "Funding for construction, renovation and equipment acquisition",
+          "Support for feasibility studies and special projects",
+          "Can cover up to 50% of eligible costs",
+          "Targeted toward improving physical arts infrastructure",
+          "Enhances accessibility to cultural spaces"
         ],
         cons: [
-          "Competitive application process",
-          "Project must align with current funding priorities",
-          "Lengthy application form",
-          "Required public reporting",
-          "Limited to specific artistic disciplines in each funding cycle"
+          "Only for organizations, not individual artists",
+          "Requires matching funding from other sources",
+          "Complex application process with technical requirements",
+          "Long lead times for approval",
+          "Priority given to shovel-ready projects"
         ],
-        websiteUrl: "https://www.canada.ca/arts-culture-fund",
+        websiteUrl: "https://innovation.ised-isde.canada.ca/innovation/s/tsr2gfyhbli",
         featured: true,
         createdAt: new Date().toISOString()
       },
       {
-        title: "Scientific Research Funding",
-        description: "For universities and research institutes conducting innovative studies.",
+        title: "Natural Sciences and Engineering Research Council (NSERC)",
+        description: "NSERC invests in people, discovery and innovation through programs that support post-secondary research, provide scholarships and fellowships, and connect companies with research expertise.",
         type: "federal",
         imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=500&h=280&q=80",
-        deadline: "Apr 30, 2024",
-        fundingAmount: "$100K-500K",
+        deadline: "Varies by program",
+        fundingAmount: "$5K-$1M+",
         category: "Research",
+        industry: "Science",
+        province: "All",
+        competitionLevel: "High",
         eligibilityCriteria: [
-          "Accredited research institution",
-          "PhD-level principal investigator",
-          "Novel research methodology",
-          "Potential for scientific advancement",
-          "Ethics review approval"
+          "Canadian universities, colleges and polytechnics",
+          "Academic researchers in natural sciences and engineering",
+          "Canadian companies partnering with academic institutions",
+          "Post-secondary students and postdoctoral fellows",
+          "Research projects must be in natural sciences or engineering"
         ],
         pros: [
-          "Substantial funding amounts",
-          "Equipment purchase allowance",
-          "Support for research assistants",
-          "International collaboration opportunities",
-          "Publication funding included"
+          "Multiple funding streams for different career stages",
+          "Supports both fundamental and applied research",
+          "Funding for research partnerships with industry",
+          "Scholarships and fellowships for students",
+          "Internationally recognized funding program"
         ],
         cons: [
-          "Extremely competitive",
-          "Significant preliminary data required",
-          "Complex budget justification needed",
-          "Stringent reporting requirements",
-          "Limited overhead cost allowance"
+          "Highly competitive application process",
+          "Detailed research proposal required",
+          "Peer review process can be lengthy",
+          "Restricted to natural sciences and engineering",
+          "Extensive reporting and compliance requirements"
         ],
-        websiteUrl: "https://www.canada.ca/research-grants",
+        websiteUrl: "https://innovation.ised-isde.canada.ca/innovation/s/tsrk6m2vdb",
         featured: true,
         createdAt: new Date().toISOString()
       },
       {
-        title: "Entrepreneurship Development",
-        description: "Supporting new business owners and startups across Canada.",
+        title: "Women Entrepreneurship Strategy (WES) Ecosystem Fund",
+        description: "The WES Ecosystem Fund supports women entrepreneurs by investing in organizations that deliver support to women entrepreneurs, with a focus on underrepresented groups.",
         type: "federal",
         imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=500&h=280&q=80",
-        deadline: "Mar 31, 2024",
-        fundingAmount: "$10K-50K",
+        deadline: "Check website for latest deadlines",
+        fundingAmount: "$25K-$3M",
         category: "Business",
+        industry: "Multiple",
+        province: "All",
+        competitionLevel: "Medium",
         eligibilityCriteria: [
-          "Canadian citizen or permanent resident",
-          "New business (less than 2 years old)",
-          "Viable business plan",
-          "Innovation component",
-          "Owner-operated business"
+          "Not-for-profit organizations supporting women entrepreneurs",
+          "Focus on women entrepreneurs from diverse backgrounds",
+          "Projects that address gaps in services for women entrepreneurs",
+          "Must demonstrate ability to deliver business supports",
+          "Projects that foster collaboration across ecosystem"
         ],
         pros: [
-          "Mentorship included",
-          "Networking opportunities",
-          "Business skill development workshops",
-          "Marketing support",
-          "No previous business experience required"
+          "Specific support for women entrepreneurs",
+          "Focus on underrepresented groups in entrepreneurship",
+          "Supports both national and regional initiatives",
+          "Encourages innovative approaches to support",
+          "Addresses specific barriers faced by women entrepreneurs"
         ],
         cons: [
-          "Limited funding amount",
-          "Required business plan updates",
-          "Mandatory participation in workshops",
-          "Regular progress reporting",
-          "Restricted expense categories"
+          "Available only to organizations, not individual entrepreneurs",
+          "Competitive application process",
+          "Required expertise in supporting women entrepreneurs",
+          "Complex reporting requirements",
+          "Detailed project plan required"
         ],
-        websiteUrl: "https://www.canada.ca/entrepreneur-grants",
-        featured: false,
+        websiteUrl: "https://innovation.ised-isde.canada.ca/innovation/s/tsrqhhbxso",
+        featured: true,
         createdAt: new Date().toISOString()
       },
       {
@@ -566,7 +581,15 @@ export class MemStorage implements IStorage {
     // Add grants to storage
     grantsData.forEach(grantData => {
       const id = this.grantIdCounter++;
-      const grant: Grant = { ...grantData, id };
+      // Ensure all required fields are present with default values if needed
+      const completeGrantData = {
+        ...grantData,
+        industry: grantData.industry || null,
+        province: grantData.province || null,
+        competitionLevel: grantData.competitionLevel || "Medium",
+        eligibilityCriteria: grantData.eligibilityCriteria || []
+      };
+      const grant: Grant = { ...completeGrantData, id };
       this.grants.set(id, grant);
     });
   }
