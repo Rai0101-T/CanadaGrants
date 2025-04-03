@@ -14,11 +14,16 @@ type AuthContextType = {
   error: Error | null;
   loginMutation: UseMutationResult<User, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<User, Error, InsertUser>;
+  registerMutation: UseMutationResult<User, Error, RegisterData>;
 };
 
 type LoginData = {
   email: string;
+  password: string;
+};
+
+// Extended type to match what our registration form actually submits
+type RegisterData = Omit<InsertUser, 'passwordHash' | 'createdAt'> & {
   password: string;
 };
 
@@ -53,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (userData: InsertUser) => {
+    mutationFn: async (userData: RegisterData) => {
       const res = await apiRequest("POST", "/api/register", userData);
       return await res.json();
     },

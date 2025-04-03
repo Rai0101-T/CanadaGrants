@@ -4,16 +4,19 @@ import { Grant } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ExternalLink, Clock, DollarSign, Plus, CheckCircle } from "lucide-react";
+import { 
+  ExternalLink, Clock, DollarSign, Plus, CheckCircle, Building2, 
+  FileText, Mail, Phone, ListChecks, ClipboardList 
+} from "lucide-react";
 import { useMyList } from "@/hooks/use-my-list";
 
 export default function GrantDetails() {
-  const [params] = useParams();
+  const params = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isInMyList, addToMyList, removeFromMyList } = useMyList();
   
-  const grantId = parseInt(params.id);
+  const grantId = parseInt(params.id as string);
 
   // Fetch grant details
   const { data: grant, isLoading, isError } = useQuery<Grant>({
@@ -105,7 +108,7 @@ export default function GrantDetails() {
           <div>
             <h2 className="text-xl font-bold text-white mb-3">Pros</h2>
             <ul className="pros-list space-y-2">
-              {grant.pros.map((pro, index) => (
+              {grant.pros?.map((pro, index) => (
                 <li key={index}>{pro}</li>
               ))}
             </ul>
@@ -114,7 +117,7 @@ export default function GrantDetails() {
           <div>
             <h2 className="text-xl font-bold text-white mb-3">Cons</h2>
             <ul className="cons-list space-y-2">
-              {grant.cons.map((con, index) => (
+              {grant.cons?.map((con, index) => (
                 <li key={index}>{con}</li>
               ))}
             </ul>
@@ -125,7 +128,7 @@ export default function GrantDetails() {
           <h2 className="text-xl font-bold text-white mb-3">Eligibility Criteria</h2>
           <div className="bg-[#333333] p-4 rounded-md">
             <ul className="space-y-2">
-              {grant.eligibilityCriteria.map((criteria, index) => (
+              {grant.eligibilityCriteria?.map((criteria, index) => (
                 <li key={index} className="flex items-start">
                   <CheckCircle className="text-green-500 h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
                   <span>{criteria}</span>
@@ -134,6 +137,71 @@ export default function GrantDetails() {
             </ul>
           </div>
         </div>
+
+        {grant.fundingOrganization && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-3">Funding Organization</h2>
+            <div className="bg-[#333333] p-4 rounded-md flex items-start">
+              <Building2 className="text-primary h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
+              <span>{grant.fundingOrganization}</span>
+            </div>
+          </div>
+        )}
+        
+        {grant.applicationProcess && grant.applicationProcess.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-3">Application Process</h2>
+            <div className="bg-[#333333] p-4 rounded-md">
+              <ol className="space-y-2 list-decimal pl-5">
+                {grant.applicationProcess.map((step, index) => (
+                  <li key={index} className="pl-2">
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        )}
+        
+        {grant.documents && grant.documents.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-3">Required Documents</h2>
+            <div className="bg-[#333333] p-4 rounded-md">
+              <ul className="space-y-2">
+                {grant.documents.map((doc, index) => (
+                  <li key={index} className="flex items-start">
+                    <FileText className="text-blue-400 h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                    <span>{doc}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        
+        {(grant.contactEmail || grant.contactPhone) && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-3">Contact Information</h2>
+            <div className="bg-[#333333] p-4 rounded-md space-y-3">
+              {grant.contactEmail && (
+                <div className="flex items-center">
+                  <Mail className="text-primary h-5 w-5 mr-2 flex-shrink-0" />
+                  <a href={`mailto:${grant.contactEmail}`} className="text-blue-400 hover:underline">
+                    {grant.contactEmail}
+                  </a>
+                </div>
+              )}
+              {grant.contactPhone && (
+                <div className="flex items-center">
+                  <Phone className="text-primary h-5 w-5 mr-2 flex-shrink-0" />
+                  <a href={`tel:${grant.contactPhone}`} className="text-blue-400 hover:underline">
+                    {grant.contactPhone}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
           
         <div className="flex flex-col md:flex-row justify-between items-center">
           <a 

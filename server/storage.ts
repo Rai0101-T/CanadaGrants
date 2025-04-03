@@ -246,7 +246,25 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://innovation.ised-isde.canada.ca/innovation/s/tsrcsgypj",
         featured: true,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        fundingOrganization: "Innovation, Science and Economic Development Canada",
+        applicationProcess: [
+          "Select the appropriate stream (Boost Your Business Technology or Grow Your Business Online)",
+          "Create an account on the CDAP portal",
+          "Complete the online eligibility questionnaire",
+          "Engage with a digital advisor or service provider",
+          "Develop a digital adoption plan",
+          "Submit your application with all required documentation"
+        ],
+        documents: [
+          "Business registration information",
+          "Financial statements for the past year",
+          "Digital needs assessment",
+          "Quotes from service providers (if applicable)",
+          "Business number and CRA information"
+        ],
+        contactEmail: "cdap-support@canada.ca",
+        contactPhone: "+1-800-328-6189"
       },
       {
         title: "Strategic Innovation Fund (SIF)",
@@ -672,7 +690,13 @@ export class MemStorage implements IStorage {
         eligibilityCriteria: grantData.eligibilityCriteria || [],
         pros: grantData.pros || [],
         cons: grantData.cons || [],
-        featured: grantData.featured !== undefined ? grantData.featured : false
+        featured: grantData.featured !== undefined ? grantData.featured : false,
+        // New fields with defaults
+        fundingOrganization: grantData.fundingOrganization || null,
+        applicationProcess: grantData.applicationProcess || [],
+        documents: grantData.documents || [],
+        contactEmail: grantData.contactEmail || null,
+        contactPhone: grantData.contactPhone || null
       };
       const grant: Grant = { ...completeGrantData, id };
       this.grants.set(id, grant);

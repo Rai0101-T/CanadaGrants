@@ -42,7 +42,13 @@ export const grants = pgTable("grants", {
   industry: text("industry"),
   province: text("province"),
   competitionLevel: text("competition_level", { enum: ["Low", "Medium", "High"] }).default("Medium"),
-  createdAt: text("created_at").notNull()
+  createdAt: text("created_at").notNull(),
+  // Additional fields for more detailed information
+  fundingOrganization: text("funding_organization"),
+  applicationProcess: text("application_process").array(),
+  documents: text("required_documents").array(),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone")
 });
 
 // User grants list (favorites) with application status tracking

@@ -92,7 +92,13 @@ export default function AuthPage() {
         province,
         businessDescription,
         isBusiness: true, // Always set to true since this is for businesses
-        ...rest
+        businessName: rest.businessName,
+        businessType: rest.businessType,
+        employeeCount: rest.employeeCount,
+        yearFounded: rest.yearFounded,
+        website: rest.website,
+        phoneNumber: rest.phoneNumber,
+        address: rest.address
       });
       
       toast({
