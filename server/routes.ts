@@ -182,6 +182,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get personalized grant recommendations
+  apiRouter.get("/grants/recommendations", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const recommendedGrants = await storage.getRecommendedGrants(userId);
+      res.json(recommendedGrants);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get personalized grant recommendations" });
+    }
+  });
+  
   // GrantScribe endpoints
   
   // Generate application assistance

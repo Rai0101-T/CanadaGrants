@@ -14,6 +14,7 @@ export interface IStorage {
   getGrantsByType(type: string): Promise<Grant[]>;
   getFeaturedGrants(): Promise<Grant[]>;
   searchGrants(query: string): Promise<Grant[]>;
+  getRecommendedGrants(userId: number): Promise<Grant[]>; // New method to get grants recommended for a user
   
   // User Grants methods (My List)
   getUserGrants(userId: number): Promise<Grant[]>;
@@ -76,7 +77,8 @@ export class MemStorage implements IStorage {
       yearFounded: insertUser.yearFounded || null,
       website: insertUser.website || null,
       phoneNumber: insertUser.phoneNumber || null,
-      address: insertUser.address || null
+      address: insertUser.address || null,
+      businessDescription: insertUser.businessDescription || null
     };
     this.users.set(id, user);
     return user;
@@ -126,6 +128,84 @@ export class MemStorage implements IStorage {
         grant.description.toLowerCase().includes(lowerQuery) ||
         grant.category.toLowerCase().includes(lowerQuery)
     );
+  }
+  
+  // Calculate similarity score (simple word matching for fuzzy search)
+  private calculateSimilarity(text1: string, text2: string): number {
+    if (!text1 || !text2) return 0;
+    
+    const words1 = text1.toLowerCase().split(/\s+/);
+    const words2 = text2.toLowerCase().split(/\s+/);
+    
+    // Count matching words
+    let matchCount = 0;
+    for (const word1 of words1) {
+      if (word1.length > 3) { // Only consider words of significant length
+        for (const word2 of words2) {
+          if (word2.length > 3 && (word2.includes(word1) || word1.includes(word2))) {
+            matchCount++;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Calculate similarity score (0 to 1)
+    return matchCount / Math.max(words1.length, 1);
+  }
+  
+  async getRecommendedGrants(userId: number): Promise<Grant[]> {
+    const user = await this.getUser(userId);
+    if (!user) return [];
+    
+    const allGrants = Array.from(this.grants.values());
+    const scoredGrants: Array<{ grant: Grant; score: number }> = [];
+    
+    // Use industry and province as primary filters if available
+    const filteredGrants = allGrants.filter(grant => {
+      const industryMatch = !user.industry || grant.industry === "Multiple" || 
+                            grant.industry?.toLowerCase() === user.industry?.toLowerCase();
+      
+      const provinceMatch = !user.province || grant.province === "All" || 
+                           grant.province?.toLowerCase() === user.province?.toLowerCase();
+      
+      return industryMatch && provinceMatch;
+    });
+    
+    // Calculate similarity scores based on business description
+    for (const grant of filteredGrants) {
+      let score = 0;
+      
+      // Use business description for fuzzy matching if available
+      if (user.businessDescription) {
+        const descriptionScore = this.calculateSimilarity(
+          user.businessDescription, 
+          grant.description + " " + grant.title + " " + grant.category
+        );
+        score += descriptionScore * 2; // Give higher weight to description matches
+      }
+      
+      // Boost score for matching industry
+      if (user.industry && (grant.industry?.toLowerCase() === user.industry.toLowerCase())) {
+        score += 0.5;
+      }
+      
+      // Boost score for matching province
+      if (user.province && (grant.province?.toLowerCase() === user.province.toLowerCase())) {
+        score += 0.3;
+      }
+      
+      // Boost score for featured grants
+      if (grant.featured) {
+        score += 0.2;
+      }
+      
+      scoredGrants.push({ grant, score });
+    }
+    
+    // Sort by score (highest first) and return the top 6 grants
+    scoredGrants.sort((a, b) => b.score - a.score);
+    return scoredGrants.slice(0, 6).map(item => item.grant);
   }
 
   // User Grants methods (My List)

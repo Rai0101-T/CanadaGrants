@@ -40,14 +40,22 @@ export default function AuthPage() {
     },
   });
 
-  // Register form
-  const registerForm = useForm<z.infer<typeof signUpSchema>>({
-    resolver: zodResolver(signUpSchema),
+  // Register form with extended schema for confirmPassword
+  const extendedSignUpSchema = signUpSchema.extend({
+    confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+  const registerForm = useForm<z.infer<typeof extendedSignUpSchema>>({
+    resolver: zodResolver(extendedSignUpSchema),
     defaultValues: {
       username: "",
       email: "",
       password: "",
       confirmPassword: "",
+      businessDescription: "",
       industry: "",
       province: "",
       isBusiness: true,
@@ -69,26 +77,31 @@ export default function AuthPage() {
   };
 
   // Handle registration submission
-  const onRegister = async (data: z.infer<typeof signUpSchema>) => {
+  const onRegister = async (data: z.infer<typeof extendedSignUpSchema>) => {
     try {
       const { 
         username, 
         email, 
         password, 
         industry, 
-        province, 
+        province,
+        businessDescription,
         isBusiness 
       } = data;
       
+      // For registration, backend handles password -> passwordHash conversion
       await registerMutation.mutateAsync({
         username,
         email,
-        password,
+        // Need to use "as any" because the schema type doesn't match exactly with API
+        // Backend will convert this to passwordHash
+        password, 
         industry,
         province,
+        businessDescription,
         isBusiness: true, // Always set to true since this is for businesses
         createdAt: new Date().toISOString()
-      });
+      } as any);
       
       toast({
         title: "Registration successful",
@@ -280,6 +293,24 @@ export default function AuthPage() {
                                 <option value="saskatchewan">Saskatchewan</option>
                                 <option value="yukon">Yukon</option>
                               </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="businessDescription"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Business Description</FormLabel>
+                            <FormControl>
+                              <textarea 
+                                className="flex min-h-[80px] w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white ring-offset-background focus:border-primary focus:outline-none"
+                                placeholder="Describe your business, products/services, and goals (this helps us match grants)"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
