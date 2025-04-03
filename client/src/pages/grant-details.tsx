@@ -352,40 +352,102 @@ export default function GrantDetails() {
               </div>
             </div>
             
-            {/* FAQs Section */}
+            {/* Additional supporting information could go here - right column */}
             <div>
               <div className="bg-[#333333] p-4 rounded-md h-full">
-                <h3 className="font-semibold text-white mb-3">Frequently Asked Questions</h3>
-                {grant.faqQuestions && grant.faqQuestions.length > 0 && grant.faqAnswers && grant.faqAnswers.length > 0 ? (
-                  <Accordion type="single" collapsible className="w-full">
-                    {grant.faqQuestions.map((question, index) => (
-                      <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-700">
-                        <AccordionTrigger className="text-white hover:text-primary">{question}</AccordionTrigger>
-                        <AccordionContent className="text-gray-300">
-                          {grant.faqAnswers && grant.faqAnswers[index]}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="bg-gray-700 bg-opacity-40 p-3 rounded-md">
-                      <h4 className="text-primary mb-1 font-medium">Do I need to be a registered business to apply?</h4>
-                      <p className="text-gray-300 text-sm">Requirements vary by grant. Check the eligibility criteria section or contact the funding organization.</p>
-                    </div>
-                    <div className="bg-gray-700 bg-opacity-40 p-3 rounded-md">
-                      <h4 className="text-primary mb-1 font-medium">How long does the application process take?</h4>
-                      <p className="text-gray-300 text-sm">Review and decision timelines vary based on the competitiveness of the grant. Check the Review Process section for details.</p>
-                    </div>
-                    <div className="bg-gray-700 bg-opacity-40 p-3 rounded-md">
-                      <h4 className="text-primary mb-1 font-medium">What happens after I submit my application?</h4>
-                      <p className="text-gray-300 text-sm">Applications typically undergo review by a committee. You'll be notified by email about the status of your application.</p>
-                    </div>
-                    <p className="text-gray-400 text-sm mt-3">For more questions, visit the official grant website or contact the funding organization.</p>
+                <h3 className="font-semibold text-white mb-3">Tips for Success</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <ThumbsUp className="text-green-500 h-5 w-5 mr-2 flex-shrink-0 mt-1" />
+                    <span className="text-gray-300">Carefully read all eligibility criteria before applying</span>
                   </div>
-                )}
+                  <div className="flex items-start">
+                    <ThumbsUp className="text-green-500 h-5 w-5 mr-2 flex-shrink-0 mt-1" />
+                    <span className="text-gray-300">Prepare all required documents well in advance</span>
+                  </div>
+                  <div className="flex items-start">
+                    <ThumbsUp className="text-green-500 h-5 w-5 mr-2 flex-shrink-0 mt-1" />
+                    <span className="text-gray-300">Highlight how your project aligns with the grant's goals</span>
+                  </div>
+                  <div className="flex items-start">
+                    <ThumbsUp className="text-green-500 h-5 w-5 mr-2 flex-shrink-0 mt-1" />
+                    <span className="text-gray-300">Be specific and concise in your application responses</span>
+                  </div>
+                  <div className="flex items-start">
+                    <ThumbsUp className="text-green-500 h-5 w-5 mr-2 flex-shrink-0 mt-1" />
+                    <span className="text-gray-300">Submit your application before the deadline</span>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Centered FAQs Section at bottom */}
+        <div className="mb-12 max-w-3xl mx-auto">
+          <h2 className="text-xl font-bold text-white mb-4 text-center">Frequently Asked Questions</h2>
+          <div className="bg-[#333333] p-6 rounded-md">
+            {grant.faqQuestions && grant.faqQuestions.length > 0 && grant.faqAnswers && grant.faqAnswers.length > 0 ? (
+              <Accordion type="single" collapsible className="w-full">
+                {grant.faqQuestions.map((question, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-700 last:border-b-0">
+                    <AccordionTrigger className="text-white font-medium hover:text-primary">
+                      {question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-gray-300 pt-2">
+                      {grant.faqAnswers && grant.faqAnswers[index]}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            ) : (
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1" className="border-b border-gray-700">
+                  <AccordionTrigger className="text-white font-medium hover:text-primary">
+                    Do I need to be a registered business to apply?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-300 pt-2">
+                    Requirements vary by grant. Check the eligibility criteria section or contact the funding organization for specific requirements.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-2" className="border-b border-gray-700">
+                  <AccordionTrigger className="text-white font-medium hover:text-primary">
+                    How long does the application process take?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-300 pt-2">
+                    Application review timelines vary based on the competitiveness of the grant and the funding organization. Most federal grants take 3-6 months for review, while provincial grants may be faster.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-3" className="border-b border-gray-700">
+                  <AccordionTrigger className="text-white font-medium hover:text-primary">
+                    What happens after I submit my application?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-300 pt-2">
+                    Applications typically undergo review by a committee. You'll be notified by email about the status of your application. The review process may include multiple stages and possibly interviews or additional documentation requests.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-4" className="border-b border-gray-700">
+                  <AccordionTrigger className="text-white font-medium hover:text-primary">
+                    Can I apply for multiple grants at the same time?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-300 pt-2">
+                    Yes, you can typically apply for multiple grants simultaneously, as long as you meet the eligibility criteria for each. However, some grants may have restrictions on receiving multiple government funding sources for the same project.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-5" className="border-b-0">
+                  <AccordionTrigger className="text-white font-medium hover:text-primary">
+                    What if I need help with my application?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-300 pt-2">
+                    Many funding organizations offer support services or information sessions for applicants. You can also use our GrantScribe service for assistance with drafting your application, avoiding common pitfalls, and improving your chances of success.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
           </div>
         </div>
 
