@@ -93,22 +93,41 @@ export default function FederalGrants() {
       
       // Grant amount filter
       if (filters.grantAmount && filters.grantAmount !== "any_amount") {
-        // Extract numeric portion of funding amount (e.g. from "$15K-$100K")
-        const amountStr = grant.fundingAmount.replace(/[^0-9\-Kk]/g, '');
+        // Extract numeric portion of funding amount and preserve K/M notation
+        // e.g. from "$15K-$15M" or "$1.5M" or "Up to $500K"
+        const amountStr = grant.fundingAmount.toLowerCase().replace(/[^0-9\.\-km]/g, '');
         let minAmount = 0;
         let maxAmount = 0;
         
-        // Handle K notation (e.g., 15K) and ranges (e.g., 15K-100K)
+        // Convert K/M notation to actual numbers
+        const convertToNumber = (value: string): number => {
+          if (value.endsWith('m')) {
+            // Convert millions (e.g., 1.5m -> 1,500,000)
+            return parseFloat(value.replace('m', '')) * 1000000;
+          } else if (value.endsWith('k')) {
+            // Convert thousands (e.g., 500k -> 500,000)
+            return parseFloat(value.replace('k', '')) * 1000;
+          } else {
+            // Plain number
+            return parseFloat(value) || 0;
+          }
+        };
+        
+        // Handle ranges (e.g., 15k-15m)
         if (amountStr.includes('-')) {
           const parts = amountStr.split('-');
-          // Parse each part considering K notation
-          minAmount = parseInt(parts[0].replace(/K|k/i, '000'));
-          maxAmount = parseInt(parts[1].replace(/K|k/i, '000'));
-        } else if (amountStr.toLowerCase().includes('k')) {
-          // Handle K notation without range
-          minAmount = maxAmount = parseInt(amountStr.toLowerCase().replace('k', '')) * 1000;
+          minAmount = convertToNumber(parts[0]);
+          maxAmount = convertToNumber(parts[1]);
         } else {
-          minAmount = maxAmount = parseInt(amountStr);
+          // Handle single values
+          const amount = convertToNumber(amountStr);
+          minAmount = maxAmount = amount;
+        }
+        
+        // If we couldn't parse numbers properly, default to showing the grant
+        if (isNaN(minAmount) || isNaN(maxAmount)) {
+          console.log(`Could not parse amount: ${grant.fundingAmount}`);
+          return true;
         }
         
         // Grant should appear if either min or max value falls within the range
@@ -122,15 +141,15 @@ export default function FederalGrants() {
             break;
           case "10k_50k":
             // Grant's min is below 50K and max is above 10K
-            matchesFilter = minAmount < 50000 && maxAmount >= 10000;
+            matchesFilter = (minAmount <= 50000 && maxAmount >= 10000);
             break;
           case "50k_100k":
             // Grant's min is below 100K and max is above 50K
-            matchesFilter = minAmount < 100000 && maxAmount >= 50000;
+            matchesFilter = (minAmount <= 100000 && maxAmount >= 50000);
             break;
           case "100k_500k":
             // Grant's min is below 500K and max is above 100K
-            matchesFilter = minAmount < 500000 && maxAmount >= 100000;
+            matchesFilter = (minAmount <= 500000 && maxAmount >= 100000);
             break;
           case "over_500k":
             // Grant has value over 500K
@@ -194,23 +213,42 @@ export default function FederalGrants() {
   // Group grants by funding amount for carousel display
   const highValueGrants = useMemo(() => {
     if (!filteredGrants) return [];
+    
+    // Helper function to convert K/M notation to actual numbers
+    const convertToNumber = (value: string): number => {
+      const cleanValue = value.toLowerCase().trim();
+      if (cleanValue.endsWith('m')) {
+        // Convert millions (e.g., 1.5m -> 1,500,000)
+        return parseFloat(cleanValue.replace('m', '')) * 1000000;
+      } else if (cleanValue.endsWith('k')) {
+        // Convert thousands (e.g., 500k -> 500,000)
+        return parseFloat(cleanValue.replace('k', '')) * 1000;
+      } else {
+        // Plain number
+        return parseFloat(cleanValue) || 0;
+      }
+    };
+    
     return filteredGrants.filter(grant => {
-      const amountStr = grant.fundingAmount.replace(/[^0-9\-Kk]/g, '');
-      let amount = 0;
+      // Extract numeric portion and preserve K/M notation
+      const amountStr = grant.fundingAmount.toLowerCase().replace(/[^0-9\.\-km]/g, '');
+      let maxAmount = 0;
       
-      // Handle K notation (e.g., 15K) and ranges (e.g., 15K-100K)
+      // Handle ranges (e.g., 15k-15m)
       if (amountStr.includes('-')) {
         const parts = amountStr.split('-');
-        const min = parseInt(parts[0].replace(/K|k/i, '000'));
-        const max = parseInt(parts[1].replace(/K|k/i, '000'));
-        amount = Math.max(min, max); // Use the maximum value for high value detection
-      } else if (amountStr.toLowerCase().includes('k')) {
-        amount = parseInt(amountStr.toLowerCase().replace('k', '')) * 1000;
+        const max = convertToNumber(parts[1]);
+        maxAmount = max; // Use the maximum value for high value detection
       } else {
-        amount = parseInt(amountStr);
+        maxAmount = convertToNumber(amountStr);
       }
       
-      return amount > 500000;
+      // If we couldn't parse the amount, be conservative
+      if (isNaN(maxAmount)) {
+        return false;
+      }
+      
+      return maxAmount > 500000;
     });
   }, [filteredGrants]);
   
@@ -254,17 +292,53 @@ export default function FederalGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
-            {/* High Value Grants Carousel */}
-            {highValueGrants.length > 0 && (
+            {/* High Value Grants Carousel - Only show when no filters are applied */}
+            {highValueGrants.length > 0 && 
+             filters.department === "all_departments" && 
+             filters.industry === "all_industries" && 
+             filters.grantAmount === "any_amount" && 
+             filters.deadline === "any_deadline" && (
               <GrantCarousel
                 title="High Value Grants"
                 grants={highValueGrants}
               />
             )}
             
-            {/* All Filtered Grants */}
+            {/* All Filtered Grants with Dynamic Title */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">All Federal Grants</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {/* Dynamic title based on filters */}
+                {filters.department !== "all_departments" && 
+                  `${filters.department.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Grants`}
+                {filters.industry !== "all_industries" && filters.department === "all_departments" && 
+                  `${filters.industry.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Industry Grants`}
+                {filters.grantAmount !== "any_amount" && filters.department === "all_departments" && filters.industry === "all_industries" && 
+                  (() => {
+                    switch (filters.grantAmount) {
+                      case "under_10k": return "Small Grants (Under $10,000)";
+                      case "10k_50k": return "Grants $10,000 - $50,000";
+                      case "50k_100k": return "Grants $50,000 - $100,000";
+                      case "100k_500k": return "Grants $100,000 - $500,000";
+                      case "over_500k": return "Large Grants (Over $500,000)";
+                      default: return "Federal Grants";
+                    }
+                  })()}
+                {filters.deadline !== "any_deadline" && filters.department === "all_departments" && 
+                 filters.industry === "all_industries" && filters.grantAmount === "any_amount" && 
+                  (() => {
+                    switch (filters.deadline) {
+                      case "ongoing": return "Ongoing Federal Grants";
+                      case "30_days": return "Federal Grants Closing in 30 Days";
+                      case "60_days": return "Federal Grants Closing in 60 Days";
+                      case "90_days": return "Federal Grants Closing in 90 Days";
+                      case "this_year": return "Federal Grants Closing This Year";
+                      default: return "Federal Grants";
+                    }
+                  })()}
+                {filters.department === "all_departments" && filters.industry === "all_industries" && 
+                 filters.grantAmount === "any_amount" && filters.deadline === "any_deadline" && 
+                  "All Federal Grants"}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />

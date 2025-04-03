@@ -93,22 +93,41 @@ export default function ProvincialGrants() {
       
       // Grant amount filter
       if (filters.grantAmount && filters.grantAmount !== "any_amount") {
-        // Extract numeric portion of funding amount (e.g. from "$15K-$100K")
-        const amountStr = grant.fundingAmount.replace(/[^0-9\-Kk]/g, '');
+        // Extract numeric portion of funding amount and preserve K/M notation
+        // e.g. from "$15K-$15M" or "$1.5M" or "Up to $500K"
+        const amountStr = grant.fundingAmount.toLowerCase().replace(/[^0-9\.\-km]/g, '');
         let minAmount = 0;
         let maxAmount = 0;
         
-        // Handle K notation (e.g., 15K) and ranges (e.g., 15K-100K)
+        // Convert K/M notation to actual numbers
+        const convertToNumber = (value: string): number => {
+          if (value.endsWith('m')) {
+            // Convert millions (e.g., 1.5m -> 1,500,000)
+            return parseFloat(value.replace('m', '')) * 1000000;
+          } else if (value.endsWith('k')) {
+            // Convert thousands (e.g., 500k -> 500,000)
+            return parseFloat(value.replace('k', '')) * 1000;
+          } else {
+            // Plain number
+            return parseFloat(value) || 0;
+          }
+        };
+        
+        // Handle ranges (e.g., 15k-15m)
         if (amountStr.includes('-')) {
           const parts = amountStr.split('-');
-          // Parse each part considering K notation
-          minAmount = parseInt(parts[0].replace(/K|k/i, '000'));
-          maxAmount = parseInt(parts[1].replace(/K|k/i, '000'));
-        } else if (amountStr.toLowerCase().includes('k')) {
-          // Handle K notation without range
-          minAmount = maxAmount = parseInt(amountStr.toLowerCase().replace('k', '')) * 1000;
+          minAmount = convertToNumber(parts[0]);
+          maxAmount = convertToNumber(parts[1]);
         } else {
-          minAmount = maxAmount = parseInt(amountStr);
+          // Handle single values
+          const amount = convertToNumber(amountStr);
+          minAmount = maxAmount = amount;
+        }
+        
+        // If we couldn't parse numbers properly, default to showing the grant
+        if (isNaN(minAmount) || isNaN(maxAmount)) {
+          console.log(`Could not parse amount: ${grant.fundingAmount}`);
+          return true;
         }
         
         // Grant should appear if either min or max value falls within the range
@@ -122,15 +141,15 @@ export default function ProvincialGrants() {
             break;
           case "10k_50k":
             // Grant's min is below 50K and max is above 10K
-            matchesFilter = minAmount < 50000 && maxAmount >= 10000;
+            matchesFilter = (minAmount <= 50000 && maxAmount >= 10000);
             break;
           case "50k_100k":
             // Grant's min is below 100K and max is above 50K
-            matchesFilter = minAmount < 100000 && maxAmount >= 50000;
+            matchesFilter = (minAmount <= 100000 && maxAmount >= 50000);
             break;
           case "100k_500k":
             // Grant's min is below 500K and max is above 100K
-            matchesFilter = minAmount < 500000 && maxAmount >= 100000;
+            matchesFilter = (minAmount <= 500000 && maxAmount >= 100000);
             break;
           case "over_500k":
             // Grant has value over 500K
@@ -297,8 +316,12 @@ export default function ProvincialGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
-            {/* Province-specific Carousel Sections */}
-            {topProvinces.map(province => (
+            {/* Province-specific Carousel Sections - Only show when no filters are applied */}
+            {filters.province === "all_provinces" && 
+             filters.industry === "all_industries" && 
+             filters.grantAmount === "any_amount" && 
+             filters.deadline === "any_deadline" && 
+             topProvinces.map(province => (
               provinceGroups[province] && provinceGroups[province].length > 0 && (
                 <GrantCarousel
                   key={province}
@@ -308,25 +331,73 @@ export default function ProvincialGrants() {
               )
             ))}
             
-            {/* High Value Grants Carousel */}
-            {highValueGrants.length > 0 && (
+            {/* High Value Grants Carousel - Only show when no filters are applied */}
+            {highValueGrants.length > 0 && 
+             filters.province === "all_provinces" && 
+             filters.industry === "all_industries" && 
+             filters.grantAmount === "any_amount" && 
+             filters.deadline === "any_deadline" && (
               <GrantCarousel
                 title="High Value Provincial Grants"
                 grants={highValueGrants}
               />
             )}
             
-            {/* Upcoming Deadlines Carousel */}
-            {upcomingDeadlines.length > 0 && (
+            {/* Upcoming Deadlines Carousel - Only show when no filters are applied */}
+            {upcomingDeadlines.length > 0 && 
+             filters.province === "all_provinces" && 
+             filters.industry === "all_industries" && 
+             filters.grantAmount === "any_amount" && 
+             filters.deadline === "any_deadline" && (
               <GrantCarousel
                 title="Approaching Deadlines"
                 grants={upcomingDeadlines}
               />
             )}
             
-            {/* All Filtered Grants */}
+            {/* All Filtered Grants with Dynamic Title */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">All Provincial Grants</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {/* Dynamic title based on filters */}
+                {filters.province !== "all_provinces" && 
+                  (() => {
+                    const provinceName = filters.province.split('_').map(word => 
+                      word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                    // Handle special cases
+                    if (provinceName === "Pei") return "PEI Grants";
+                    if (provinceName === "British Columbia") return "BC Grants";
+                    return `${provinceName} Grants`;
+                  })()}
+                {filters.industry !== "all_industries" && filters.province === "all_provinces" && 
+                  `${filters.industry.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Industry Grants`}
+                {filters.grantAmount !== "any_amount" && filters.province === "all_provinces" && 
+                 filters.industry === "all_industries" && 
+                  (() => {
+                    switch (filters.grantAmount) {
+                      case "under_10k": return "Small Provincial Grants (Under $10,000)";
+                      case "10k_50k": return "Provincial Grants $10,000 - $50,000";
+                      case "50k_100k": return "Provincial Grants $50,000 - $100,000";
+                      case "100k_500k": return "Provincial Grants $100,000 - $500,000";
+                      case "over_500k": return "Large Provincial Grants (Over $500,000)";
+                      default: return "Provincial Grants";
+                    }
+                  })()}
+                {filters.deadline !== "any_deadline" && filters.province === "all_provinces" && 
+                 filters.industry === "all_industries" && filters.grantAmount === "any_amount" && 
+                  (() => {
+                    switch (filters.deadline) {
+                      case "ongoing": return "Ongoing Provincial Grants";
+                      case "30_days": return "Provincial Grants Closing in 30 Days";
+                      case "60_days": return "Provincial Grants Closing in 60 Days";
+                      case "90_days": return "Provincial Grants Closing in 90 Days";
+                      case "this_year": return "Provincial Grants Closing This Year";
+                      default: return "Provincial Grants";
+                    }
+                  })()}
+                {filters.province === "all_provinces" && filters.industry === "all_industries" && 
+                 filters.grantAmount === "any_amount" && filters.deadline === "any_deadline" && 
+                  "All Provincial Grants"}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />
