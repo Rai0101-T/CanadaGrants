@@ -77,61 +77,72 @@ export default function GrantDetails() {
   return (
     <div className="bg-[#141414] text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Modern Header with Key Information */}
-        <div className="bg-gradient-to-r from-[#1a1a1a] to-[#222222] rounded-xl p-6 mb-8 shadow-md border border-[#333333]">
-          <div className="flex flex-wrap gap-2 mb-2">
-            <Badge variant="outline" className="bg-primary/90 text-white border-primary">
-              {grant.type === 'federal' ? 'Federal Grant' : 
-              grant.type === 'provincial' ? 'Provincial Grant' : 'Private Grant'}
-            </Badge>
-            {grant.category && (
-              <Badge variant="outline" className="bg-white/10 border-white/20">
-                {grant.category}
+        {/* Image Header */}
+        <div className="h-64 md:h-80 relative mb-8 rounded-xl overflow-hidden">
+          <img 
+            src={grant.imageUrl} 
+            alt={grant.title}
+            onError={(e) => {
+              // Fallback for image load errors
+              e.currentTarget.src = `https://placehold.co/800x400/1a1a1a/ffffff?text=${encodeURIComponent(grant.type === 'federal' ? 'Federal Grant' : grant.type === 'provincial' ? 'Provincial Grant' : 'Private Grant')}`;
+            }}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 p-6 w-full">
+            <div className="flex flex-wrap gap-2 mb-2">
+              <Badge variant="outline" className="bg-primary/90 text-white border-primary">
+                {grant.type === 'federal' ? 'Federal Grant' : 
+                grant.type === 'provincial' ? 'Provincial Grant' : 'Private Grant'}
               </Badge>
-            )}
+              {grant.category && (
+                <Badge variant="outline" className="bg-white/20 border-white/30">
+                  {grant.category}
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">{grant.title}</h1>
+            <p className="text-white/80 text-lg max-w-3xl">{grant.description}</p>
+          </div>
+        </div>
+        
+        {/* Key Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+          {/* Funding Amount */}
+          <div className="bg-[#1a1a1a] backdrop-blur-sm rounded-lg p-4 border border-[#333333]">
+            <div className="flex items-center">
+              <div className="bg-primary/20 p-2 rounded-full mr-3">
+                <DollarSign className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Funding Amount</p>
+                <p className="text-xl font-bold text-white">{grant.fundingAmount}</p>
+              </div>
+            </div>
           </div>
           
-          <h1 className="text-2xl md:text-3xl font-bold mb-3">{grant.title}</h1>
-          <p className="text-gray-300 text-lg mb-6">{grant.description}</p>
+          {/* Application Deadline */}
+          <div className="bg-[#1a1a1a] backdrop-blur-sm rounded-lg p-4 border border-[#333333]">
+            <div className="flex items-center">
+              <div className="bg-primary/20 p-2 rounded-full mr-3">
+                <Calendar className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Deadline</p>
+                <p className="text-xl font-bold text-white">{grant.deadline || 'Ongoing'}</p>
+              </div>
+            </div>
+          </div>
           
-          {/* Key Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
-            {/* Funding Amount */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-[#333333]">
-              <div className="flex items-center">
-                <div className="bg-primary/20 p-2 rounded-full mr-3">
-                  <DollarSign className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Funding Amount</p>
-                  <p className="text-xl font-bold">{grant.fundingAmount}</p>
-                </div>
+          {/* Category */}
+          <div className="bg-[#1a1a1a] backdrop-blur-sm rounded-lg p-4 border border-[#333333]">
+            <div className="flex items-center">
+              <div className="bg-primary/20 p-2 rounded-full mr-3">
+                <Info className="h-6 w-6 text-primary" />
               </div>
-            </div>
-            
-            {/* Application Deadline */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-[#333333]">
-              <div className="flex items-center">
-                <div className="bg-primary/20 p-2 rounded-full mr-3">
-                  <Calendar className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Deadline</p>
-                  <p className="text-xl font-bold">{grant.deadline || 'Ongoing'}</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Success Rate / Other Stat */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-[#333333]">
-              <div className="flex items-center">
-                <div className="bg-primary/20 p-2 rounded-full mr-3">
-                  <Info className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Category</p>
-                  <p className="text-xl font-bold">{grant.category || 'Not specified'}</p>
-                </div>
+              <div>
+                <p className="text-gray-400 text-sm">Category</p>
+                <p className="text-xl font-bold text-white">{grant.category || 'Not specified'}</p>
               </div>
             </div>
           </div>
