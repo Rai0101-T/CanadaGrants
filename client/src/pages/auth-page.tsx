@@ -41,6 +41,9 @@ export default function AuthPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      industry: "",
+      province: "",
+      isBusiness: true,
     },
   });
 
