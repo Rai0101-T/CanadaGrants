@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ArrowRight, CheckCircle, Mail, MapPin, Phone } from 'lucide-react';
 import Header from '@/components/layout/header';
-import Footer from '@/components/layout/footer';
 
 export default function AboutUs() {
   return (
@@ -14,7 +13,7 @@ export default function AboutUs() {
       <main className="py-12">
         {/* Hero Section */}
         <div className="max-w-6xl mx-auto px-4 mb-16">
-          <h1 className="text-3xl md:text-5xl font-bold text-center mb-8">About Canadian Grant Finder</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-center mb-8">About Us: Grantflix</h1>
           <p className="text-xl text-center text-gray-300 max-w-3xl mx-auto">
             Connecting Canadian businesses with the funding opportunities they need to grow and succeed.
           </p>
@@ -60,69 +59,6 @@ export default function AboutUs() {
             <Button className="bg-primary hover:bg-primary/90 text-white">
               <Link href="/auth">Get Started</Link>
             </Button>
-          </div>
-        </section>
-        
-        {/* FAQ Section */}
-        <section id="faq" className="bg-[#0c0c0c] py-16 mb-16">
-          <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
-            
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1" className="border-b border-[#333333]">
-                <AccordionTrigger className="text-lg py-5 hover:text-primary">
-                  What types of grants can I find on Canadian Grant Finder?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pb-5">
-                  Canadian Grant Finder provides access to a comprehensive database of federal, provincial, and private grant opportunities available to businesses across Canada. Our platform covers grants from all major industries and sectors.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-2" className="border-b border-[#333333]">
-                <AccordionTrigger className="text-lg py-5 hover:text-primary">
-                  Is there a cost to use Canadian Grant Finder?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pb-5">
-                  We offer both free and premium account options. The free account provides basic access to grant listings, while premium accounts offer personalized grant matching, application assistance with GrantScribe, and priority notifications for new opportunities.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-3" className="border-b border-[#333333]">
-                <AccordionTrigger className="text-lg py-5 hover:text-primary">
-                  How often is the grant database updated?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pb-5">
-                  Our database is updated daily to ensure you have access to the most current grant opportunities. We monitor government announcements, funding programs, and private initiatives to keep our listings comprehensive and up-to-date.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-4" className="border-b border-[#333333]">
-                <AccordionTrigger className="text-lg py-5 hover:text-primary">
-                  What is GrantScribe and how does it help with applications?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pb-5">
-                  GrantScribe is our AI-powered grant application assistant. It helps you draft compelling applications, checks for plagiarism, generates ideas based on your business profile, and provides feedback to improve your chances of success.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-5" className="border-b border-[#333333]">
-                <AccordionTrigger className="text-lg py-5 hover:text-primary">
-                  How do I track the status of grant applications?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pb-5">
-                  After adding a grant to your "My List," you can update the status of your application and add notes for each step of the process. This helps you stay organized and ensures you don't miss important deadlines or follow-up requirements.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-6" className="border-b border-[#333333]">
-                <AccordionTrigger className="text-lg py-5 hover:text-primary">
-                  Can I get personalized grant recommendations?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pb-5">
-                  Yes! By completing your business profile with details about your industry, location, company size, and goals, our algorithm matches you with the most relevant grant opportunities, saving you time and increasing your chances of success.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
           </div>
         </section>
         
@@ -200,8 +136,8 @@ export default function AboutUs() {
                   <div>
                     <h4 className="font-medium">Email</h4>
                     <p className="text-gray-300 mt-1">
-                      info@canadiangrantfinder.com<br />
-                      support@canadiangrantfinder.com
+                      info@grantflix.com<br />
+                      support@grantflix.com
                     </p>
                   </div>
                 </div>
@@ -246,10 +182,73 @@ export default function AboutUs() {
             </div>
           </div>
         </section>
+        
+        {/* FAQ Section */}
+        <section id="faq" className="bg-[#0c0c0c] py-16 mb-16">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+            
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1" className="border-b border-[#333333]">
+                <AccordionTrigger className="text-lg py-5 hover:text-primary">
+                  What types of grants can I find on Grantflix?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 pb-5">
+                  Grantflix provides access to a comprehensive database of federal, provincial, and private grant opportunities available to businesses across Canada. Our platform covers grants from all major industries and sectors.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-2" className="border-b border-[#333333]">
+                <AccordionTrigger className="text-lg py-5 hover:text-primary">
+                  Is there a cost to use Grantflix?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 pb-5">
+                  We offer both free and premium account options. The free account provides basic access to grant listings, while premium accounts offer personalized grant matching, application assistance with GrantScribe, and priority notifications for new opportunities.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-3" className="border-b border-[#333333]">
+                <AccordionTrigger className="text-lg py-5 hover:text-primary">
+                  How often is the grant database updated?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 pb-5">
+                  Our database is updated daily to ensure you have access to the most current grant opportunities. We monitor government announcements, funding programs, and private initiatives to keep our listings comprehensive and up-to-date.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-4" className="border-b border-[#333333]">
+                <AccordionTrigger className="text-lg py-5 hover:text-primary">
+                  What is GrantScribe and how does it help with applications?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 pb-5">
+                  GrantScribe is our AI-powered grant application assistant. It helps you draft compelling applications, checks for plagiarism, generates ideas based on your business profile, and provides feedback to improve your chances of success.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-5" className="border-b border-[#333333]">
+                <AccordionTrigger className="text-lg py-5 hover:text-primary">
+                  How do I track the status of grant applications?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 pb-5">
+                  After adding a grant to your "My List," you can update the status of your application and add notes for each step of the process. This helps you stay organized and ensures you don't miss important deadlines or follow-up requirements.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-6" className="border-b border-[#333333]">
+                <AccordionTrigger className="text-lg py-5 hover:text-primary">
+                  Can I get personalized grant recommendations?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 pb-5">
+                  Yes! By completing your business profile with details about your industry, location, company size, and goals, our algorithm matches you with the most relevant grant opportunities, saving you time and increasing your chances of success.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </section>
       </main>
       
       {/* About Footer Navigation */}
-      <div className="bg-[#0c0c0c] py-8">
+      <div className="bg-[#0c0c0c] py-8 mb-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
             <a href="#how-it-works" className="text-gray-300 hover:text-primary flex items-center">
@@ -267,8 +266,6 @@ export default function AboutUs() {
           </div>
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 }
