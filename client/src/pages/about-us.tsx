@@ -270,8 +270,8 @@ export default function AboutUs() {
         </section>
       </main>
       
-      {/* About Footer Navigation */}
-      <div className="bg-[#0c0c0c] py-8 mb-12">
+      {/* About Footer Navigation - Using anchor tags for in-page navigation */}
+      <div className="bg-[#0c0c0c] py-8 mb-12" id="about-footer-nav">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
             <a href="#how-it-works" className="text-gray-300 hover:text-primary flex items-center">

@@ -41,13 +41,19 @@ export default function Footer() {
               <h3 className="text-white font-bold mb-4">About</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">How It Works</a>
+                  <Link href="/about-us#how-it-works">
+                    <a className="hover:text-primary transition-colors">How It Works</a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">FAQ</a>
+                  <Link href="/about-us#faq">
+                    <a className="hover:text-primary transition-colors">FAQ</a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">Contact Us</a>
+                  <Link href="/about-us#contact-us">
+                    <a className="hover:text-primary transition-colors">Contact Us</a>
+                  </Link>
                 </li>
               </ul>
             </div>
