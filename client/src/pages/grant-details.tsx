@@ -146,6 +146,15 @@ export default function GrantDetails() {
                       </Badge>
                     ))}
                   </div>
+                ) : grant.industry && grant.industry.includes(',') ? (
+                  <div className="space-y-2">
+                    {grant.industry.split(',').map((industry, index) => (
+                      <div key={index} className="flex items-center">
+                        <Building2 className="text-blue-400 h-5 w-5 mr-2 flex-shrink-0" />
+                        <span className="text-gray-300">{industry.trim()}</span>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="flex items-center">
                     <Building2 className="text-blue-400 h-5 w-5 mr-2 flex-shrink-0" />
