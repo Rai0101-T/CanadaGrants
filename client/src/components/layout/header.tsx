@@ -71,6 +71,11 @@ export default function Header() {
                   <a className="text-gray-300 hover:text-primary transition-colors">My List</a>
                 </Link>
               </li>
+              <li>
+                <Link href="/about-us">
+                  <a className="text-gray-300 hover:text-primary transition-colors">About Us</a>
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>
@@ -162,6 +167,11 @@ export default function Header() {
             <li>
               <Link href="/grant-scribe">
                 <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">GrantScribe</a>
+              </Link>
+            </li>
+            <li>
+              <Link href="/about-us">
+                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">About Us</a>
               </Link>
             </li>
             <li>

@@ -19,7 +19,7 @@ export default function HeroSection() {
               </Button>
             </a>
           </Link>
-          <Link href="#how-it-works">
+          <Link href="/about-us#how-it-works">
             <a>
               <Button 
                 variant="netflixSecondary" 

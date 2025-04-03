@@ -12,6 +12,7 @@ import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
 import GrantScribe from "@/pages/grant-scribe";
 import AuthPage from "@/pages/auth-page";
+import AboutUs from "@/pages/about-us";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -29,6 +30,7 @@ function Router() {
           <Route path="/grant/:id" component={GrantDetails} />
           <ProtectedRoute path="/my-list" component={MyList} />
           <ProtectedRoute path="/grant-scribe" component={GrantScribe} />
+          <Route path="/about-us" component={AboutUs} />
           <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />
         </Switch>
