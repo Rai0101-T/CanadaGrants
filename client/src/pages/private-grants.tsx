@@ -245,17 +245,11 @@ export default function PrivateGrants() {
               />
             ))}
             
-            {/* High Value Grants Carousel */}
-            {highValueGrants.length > 0 && (
-              <GrantCarousel
-                title="High Value Private Grants"
-                grants={highValueGrants}
-              />
-            )}
+            {/* Removed High Value Grants Carousel as requested */}
             
-            {/* Grants Section with Dynamic Title */}
+            {/* Grants Section with "All Grants" Title */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">{pageTitle}</h2>
+              <h2 className="text-2xl font-bold mb-4">All Grants</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />

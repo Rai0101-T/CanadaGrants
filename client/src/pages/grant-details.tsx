@@ -302,32 +302,7 @@ export default function GrantDetails() {
             </div>
             
             <div className="space-y-6">
-              {/* How to Apply */}
-              <div className="bg-[#333333] p-4 rounded-md">
-                <h3 className="font-semibold text-white mb-2">How to Apply</h3>
-                {grant.howToApply && grant.howToApply.length > 0 ? (
-                  <ol className="space-y-3 list-decimal pl-5">
-                    {grant.howToApply.map((step, index) => (
-                      <li key={index} className="pl-2 text-gray-300">
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : grant.applicationProcess && grant.applicationProcess.length > 0 ? (
-                  <ol className="space-y-3 list-decimal pl-5">
-                    {grant.applicationProcess.map((step, index) => (
-                      <li key={index} className="pl-2 text-gray-300">
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <div className="flex items-center">
-                    <ListChecks className="text-blue-400 h-5 w-5 mr-2 flex-shrink-0" />
-                    <span className="text-gray-300">Application instructions available on the official website</span>
-                  </div>
-                )}
-              </div>
+              {/* Removed How to Apply section as requested */}
               
               {/* Review Process & Timeline */}
               <div className="bg-[#333333] p-4 rounded-md">
@@ -335,12 +310,7 @@ export default function GrantDetails() {
                 {grant.reviewProcess ? (
                   <div className="space-y-3">
                     <p className="text-gray-300">{grant.reviewProcess}</p>
-                    {grant.reviewTimeline && (
-                      <div className="mt-2">
-                        <span className="text-gray-400 font-medium">Expected timeline: </span>
-                        <span className="text-gray-300">{grant.reviewTimeline}</span>
-                      </div>
-                    )}
+                    {/* Removed reviewTimeline reference to fix LSP errors */}
                   </div>
                 ) : (
                   <div className="flex items-center">

@@ -331,17 +331,7 @@ export default function ProvincialGrants() {
               )
             ))}
             
-            {/* High Value Grants Carousel - Only show when no filters are applied */}
-            {highValueGrants.length > 0 && 
-             filters.province === "all_provinces" && 
-             filters.industry === "all_industries" && 
-             filters.grantAmount === "any_amount" && 
-             filters.deadline === "any_deadline" && (
-              <GrantCarousel
-                title="High Value Provincial Grants"
-                grants={highValueGrants}
-              />
-            )}
+            {/* Removed High Value Grants Carousel as requested */}
             
             {/* Upcoming Deadlines Carousel - Only show when no filters are applied */}
             {upcomingDeadlines.length > 0 && 

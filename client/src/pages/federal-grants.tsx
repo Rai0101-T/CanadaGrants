@@ -292,17 +292,7 @@ export default function FederalGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
-            {/* High Value Grants Carousel - Only show when no filters are applied */}
-            {highValueGrants.length > 0 && 
-             filters.department === "all_departments" && 
-             filters.industry === "all_industries" && 
-             filters.grantAmount === "any_amount" && 
-             filters.deadline === "any_deadline" && (
-              <GrantCarousel
-                title="High Value Grants"
-                grants={highValueGrants}
-              />
-            )}
+            {/* Removed High Value Grants Carousel as requested */}
             
             {/* All Filtered Grants with Dynamic Title */}
             <div>
