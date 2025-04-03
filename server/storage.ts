@@ -70,6 +70,7 @@ export class MemStorage implements IStorage {
       isBusiness: insertUser.isBusiness || false,
       businessName: insertUser.businessName || null,
       businessType: insertUser.businessType || null,
+      businessDescription: insertUser.businessDescription || null,
       industry: insertUser.industry || null,
       province: insertUser.province || null,
       employeeCount: insertUser.employeeCount || null,

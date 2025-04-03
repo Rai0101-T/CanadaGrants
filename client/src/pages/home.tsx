@@ -1,10 +1,17 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import HeroSection from "@/components/hero-section";
 import GrantRow from "@/components/grant-row";
 import { Grant } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
+  const { user } = useAuth();
+  
   // Fetch featured grants
   const featuredQuery = useQuery<Grant[]>({
     queryKey: ["/api/grants/featured"],
@@ -19,12 +26,80 @@ export default function Home() {
   const provincialQuery = useQuery<Grant[]>({
     queryKey: ["/api/grants/type/provincial"],
   });
+  
+  // Get personalized recommendations based on business description
+  const recommendationsMutation = useMutation({
+    mutationFn: async (businessDescription: string) => {
+      const res = await apiRequest("POST", "/api/grants/recommend", { businessDescription });
+      return await res.json();
+    }
+  });
+  
+  // Load recommendations when the user is loaded and has a business description
+  useEffect(() => {
+    if (user?.isBusiness && user?.businessDescription) {
+      recommendationsMutation.mutate(user.businessDescription);
+    }
+  }, [user]);
 
   return (
     <div className="bg-black text-white min-h-screen">
       <HeroSection />
 
       <div className="container mx-auto px-4 py-8 -mt-24 relative z-30">
+        {/* Personalized Recommendations Section (visible only to business users) */}
+        {user?.isBusiness && (
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <h2 className="text-2xl font-bold text-white mr-3">Recommendations For You</h2>
+                <Badge variant="secondary" className="bg-primary/20 text-primary">
+                  AI-Matched
+                </Badge>
+              </div>
+            </div>
+            
+            {!user.businessDescription ? (
+              <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+                <h3 className="text-white font-medium mb-2">Complete your business profile</h3>
+                <p className="text-gray-400 mb-4">
+                  Add a business description to your profile to get personalized grant recommendations 
+                  that match your business needs and goals.
+                </p>
+                <Button className="bg-primary hover:bg-primary/90">
+                  Update Profile
+                </Button>
+              </div>
+            ) : recommendationsMutation.isPending ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="flex flex-col items-center">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
+                  <p className="text-gray-400">Finding grants that match your business...</p>
+                </div>
+              </div>
+            ) : recommendationsMutation.isError ? (
+              <div className="text-center py-10 text-red-500">
+                Error loading grant recommendations
+              </div>
+            ) : recommendationsMutation.data?.recommendations ? (
+              <div>
+                <GrantRow grants={recommendationsMutation.data.recommendations} />
+                <div className="mt-4 p-4 bg-gray-900 rounded-lg border border-gray-800">
+                  <h3 className="text-white font-medium mb-2">How these recommendations work</h3>
+                  <p className="text-gray-400 text-sm">
+                    These grants were selected based on your business description using AI matching technology. 
+                    The relevance score indicates how well each grant matches your business needs.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500">
+                No recommendations available yet
+              </div>
+            )}
+          </section>
+        )}
+        
         {/* Featured Grants Section */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-4">

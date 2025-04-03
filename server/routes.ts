@@ -182,6 +182,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get grant recommendations based on business description
+  apiRouter.post("/grants/recommend", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { businessDescription } = req.body;
+      
+      if (!businessDescription || businessDescription.trim() === "") {
+        return res.status(400).json({ message: "Business description is required" });
+      }
+      
+      // Get all grants to analyze
+      const allGrants = await storage.getAllGrants();
+      
+      // Create a context with the grant information
+      const grantsContext = allGrants.map(grant => {
+        return `
+          Grant ID: ${grant.id}
+          Title: ${grant.title}
+          Type: ${grant.type}
+          Description: ${grant.description}
+          Industry: ${grant.industry || "Any"}
+          Category: ${grant.category}
+          Eligibility: ${grant.eligibilityCriteria.join(", ")}
+        `;
+      }).join("\n\n");
+      
+      // Create system message with instructions
+      const systemMessage = `
+        You are a grant recommendation system for Canadian businesses.
+        Based on the business description, analyze which grants would be most suitable.
+        Consider industry alignment, eligibility criteria, and business needs.
+        Provide a relevance score from 1-100 for each grant recommended, where 100 is a perfect match.
+        
+        Here is information about available grants:
+        ${grantsContext}
+      `;
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: `Business Description: ${businessDescription}
+          
+          Please recommend the top 5 most relevant grants for this business with a relevance score (1-100).
+          Return the response in the following JSON format:
+          {
+            "recommendations": [
+              { "grantId": number, "relevanceScore": number, "reason": "string" },
+              ...
+            ]
+          }` }
+        ],
+        temperature: 0.5,
+        response_format: { type: "json_object" }
+      });
+      
+      // Parse the JSON response
+      const assistantResponse = JSON.parse(response.choices[0].message.content);
+      
+      // Get the full grant details for the recommended grants
+      const recommendedGrantIds = assistantResponse.recommendations.map(rec => rec.grantId);
+      const recommendedGrants = await Promise.all(
+        recommendedGrantIds.map(async (id) => {
+          const grant = await storage.getGrantById(Number(id));
+          const recommendation = assistantResponse.recommendations.find(rec => rec.grantId === id);
+          if (!grant) return null;
+          return {
+            ...grant,
+            relevanceScore: recommendation.relevanceScore,
+            reason: recommendation.reason
+          };
+        })
+      ).then(grants => grants.filter(Boolean)); // Filter out null values
+      
+      res.json({ recommendations: recommendedGrants });
+    } catch (error) {
+      console.error("Grant recommendation error:", error);
+      res.status(500).json({ message: "Failed to get grant recommendations", error: error.message });
+    }
+  });
+  
   // GrantScribe endpoints
   
   // Generate application assistance

@@ -48,6 +48,7 @@ export default function AuthPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      businessDescription: "",
       industry: "",
       province: "",
       isBusiness: true,
@@ -76,7 +77,8 @@ export default function AuthPage() {
         email, 
         password, 
         industry, 
-        province, 
+        province,
+        businessDescription,
         isBusiness 
       } = data;
       
@@ -86,6 +88,7 @@ export default function AuthPage() {
         password,
         industry,
         province,
+        businessDescription,
         isBusiness: true, // Always set to true since this is for businesses
         createdAt: new Date().toISOString()
       });
@@ -224,6 +227,24 @@ export default function AuthPage() {
                       <p className="text-sm text-gray-400 mb-4">
                         This information helps us recommend grants matching your business needs
                       </p>
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="businessDescription"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Business Description</FormLabel>
+                            <FormControl>
+                              <textarea
+                                className="flex min-h-24 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white ring-offset-background focus:border-primary focus:outline-none"
+                                placeholder="Describe your business, its goals, challenges, and what you're looking for in a grant..."
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       
                       <FormField
                         control={registerForm.control}

@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   isBusiness: boolean("is_business").default(false),
   businessName: text("business_name"),
   businessType: text("business_type"),
+  businessDescription: text("business_description"),
   industry: text("industry"),
   province: text("province"),
   employeeCount: text("employee_count"),
@@ -73,6 +74,7 @@ export const signUpSchema = z.object({
   // Business profile fields (optional)
   businessName: z.string().optional(),
   businessType: z.string().optional(),
+  businessDescription: z.string().optional(),
   industry: z.string().optional(),
   province: z.string().optional(),
   employeeCount: z.string().optional(),
@@ -86,6 +88,7 @@ export const signUpSchema = z.object({
 export const businessProfileSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
   businessType: z.string().min(1, "Business type is required"),
+  businessDescription: z.string().min(1, "Business description is required"),
   industry: z.string(),
   province: z.string(),
   employeeCount: z.string(),
