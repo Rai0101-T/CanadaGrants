@@ -58,16 +58,35 @@ export default function FederalGrants() {
       // Industry filter
       if (filters.industry && filters.industry !== "all_industries") {
         const industryLower = filters.industry.toLowerCase();
+        
+        // Check all possible industry-related fields
         const grantIndustryLower = grant.industry?.toLowerCase() || '';
         const categoryLower = grant.category?.toLowerCase() || '';
-        const industryFocusStr = Array.isArray(grant.industryFocus) 
-          ? grant.industryFocus.join(' ').toLowerCase() 
-          : '';
         
-        // Check multiple fields that might contain industry information
-        if (!grantIndustryLower.includes(industryLower) && 
+        // Handle industryFocus array properly
+        let matchesIndustryFocus = false;
+        if (Array.isArray(grant.industryFocus)) {
+          // Check if any industry in the array matches or contains the selected industry
+          matchesIndustryFocus = grant.industryFocus.some(ind => 
+            ind.toLowerCase().includes(industryLower) || 
+            industryLower.includes(ind.toLowerCase())
+          );
+        }
+        
+        // Special case for "Multiple" industry
+        if (grantIndustryLower === 'multiple') {
+          // If marked as "Multiple", always show it for specific industry searches
+          // but check industryFocus array for confirmation if available
+          if (Array.isArray(grant.industryFocus) && grant.industryFocus.length > 0) {
+            if (!matchesIndustryFocus) {
+              return false;
+            }
+          }
+        }
+        // Match if any of the fields contain the industry
+        else if (!grantIndustryLower.includes(industryLower) && 
             !categoryLower.includes(industryLower) && 
-            !industryFocusStr.includes(industryLower)) {
+            !matchesIndustryFocus) {
           return false;
         }
       }
@@ -76,40 +95,50 @@ export default function FederalGrants() {
       if (filters.grantAmount && filters.grantAmount !== "any_amount") {
         // Extract numeric portion of funding amount (e.g. from "$15K-$100K")
         const amountStr = grant.fundingAmount.replace(/[^0-9\-Kk]/g, '');
-        let amount = 0;
+        let minAmount = 0;
+        let maxAmount = 0;
         
         // Handle K notation (e.g., 15K) and ranges (e.g., 15K-100K)
         if (amountStr.includes('-')) {
           const parts = amountStr.split('-');
           // Parse each part considering K notation
-          const min = parseInt(parts[0].replace(/K|k/i, '000'));
-          const max = parseInt(parts[1].replace(/K|k/i, '000'));
-          amount = (min + max) / 2; // Use average for ranges
+          minAmount = parseInt(parts[0].replace(/K|k/i, '000'));
+          maxAmount = parseInt(parts[1].replace(/K|k/i, '000'));
         } else if (amountStr.toLowerCase().includes('k')) {
           // Handle K notation without range
-          amount = parseInt(amountStr.toLowerCase().replace('k', '')) * 1000;
+          minAmount = maxAmount = parseInt(amountStr.toLowerCase().replace('k', '')) * 1000;
         } else {
-          amount = parseInt(amountStr);
+          minAmount = maxAmount = parseInt(amountStr);
         }
         
-        // Apply the filter based on the amount
+        // Grant should appear if either min or max value falls within the range
+        // Or if the range spans the filter category (min below, max above)
+        let matchesFilter = false;
+        
         switch (filters.grantAmount) {
           case "under_10k":
-            if (amount >= 10000) return false;
+            // Grant has value under 10K
+            matchesFilter = minAmount < 10000;
             break;
           case "10k_50k":
-            if (amount < 10000 || amount >= 50000) return false;
+            // Grant's min is below 50K and max is above 10K
+            matchesFilter = minAmount < 50000 && maxAmount >= 10000;
             break;
           case "50k_100k":
-            if (amount < 50000 || amount >= 100000) return false;
+            // Grant's min is below 100K and max is above 50K
+            matchesFilter = minAmount < 100000 && maxAmount >= 50000;
             break;
           case "100k_500k":
-            if (amount < 100000 || amount >= 500000) return false;
+            // Grant's min is below 500K and max is above 100K
+            matchesFilter = minAmount < 500000 && maxAmount >= 100000;
             break;
           case "over_500k":
-            if (amount < 500000) return false;
+            // Grant has value over 500K
+            matchesFilter = maxAmount >= 500000;
             break;
         }
+        
+        if (!matchesFilter) return false;
       }
       
       // Deadline filter
