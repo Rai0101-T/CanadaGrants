@@ -40,14 +40,11 @@ export default function AboutUs() {
         </div>
       </div>
       
-      {/* Anchor targets for all sections (positioned for better scroll targets) */}
-      <div id="how-it-works" className="pt-28 mt-[-100px]"></div>
-      <div id="contact-us" className="pt-28 mt-[-100px]"></div>
-      <div id="faq" className="pt-28 mt-[-100px]"></div>
+      
       
       <main className="relative z-10">
-        
-        {/* How It Works Section */}
+        {/* How It Works Section with ID */}
+        <div id="how-it-works" className="scroll-mt-24"></div>
         <section className="max-w-6xl mx-auto px-4 py-12 mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
           
@@ -90,7 +87,8 @@ export default function AboutUs() {
           </div>
         </section>
         
-        {/* Contact Us Section */}
+        {/* Contact Us Section with ID */}
+        <div id="contact-us" className="scroll-mt-24"></div>
         <section className="max-w-6xl mx-auto px-4 py-12 mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
           
@@ -211,7 +209,8 @@ export default function AboutUs() {
           </div>
         </section>
         
-        {/* FAQ Section */}
+        {/* FAQ Section with ID */}
+        <div id="faq" className="scroll-mt-24"></div>
         <section className="bg-[#0c0c0c] py-16 mb-16">
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
