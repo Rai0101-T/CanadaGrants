@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { signInSchema, signUpSchema } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
@@ -28,7 +35,7 @@ export default function AuthPage() {
   const loginForm = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -64,14 +71,25 @@ export default function AuthPage() {
   // Handle registration submission
   const onRegister = async (data: z.infer<typeof signUpSchema>) => {
     try {
-      const { username, email, password } = data;
+      const { 
+        username, 
+        email, 
+        password, 
+        industry, 
+        province, 
+        isBusiness 
+      } = data;
+      
       await registerMutation.mutateAsync({
         username,
         email,
         password,
-        role: "business",
+        industry,
+        province,
+        isBusiness: true, // Always set to true since this is for businesses
         createdAt: new Date().toISOString()
       });
+      
       toast({
         title: "Registration successful",
         description: "Your account has been created.",
@@ -105,12 +123,12 @@ export default function AuthPage() {
                   <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                     <FormField
                       control={loginForm.control}
-                      name="username"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your username" {...field} />
+                            <Input type="email" placeholder="Enter your email" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -201,6 +219,74 @@ export default function AuthPage() {
                       )}
                     />
                     
+                    <div className="pt-4 border-t border-gray-700">
+                      <h3 className="text-base font-medium text-white mb-3">Business Information</h3>
+                      <p className="text-sm text-gray-400 mb-4">
+                        This information helps us recommend grants matching your business needs
+                      </p>
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="industry"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Industry</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white ring-offset-background focus:border-primary focus:outline-none"
+                                {...field}
+                              >
+                                <option value="">Select Your Industry</option>
+                                <option value="agriculture">Agriculture</option>
+                                <option value="technology">Technology</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="energy">Energy</option>
+                                <option value="retail">Retail</option>
+                                <option value="education">Education</option>
+                                <option value="tourism">Tourism</option>
+                                <option value="construction">Construction</option>
+                                <option value="finance">Finance</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="province"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Province/Territory</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white ring-offset-background focus:border-primary focus:outline-none"
+                                {...field}
+                              >
+                                <option value="">Select Province/Territory</option>
+                                <option value="alberta">Alberta</option>
+                                <option value="british_columbia">British Columbia</option>
+                                <option value="manitoba">Manitoba</option>
+                                <option value="new_brunswick">New Brunswick</option>
+                                <option value="newfoundland">Newfoundland and Labrador</option>
+                                <option value="northwest_territories">Northwest Territories</option>
+                                <option value="nova_scotia">Nova Scotia</option>
+                                <option value="nunavut">Nunavut</option>
+                                <option value="ontario">Ontario</option>
+                                <option value="pei">Prince Edward Island</option>
+                                <option value="quebec">Quebec</option>
+                                <option value="saskatchewan">Saskatchewan</option>
+                                <option value="yukon">Yukon</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
                     <Button 
                       type="submit" 
                       className="w-full bg-primary hover:bg-primary/90"
@@ -261,7 +347,7 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-medium">GrantSherpa Assistance</h3>
+                <h3 className="text-white font-medium">GrantScribe Assistance</h3>
                 <p className="text-gray-400">Get AI-powered help with your grant applications</p>
               </div>
             </div>

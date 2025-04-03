@@ -182,10 +182,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GrantSherpa endpoints
+  // GrantScribe endpoints
   
   // Generate application assistance
-  apiRouter.post("/grantsherpa/assist", isAuthenticated, async (req: Request, res: Response) => {
+  apiRouter.post("/grantscribe/assist", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { grantId, applicationText } = req.body;
       
@@ -205,7 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: [
           {
             role: "system",
-            content: `You are GrantSherpa, an expert grant application consultant specializing in Canadian grants. 
+            content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
                      You provide constructive feedback and improvements to grant applications to help them succeed.
                      Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.`
           },
@@ -236,13 +236,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         grant: grant
       });
     } catch (error) {
-      console.error("GrantSherpa assistance error:", error);
+      console.error("GrantScribe assistance error:", error);
       res.status(500).json({ message: "Failed to generate application assistance" });
     }
   });
   
   // Check for plagiarism
-  apiRouter.post("/grantsherpa/plagiarism-check", isAuthenticated, async (req: Request, res: Response) => {
+  apiRouter.post("/grantscribe/plagiarism-check", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { text } = req.body;
       
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: [
           {
             role: "system",
-            content: `You are GrantSherpa's plagiarism detection system. Your job is to analyze text for signs of potential plagiarism, 
+            content: `You are GrantScribe's plagiarism detection system. Your job is to analyze text for signs of potential plagiarism, 
                      such as unusual phrasings, inconsistent tone/style, advanced vocabulary mixed with simple language, 
                      or passages that appear to be written by different authors.
                      
@@ -297,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Generate ideas for grant applications
-  apiRouter.post("/grantsherpa/generate-ideas", isAuthenticated, async (req: Request, res: Response) => {
+  apiRouter.post("/grantscribe/generate-ideas", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { grantId, projectType, keywords } = req.body;
       
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: [
           {
             role: "system",
-            content: `You are GrantSherpa's idea generation system, specializing in Canadian grant applications.
+            content: `You are GrantScribe's idea generation system, specializing in Canadian grant applications.
                      You help applicants generate innovative, compelling project ideas that align with grant requirements.
                      Your suggestions should be specific, relevant to the grant's focus, and tailored to meet eligibility criteria.
                      

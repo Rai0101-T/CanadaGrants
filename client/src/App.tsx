@@ -9,7 +9,7 @@ import FederalGrants from "@/pages/federal-grants";
 import ProvincialGrants from "@/pages/provincial-grants";
 import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
-import GrantSherpa from "@/pages/grant-sherpa";
+import GrantScribe from "@/pages/grant-sherpa"; // File name remains same but component renamed
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -26,7 +26,7 @@ function Router() {
           <Route path="/provincial-grants" component={ProvincialGrants} />
           <Route path="/grant/:id" component={GrantDetails} />
           <ProtectedRoute path="/my-list" component={MyList} />
-          <ProtectedRoute path="/grant-sherpa" component={GrantSherpa} />
+          <ProtectedRoute path="/grant-scribe" component={GrantScribe} />
           <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />
         </Switch>
