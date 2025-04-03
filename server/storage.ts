@@ -4,7 +4,9 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   
   // Grant methods
   getAllGrants(): Promise<Grant[]>;
@@ -15,7 +17,9 @@ export interface IStorage {
   
   // User Grants methods (My List)
   getUserGrants(userId: number): Promise<Grant[]>;
+  getUserGrantsWithStatus(userId: number): Promise<(UserGrant & { grant: Grant })[]>;
   addGrantToUserList(userGrant: InsertUserGrant): Promise<UserGrant>;
+  updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined>;
   removeGrantFromUserList(userId: number, grantId: number): Promise<boolean>;
   isGrantInUserList(userId: number, grantId: number): Promise<boolean>;
 }
@@ -50,12 +54,47 @@ export class MemStorage implements IStorage {
       (user) => user.username === username,
     );
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email,
+    );
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    // Ensure all required fields are present with defaults
+    const user: User = { 
+      ...insertUser, 
+      id,
+      isBusiness: insertUser.isBusiness || false,
+      businessName: insertUser.businessName || null,
+      businessType: insertUser.businessType || null,
+      industry: insertUser.industry || null,
+      province: insertUser.province || null,
+      employeeCount: insertUser.employeeCount || null,
+      yearFounded: insertUser.yearFounded || null,
+      website: insertUser.website || null,
+      phoneNumber: insertUser.phoneNumber || null,
+      address: insertUser.address || null
+    };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) {
+      return undefined;
+    }
+    
+    const updatedUser = {
+      ...existingUser,
+      ...userData
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   // Grant methods
@@ -102,7 +141,14 @@ export class MemStorage implements IStorage {
 
   async addGrantToUserList(insertUserGrant: InsertUserGrant): Promise<UserGrant> {
     const id = this.userGrantIdCounter++;
-    const userGrant: UserGrant = { ...insertUserGrant, id };
+    // Ensure all required fields have values
+    const userGrant: UserGrant = { 
+      ...insertUserGrant, 
+      id,
+      savedAt: insertUserGrant.savedAt || new Date().toISOString(),
+      status: insertUserGrant.status || "saved",
+      notes: insertUserGrant.notes || null
+    };
     this.userGrants.set(id, userGrant);
     return userGrant;
   }
@@ -124,6 +170,41 @@ export class MemStorage implements IStorage {
     return Array.from(this.userGrants.values()).some(
       (userGrant) => userGrant.userId === userId && userGrant.grantId === grantId
     );
+  }
+  
+  async getUserGrantsWithStatus(userId: number): Promise<(UserGrant & { grant: Grant })[]> {
+    const userGrantList = Array.from(this.userGrants.values()).filter(
+      (userGrant) => userGrant.userId === userId
+    );
+    
+    return userGrantList.map(userGrant => {
+      const grant = this.grants.get(userGrant.grantId);
+      if (!grant) return null;
+      return {
+        ...userGrant,
+        grant
+      };
+    }).filter(Boolean) as (UserGrant & { grant: Grant })[];
+  }
+  
+  async updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined> {
+    const userGrantEntry = Array.from(this.userGrants.entries()).find(
+      ([_, userGrant]) => userGrant.userId === userId && userGrant.grantId === grantId
+    );
+    
+    if (!userGrantEntry) {
+      return undefined;
+    }
+    
+    const [id, userGrant] = userGrantEntry;
+    const updatedUserGrant: UserGrant = {
+      ...userGrant,
+      status: status as "saved" | "applying" | "submitted" | "approved" | "rejected",
+      notes: notes || userGrant.notes
+    };
+    
+    this.userGrants.set(id, updatedUserGrant);
+    return updatedUserGrant;
   }
 
   // Initialize with real grants data from Innovation Canada
@@ -587,7 +668,10 @@ export class MemStorage implements IStorage {
         industry: grantData.industry || null,
         province: grantData.province || null,
         competitionLevel: grantData.competitionLevel || "Medium",
-        eligibilityCriteria: grantData.eligibilityCriteria || []
+        eligibilityCriteria: grantData.eligibilityCriteria || [],
+        pros: grantData.pros || [],
+        cons: grantData.cons || [],
+        featured: grantData.featured !== undefined ? grantData.featured : false
       };
       const grant: Grant = { ...completeGrantData, id };
       this.grants.set(id, grant);
