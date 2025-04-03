@@ -3,20 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Grant } from "@shared/schema";
 import GrantCard from "@/components/grant-card";
 import GrantCarousel from "@/components/grant-carousel";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import PrivateGrantFilters from "@/components/private-grant-filters";
 
 export default function PrivateGrants() {
   const [filters, setFilters] = useState({
-    department: "",
-    industry: "",
-    grantAmount: "",
-    deadline: "",
+    organization: "all_organizations",
+    industry: "all_industries",
+    grantAmount: "any_amount",
+    deadline: "any_deadline",
   });
   
   // Fetch all private grants
@@ -29,22 +23,39 @@ export default function PrivateGrants() {
     if (!grants) return [];
     
     return grants.filter(grant => {
-      // Department filter
-      if (filters.department && filters.department !== "all_departments" && 
-          grant.category.toLowerCase() !== filters.department.toLowerCase()) {
-        return false;
+      // Organization filter
+      if (filters.organization && filters.organization !== "all_organizations") {
+        // The organization is stored in the fundingOrganization field or in the category
+        const orgLower = filters.organization.toLowerCase();
+        const fundingOrgLower = grant.fundingOrganization?.toLowerCase() || '';
+        
+        if (!fundingOrgLower.includes(orgLower) && 
+            !grant.category.toLowerCase().includes(orgLower)) {
+          return false;
+        }
       }
       
       // Industry filter
       if (filters.industry && filters.industry !== "all_industries" && 
-          !grant.industry?.toLowerCase().includes(filters.industry.toLowerCase())) {
+          !(grant.industry?.toLowerCase().includes(filters.industry.toLowerCase()) ||
+            grant.category.toLowerCase().includes(filters.industry.toLowerCase()))) {
         return false;
       }
       
       // Grant amount filter
       if (filters.grantAmount && filters.grantAmount !== "any_amount") {
-        const amount = parseInt(grant.fundingAmount.replace(/[^0-9]/g, ''));
+        // Extract numeric portion of funding amount (e.g. from "$50K-250K" or "$10,000 - $50,000")
+        const amountStr = grant.fundingAmount.replace(/[^0-9\-]/g, '');
+        // If there's a range, take the average
+        let amount = 0;
+        if (amountStr.includes('-')) {
+          const [min, max] = amountStr.split('-').map(n => parseInt(n));
+          amount = (min + max) / 2;
+        } else {
+          amount = parseInt(amountStr);
+        }
         
+        // Apply the filter based on the amount
         switch (filters.grantAmount) {
           case "under_10k":
             if (amount >= 10000) return false;
@@ -66,32 +77,36 @@ export default function PrivateGrants() {
       
       // Deadline filter
       if (filters.deadline && filters.deadline !== "any_deadline") {
-        const deadlineDate = new Date(grant.deadline);
-        const today = new Date();
-        const thirtyDaysFromNow = new Date();
-        thirtyDaysFromNow.setDate(today.getDate() + 30);
-        const sixtyDaysFromNow = new Date();
-        sixtyDaysFromNow.setDate(today.getDate() + 60);
-        const ninetyDaysFromNow = new Date();
-        ninetyDaysFromNow.setDate(today.getDate() + 90);
-        const endOfYear = new Date(today.getFullYear(), 11, 31);
-        
-        switch (filters.deadline) {
-          case "ongoing":
-            if (grant.deadline !== "Ongoing" && grant.deadline !== "No Deadline") return false;
-            break;
-          case "30_days":
-            if (deadlineDate > thirtyDaysFromNow) return false;
-            break;
-          case "60_days":
-            if (deadlineDate > sixtyDaysFromNow) return false;
-            break;
-          case "90_days":
-            if (deadlineDate > ninetyDaysFromNow) return false;
-            break;
-          case "this_year":
-            if (deadlineDate > endOfYear) return false;
-            break;
+        // Check if the deadline is "Ongoing" or an actual date
+        if (grant.deadline === "Ongoing" || grant.deadline === "No Deadline") {
+          if (filters.deadline !== "ongoing") return false;
+        } else {
+          const deadlineDate = new Date(grant.deadline);
+          const today = new Date();
+          const thirtyDaysFromNow = new Date(today);
+          thirtyDaysFromNow.setDate(today.getDate() + 30);
+          const sixtyDaysFromNow = new Date(today);
+          sixtyDaysFromNow.setDate(today.getDate() + 60);
+          const ninetyDaysFromNow = new Date(today);
+          ninetyDaysFromNow.setDate(today.getDate() + 90);
+          const endOfYear = new Date(today.getFullYear(), 11, 31);
+          
+          switch (filters.deadline) {
+            case "ongoing":
+              return false; // We already handled "Ongoing" deadlines
+            case "30_days":
+              if (deadlineDate > thirtyDaysFromNow || deadlineDate < today) return false;
+              break;
+            case "60_days":
+              if (deadlineDate > sixtyDaysFromNow || deadlineDate < today) return false;
+              break;
+            case "90_days":
+              if (deadlineDate > ninetyDaysFromNow || deadlineDate < today) return false;
+              break;
+            case "this_year":
+              if (deadlineDate > endOfYear || deadlineDate < today) return false;
+              break;
+          }
         }
       }
       
@@ -99,7 +114,37 @@ export default function PrivateGrants() {
     });
   }, [grants, filters]);
   
-  // We've simplified the page to only show all private grants
+  // Group grants by funding organization for carousel display
+  const organizationGroups = useMemo(() => {
+    if (!filteredGrants || filteredGrants.length === 0) return {};
+    
+    return filteredGrants.reduce((acc, grant) => {
+      const orgName = grant.fundingOrganization || grant.category;
+      if (orgName) {
+        if (!acc[orgName]) {
+          acc[orgName] = [];
+        }
+        acc[orgName].push(grant);
+      }
+      return acc;
+    }, {} as Record<string, Grant[]>);
+  }, [filteredGrants]);
+  
+  // Get high value grants (over $100K)
+  const highValueGrants = useMemo(() => {
+    if (!filteredGrants) return [];
+    return filteredGrants.filter(grant => {
+      const amountStr = grant.fundingAmount.replace(/[^0-9\-]/g, '');
+      let amount = 0;
+      if (amountStr.includes('-')) {
+        const [min, max] = amountStr.split('-').map(n => parseInt(n));
+        amount = (min + max) / 2;
+      } else {
+        amount = parseInt(amountStr);
+      }
+      return amount > 100000;
+    });
+  }, [filteredGrants]);
 
   return (
     <div className="bg-black text-white min-h-screen pt-24 px-4 pb-16">
@@ -111,87 +156,10 @@ export default function PrivateGrants() {
           </p>
           
           <div className="mt-6 mb-6">
-            <div className={`flex flex-col md:flex-row gap-3 mb-4`}>
-              {/* Organization Filter */}
-              <div className="w-full md:w-1/4">
-                <Select
-                  value={filters.department}
-                  onValueChange={(value) => setFilters({...filters, department: value})}
-                >
-                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
-                    <SelectValue placeholder="Organization" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 text-white border-gray-700">
-                    <SelectItem value="all_departments">All Organizations</SelectItem>
-                    <SelectItem value="rogers">Rogers Foundation</SelectItem>
-                    <SelectItem value="bell">Bell Let's Talk Fund</SelectItem>
-                    <SelectItem value="td">TD Friends of the Environment</SelectItem>
-                    <SelectItem value="rbc">RBC Foundation</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Industry Filter */}
-              <div className="w-full md:w-1/4">
-                <Select 
-                  value={filters.industry}
-                  onValueChange={(value) => setFilters({...filters, industry: value})}
-                >
-                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
-                    <SelectValue placeholder="Industry" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 text-white border-gray-700">
-                    <SelectItem value="all_industries">All Industries</SelectItem>
-                    <SelectItem value="technology">Technology</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="environment">Environment</SelectItem>
-                    <SelectItem value="social">Social Initiatives</SelectItem>
-                    <SelectItem value="arts">Arts & Culture</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Grant Amount Filter */}
-              <div className="w-full md:w-1/4">
-                <Select
-                  value={filters.grantAmount}
-                  onValueChange={(value) => setFilters({...filters, grantAmount: value})}
-                >
-                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
-                    <SelectValue placeholder="Grant Amount" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 text-white border-gray-700">
-                    <SelectItem value="any_amount">Any Amount</SelectItem>
-                    <SelectItem value="under_10k">Under $10,000</SelectItem>
-                    <SelectItem value="10k_50k">$10,000 - $50,000</SelectItem>
-                    <SelectItem value="50k_100k">$50,000 - $100,000</SelectItem>
-                    <SelectItem value="100k_500k">$100,000 - $500,000</SelectItem>
-                    <SelectItem value="over_500k">Over $500,000</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Deadline Filter */}
-              <div className="w-full md:w-1/4">
-                <Select
-                  value={filters.deadline}
-                  onValueChange={(value) => setFilters({...filters, deadline: value})}
-                >
-                  <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
-                    <SelectValue placeholder="Application Deadline" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 text-white border-gray-700">
-                    <SelectItem value="any_deadline">Any Deadline</SelectItem>
-                    <SelectItem value="ongoing">Ongoing/No Deadline</SelectItem>
-                    <SelectItem value="30_days">Within 30 Days</SelectItem>
-                    <SelectItem value="60_days">Within 60 Days</SelectItem>
-                    <SelectItem value="90_days">Within 90 Days</SelectItem>
-                    <SelectItem value="this_year">This Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <PrivateGrantFilters 
+              onFilterChange={setFilters}
+              className="mb-4" 
+            />
           </div>
         </div>
 
@@ -205,6 +173,23 @@ export default function PrivateGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
+            {/* Organization-specific Carousel Sections */}
+            {Object.entries(organizationGroups).map(([organization, grants]) => (
+              <GrantCarousel
+                key={organization}
+                title={`${organization} Grants`}
+                grants={grants}
+              />
+            ))}
+            
+            {/* High Value Grants Carousel */}
+            {highValueGrants.length > 0 && (
+              <GrantCarousel
+                title="High Value Private Grants"
+                grants={highValueGrants}
+              />
+            )}
+            
             {/* All Private Grants */}
             <div>
               <h2 className="text-2xl font-bold mb-4">All Private Grants</h2>

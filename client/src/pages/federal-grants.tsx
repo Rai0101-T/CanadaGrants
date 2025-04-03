@@ -7,10 +7,10 @@ import GrantCarousel from "@/components/grant-carousel";
 
 export default function FederalGrants() {
   const [filters, setFilters] = useState({
-    department: "",
-    industry: "",
-    grantAmount: "",
-    deadline: "",
+    department: "all_departments",
+    industry: "all_industries",
+    grantAmount: "any_amount",
+    deadline: "any_deadline",
   });
   
   // Fetch all federal grants
@@ -75,16 +75,16 @@ export default function FederalGrants() {
             if (grant.deadline !== "Ongoing" && grant.deadline !== "No Deadline") return false;
             break;
           case "30_days":
-            if (deadlineDate > thirtyDaysFromNow) return false;
+            if (deadlineDate > thirtyDaysFromNow || deadlineDate < today) return false;
             break;
           case "60_days":
-            if (deadlineDate > sixtyDaysFromNow) return false;
+            if (deadlineDate > sixtyDaysFromNow || deadlineDate < today) return false;
             break;
           case "90_days":
-            if (deadlineDate > ninetyDaysFromNow) return false;
+            if (deadlineDate > ninetyDaysFromNow || deadlineDate < today) return false;
             break;
           case "this_year":
-            if (deadlineDate > endOfYear) return false;
+            if (deadlineDate > endOfYear || deadlineDate < today) return false;
             break;
         }
       }

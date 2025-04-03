@@ -7,9 +7,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface FederalGrantFiltersProps {
+interface PrivateGrantFiltersProps {
   onFilterChange: (filters: {
-    department: string;
+    organization: string;
     industry: string;
     grantAmount: string;
     deadline: string;
@@ -17,12 +17,12 @@ interface FederalGrantFiltersProps {
   className?: string;
 }
 
-export default function FederalGrantFilters({
+export default function PrivateGrantFilters({
   onFilterChange,
   className = "",
-}: FederalGrantFiltersProps) {
+}: PrivateGrantFiltersProps) {
   const [filters, setFilters] = useState({
-    department: "all_departments",
+    organization: "all_organizations",
     industry: "all_industries",
     grantAmount: "any_amount",
     deadline: "any_deadline",
@@ -36,26 +36,22 @@ export default function FederalGrantFilters({
 
   return (
     <div className={`flex flex-col md:flex-row gap-3 ${className}`}>
-      {/* Department Filter */}
+      {/* Organization Filter */}
       <div className="w-full md:w-1/4">
         <Select
-          value={filters.department}
-          onValueChange={(value) => handleFilterChange("department", value)}
+          value={filters.organization}
+          onValueChange={(value) => handleFilterChange("organization", value)}
         >
           <SelectTrigger className="bg-black bg-opacity-70 text-white border border-gray-600 focus:border-primary">
-            <SelectValue placeholder="Department/Agency" />
+            <SelectValue placeholder="Organization" />
           </SelectTrigger>
           <SelectContent className="bg-gray-900 text-white border-gray-700">
-            <SelectItem value="all_departments">All Departments</SelectItem>
-            <SelectItem value="innovation_canada">Innovation, Science and Economic Development Canada</SelectItem>
-            <SelectItem value="nrc">National Research Council Canada</SelectItem>
-            <SelectItem value="agriculture_canada">Agriculture and Agri-Food Canada</SelectItem>
-            <SelectItem value="environment_canada">Environment and Climate Change Canada</SelectItem>
-            <SelectItem value="global_affairs">Global Affairs Canada</SelectItem>
-            <SelectItem value="health_canada">Health Canada</SelectItem>
-            <SelectItem value="transportation">Transport Canada</SelectItem>
-            <SelectItem value="heritage_canada">Canadian Heritage</SelectItem>
-            <SelectItem value="natural_resources">Natural Resources Canada</SelectItem>
+            <SelectItem value="all_organizations">All Organizations</SelectItem>
+            <SelectItem value="rogers">Rogers Communications</SelectItem>
+            <SelectItem value="td">TD Bank Group</SelectItem>
+            <SelectItem value="shopify">Shopify Inc.</SelectItem>
+            <SelectItem value="rbc">Royal Bank of Canada</SelectItem>
+            <SelectItem value="desjardins">Desjardins Group</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -71,16 +67,16 @@ export default function FederalGrantFilters({
           </SelectTrigger>
           <SelectContent className="bg-gray-900 text-white border-gray-700">
             <SelectItem value="all_industries">All Industries</SelectItem>
-            <SelectItem value="agriculture">Agriculture</SelectItem>
             <SelectItem value="technology">Technology</SelectItem>
-            <SelectItem value="manufacturing">Manufacturing</SelectItem>
-            <SelectItem value="healthcare">Healthcare</SelectItem>
-            <SelectItem value="energy">Energy</SelectItem>
-            <SelectItem value="retail">Retail</SelectItem>
+            <SelectItem value="environment">Environment</SelectItem>
+            <SelectItem value="e-commerce">E-commerce</SelectItem>
             <SelectItem value="education">Education</SelectItem>
-            <SelectItem value="tourism">Tourism</SelectItem>
-            <SelectItem value="construction">Construction</SelectItem>
-            <SelectItem value="finance">Finance</SelectItem>
+            <SelectItem value="social">Social Enterprise</SelectItem>
+            <SelectItem value="healthcare">Healthcare</SelectItem>
+            <SelectItem value="manufacturing">Manufacturing</SelectItem>
+            <SelectItem value="fintech">Financial Technology</SelectItem>
+            <SelectItem value="agriculture">Agriculture</SelectItem>
+            <SelectItem value="energy">Energy</SelectItem>
           </SelectContent>
         </Select>
       </div>

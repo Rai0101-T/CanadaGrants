@@ -22,10 +22,10 @@ export default function ProvincialGrantFilters({
   className = "",
 }: ProvincialGrantFiltersProps) {
   const [filters, setFilters] = useState({
-    province: "",
-    industry: "",
-    grantAmount: "",
-    deadline: "",
+    province: "all_provinces",
+    industry: "all_industries",
+    grantAmount: "any_amount",
+    deadline: "any_deadline",
   });
 
   const handleFilterChange = (key: string, value: string) => {
