@@ -99,34 +99,7 @@ export default function PrivateGrants() {
     });
   }, [grants, filters]);
   
-  // Group grants by funding organization for carousel display
-  const organizationGroups = useMemo(() => {
-    if (!filteredGrants) return {};
-    
-    return filteredGrants.reduce((acc, grant) => {
-      if (grant.fundingOrganization) {
-        if (!acc[grant.fundingOrganization]) {
-          acc[grant.fundingOrganization] = [];
-        }
-        acc[grant.fundingOrganization].push(grant);
-      }
-      return acc;
-    }, {} as Record<string, Grant[]>);
-  }, [filteredGrants]);
-  
-  // Get the top organizations with most grants
-  const topOrganizations = useMemo(() => {
-    return Object.entries(organizationGroups)
-      .sort(([, grantsA], [, grantsB]) => grantsB.length - grantsA.length)
-      .slice(0, 5)
-      .map(([organization]) => organization);
-  }, [organizationGroups]);
-  
-  // Get high value grants
-  const highValueGrants = useMemo(() => {
-    if (!filteredGrants) return [];
-    return filteredGrants.filter(grant => parseInt(grant.fundingAmount.replace(/[^0-9]/g, '')) > 200000);
-  }, [filteredGrants]);
+  // We've simplified the page to only show all private grants
 
   return (
     <div className="bg-black text-white min-h-screen pt-24 px-4 pb-16">
@@ -232,26 +205,7 @@ export default function PrivateGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
-            {/* Organization-specific Carousel Sections */}
-            {topOrganizations.map(organization => (
-              organizationGroups[organization] && organizationGroups[organization].length > 0 && (
-                <GrantCarousel
-                  key={organization}
-                  title={`${organization} Grants`}
-                  grants={organizationGroups[organization]}
-                />
-              )
-            ))}
-            
-            {/* High Value Grants Carousel */}
-            {highValueGrants.length > 0 && (
-              <GrantCarousel
-                title="High Value Private Grants"
-                grants={highValueGrants}
-              />
-            )}
-            
-            {/* All Filtered Grants */}
+            {/* All Private Grants */}
             <div>
               <h2 className="text-2xl font-bold mb-4">All Private Grants</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

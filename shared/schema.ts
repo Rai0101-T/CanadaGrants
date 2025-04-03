@@ -28,7 +28,7 @@ export const grants = pgTable("grants", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  type: text("type", { enum: ["federal", "provincial"] }).notNull(),
+  type: text("type", { enum: ["federal", "provincial", "private"] }).notNull(),
   imageUrl: text("image_url").notNull(),
   deadline: text("deadline").notNull(),
   fundingAmount: text("funding_amount").notNull(),
