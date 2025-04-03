@@ -94,9 +94,7 @@ export default function GrantDetails() {
             <span className={`px-2 py-1 rounded-sm ${grant.type === 'federal' ? 'bg-green-600 text-white' : 'bg-yellow-400 text-black'}`}>
               {grant.type === 'federal' ? 'Federal' : 'Provincial'}
             </span>
-            <span className="flex items-center">
-              <Clock className="h-4 w-4 mr-1" /> Deadline: {grant.deadline}
-            </span>
+            {/* Deadline removed as requested */}
             <span className="flex items-center">
               <DollarSign className="h-4 w-4 mr-1" /> {grant.fundingAmount}
             </span>
@@ -253,81 +251,7 @@ export default function GrantDetails() {
           </div>
         </div>
         
-        {/* Application Process Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-3">Application Process</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="bg-[#333333] p-4 rounded-md">
-                <h3 className="font-semibold text-white mb-2">Deadline</h3>
-                <div className="flex items-center">
-                  <Calendar className="text-primary h-5 w-5 mr-2 flex-shrink-0" />
-                  <div className="text-gray-300">{grant.deadline}</div>
-                </div>
-                {grant.applicationDates && (
-                  <div className="mt-2 text-gray-300">
-                    <span className="text-gray-400">Application window: </span>
-                    {grant.applicationDates}
-                  </div>
-                )}
-              </div>
-              
-              {grant.applicationLink && (
-                <div className="bg-[#333333] p-4 rounded-md">
-                  <h3 className="font-semibold text-white mb-2">Application Link</h3>
-                  <a 
-                    href={grant.applicationLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-400 hover:underline flex items-center"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" /> Apply Online
-                  </a>
-                </div>
-              )}
-              
-              {grant.documents && grant.documents.length > 0 && (
-                <div className="bg-[#333333] p-4 rounded-md">
-                  <h3 className="font-semibold text-white mb-2">Required Documents</h3>
-                  <ul className="space-y-2">
-                    {grant.documents.map((doc, index) => (
-                      <li key={index} className="flex items-start">
-                        <FileText className="text-blue-400 h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-300">{doc}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-            
-            <div className="space-y-6">
-              {/* Removed How to Apply section as requested */}
-              
-              {/* Review Process & Timeline */}
-              <div className="bg-[#333333] p-4 rounded-md">
-                <h3 className="font-semibold text-white mb-2">Review Process & Timeline</h3>
-                {grant.reviewProcess ? (
-                  <div className="space-y-3">
-                    <p className="text-gray-300">{grant.reviewProcess}</p>
-                    {/* Removed reviewTimeline reference to fix LSP errors */}
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <Clock className="text-blue-400 h-5 w-5 mr-2 flex-shrink-0" />
-                    <span className="text-gray-300">
-                      {grant.competitionLevel === "High" 
-                        ? "This is a highly competitive grant with a thorough review process. Detailed timeline available on the official website."
-                        : grant.competitionLevel === "Medium"
-                        ? "Review process typically takes 1-2 months. Contact the funding organization for specific timelines."
-                        : "Standard review process. Contact the funding organization for specific timelines."}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Application Process & Deadline sections removed as requested */}
         
         {/* Additional Details Section */}
         <div className="mb-8">
