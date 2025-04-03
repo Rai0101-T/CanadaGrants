@@ -237,17 +237,6 @@ export default function PrivateGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
-            {/* Organization-specific Carousel Sections */}
-            {Object.entries(organizationGroups).map(([organization, grants]) => (
-              <GrantCarousel
-                key={organization}
-                title={`${organization} Grants`}
-                grants={grants}
-              />
-            ))}
-            
-            {/* Removed High Value Grants Carousel as requested */}
-            
             {/* Grants Section with Dynamic Title */}
             <div>
               <h2 className="text-2xl font-bold mb-4">{pageTitle}</h2>
