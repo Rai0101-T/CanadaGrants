@@ -26,11 +26,26 @@ export default function PrivateGrants() {
       // Organization filter
       if (filters.organization && filters.organization !== "all_organizations") {
         // The organization is stored in the fundingOrganization field or in the category
+        // For private grants, we typically have organizations like "Rogers", "RBC", "TD", etc.
         const orgLower = filters.organization.toLowerCase();
         const fundingOrgLower = grant.fundingOrganization?.toLowerCase() || '';
+        const categoryLower = grant.category.toLowerCase();
         
-        if (!fundingOrgLower.includes(orgLower) && 
-            !grant.category.toLowerCase().includes(orgLower)) {
+        // Map some common organization values to their full names (for improved matching)
+        const orgMappings: Record<string, string[]> = {
+          'rogers': ['rogers', 'rogers communications', 'rogers foundation'],
+          'td': ['td', 'td bank', 'td friends of environment', 'toronto dominion'],
+          'shopify': ['shopify', 'shopify inc', 'shopify foundation'],
+          'rbc': ['rbc', 'royal bank', 'royal bank of canada', 'rbc foundation'],
+          'desjardins': ['desjardins', 'desjardins group', 'desjardins foundation']
+        };
+        
+        // Check if this grant matches the selected organization
+        const matchesOrg = orgMappings[orgLower]?.some(term => 
+          fundingOrgLower.includes(term) || categoryLower.includes(term)
+        ) || fundingOrgLower.includes(orgLower) || categoryLower.includes(orgLower);
+        
+        if (!matchesOrg) {
           return false;
         }
       }
