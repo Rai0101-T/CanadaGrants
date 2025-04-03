@@ -10,22 +10,32 @@ export default function AboutUs() {
     <div className="bg-[#141414] text-white min-h-screen">
       <Header />
       
-      {/* Banner Image */}
-      <div className="w-full h-64 md:h-80 lg:h-96 relative overflow-hidden">
+      {/* Modern Banner with Gradient Overlay */}
+      <div className="w-full h-72 md:h-96 relative overflow-hidden">
+        {/* Modern abstract background */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1614332287897-cdc485fa562d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')",
-            filter: "brightness(0.4)"
+            backgroundImage: "url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')"
           }}
         ></div>
         
-        {/* Title overlay directly on banner */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
-          <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 text-white">About Us: Grantflix</h1>
-          <p className="text-lg md:text-xl text-center text-gray-100 max-w-2xl">
-            Connecting Canadian businesses with the funding opportunities they need to grow and succeed.
-          </p>
+        {/* Gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent"></div>
+        
+        {/* Title and subtitle with modern styling */}
+        <div className="absolute inset-0 flex flex-col items-start justify-center px-8 md:px-16 lg:px-24">
+          <div className="max-w-3xl">
+            <div className="inline-block rounded-lg bg-red-600 px-3 py-1 text-sm font-medium text-white mb-3">
+              About Grantflix
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white leading-tight">
+              About Us: <span className="text-red-600">Grantflix</span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-200 max-w-2xl">
+              Connecting Canadian businesses with the funding opportunities they need to grow and succeed.
+            </p>
+          </div>
         </div>
       </div>
       
