@@ -143,35 +143,36 @@ export default function PrivateGrants() {
       return `${orgMap[filters.organization] || filters.organization} Grants`;
     } else if (filters.industry && filters.industry !== "all_industries") {
       // Capitalize the industry name
-      return `${filters.industry.charAt(0).toUpperCase() + filters.industry.slice(1)} Grants`;
+      const industry = filters.industry.charAt(0).toUpperCase() + filters.industry.slice(1);
+      return `${industry} Industry Grants`;
     } else if (filters.grantAmount && filters.grantAmount !== "any_amount") {
       const amountMap: Record<string, string> = {
-        'under_10k': 'Small',
-        '10k_50k': 'Medium',
-        '50k_100k': 'Medium-Large',
-        '100k_500k': 'Large',
-        'over_500k': 'Major'
+        'under_10k': 'Grants Under $10,000',
+        '10k_50k': 'Grants $10,000 - $50,000',
+        '50k_100k': 'Grants $50,000 - $100,000',
+        '100k_500k': 'Grants $100,000 - $500,000',
+        'over_500k': 'Grants Over $500,000'
       };
-      return `${amountMap[filters.grantAmount] || ''} Private Grants`;
+      return amountMap[filters.grantAmount] || 'All Grants';
     } else if (filters.deadline && filters.deadline !== "any_deadline") {
       const deadlineMap: Record<string, string> = {
-        'ongoing': 'Ongoing',
-        '30_days': 'Urgent (30 Days)',
-        '60_days': 'Soon (60 Days)',
-        '90_days': 'Upcoming (90 Days)',
-        'this_year': 'This Year\'s'
+        'ongoing': 'Ongoing Grants (No Deadline)',
+        '30_days': 'Grants Due Within 30 Days',
+        '60_days': 'Grants Due Within 60 Days',
+        '90_days': 'Grants Due Within 90 Days',
+        'this_year': 'Grants Due This Year'
       };
-      return `${deadlineMap[filters.deadline] || ''} Private Grants`;
+      return deadlineMap[filters.deadline] || 'All Grants';
     }
     return "All Private Grants";
   }, [filters]);
 
   // Determine if any filters are applied
   const isFiltered = useMemo(() => {
-    return filters.organization !== "all_organizations" && filters.organization !== "" ||
-           filters.industry !== "all_industries" && filters.industry !== "" ||
-           filters.grantAmount !== "any_amount" && filters.grantAmount !== "" ||
-           filters.deadline !== "any_deadline" && filters.deadline !== "";
+    return (filters.organization !== "all_organizations" && filters.organization !== "") ||
+           (filters.industry !== "all_industries" && filters.industry !== "") ||
+           (filters.grantAmount !== "any_amount" && filters.grantAmount !== "") ||
+           (filters.deadline !== "any_deadline" && filters.deadline !== "");
   }, [filters]);
 
   // Group grants by funding organization for carousel display
@@ -247,9 +248,9 @@ export default function PrivateGrants() {
             
             {/* Removed High Value Grants Carousel as requested */}
             
-            {/* Grants Section with "All Grants" Title */}
+            {/* Grants Section with Dynamic Title */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">All Grants</h2>
+              <h2 className="text-2xl font-bold mb-4">{pageTitle}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />
