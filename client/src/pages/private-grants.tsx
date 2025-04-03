@@ -51,41 +51,96 @@ export default function PrivateGrants() {
       }
       
       // Industry filter
-      if (filters.industry && filters.industry !== "all_industries" && 
-          !(grant.industry?.toLowerCase().includes(filters.industry.toLowerCase()) ||
-            grant.category.toLowerCase().includes(filters.industry.toLowerCase()))) {
-        return false;
+      if (filters.industry && filters.industry !== "all_industries") {
+        // Look for industry in the grant's industry field, category, and description
+        const industryLower = filters.industry.toLowerCase();
+        const grantIndustryLower = grant.industry?.toLowerCase() || '';
+        const categoryCower = grant.category.toLowerCase();
+        const descriptionLower = grant.description.toLowerCase();
+        
+        // Check if this grant matches the selected industry
+        const matchesIndustry = 
+          grantIndustryLower.includes(industryLower) || 
+          categoryCower.includes(industryLower) || 
+          descriptionLower.includes(industryLower);
+        
+        if (!matchesIndustry) {
+          return false;
+        }
       }
       
       // Grant amount filter
       if (filters.grantAmount && filters.grantAmount !== "any_amount") {
-        // Extract numeric portion of funding amount (e.g. from "$50K-250K" or "$10,000 - $50,000")
-        const amountStr = grant.fundingAmount.replace(/[^0-9\-]/g, '');
-        // If there's a range, take the average
-        let amount = 0;
-        if (amountStr.includes('-')) {
-          const [min, max] = amountStr.split('-').map(n => parseInt(n));
-          amount = (min + max) / 2;
+        // Standardize the funding amount string for processing
+        const fundingAmount = grant.fundingAmount.toLowerCase();
+        
+        // Helper function to convert K/M notation to full numbers
+        const convertToNumber = (str: string): number => {
+          // Remove all non-numeric characters except K, M, and decimal points
+          str = str.replace(/[^0-9km\.]/gi, '');
+          
+          if (str.includes('k')) {
+            return parseFloat(str.replace('k', '')) * 1000;
+          } else if (str.includes('m')) {
+            return parseFloat(str.replace('m', '')) * 1000000;
+          } else {
+            return parseFloat(str) || 0;
+          }
+        };
+        
+        // Extract min and max values from the funding amount
+        let minAmount = 0;
+        let maxAmount = 0;
+        
+        if (fundingAmount.includes('up to')) {
+          // Format: "Up to $50,000" or "Up to $5M"
+          maxAmount = convertToNumber(fundingAmount.replace('up to', ''));
+          minAmount = 0;
+        } else if (fundingAmount.includes('-') || fundingAmount.includes('to')) {
+          // Format: "$10,000-$50,000" or "$10K to $50K"
+          const separator = fundingAmount.includes('-') ? '-' : 'to';
+          const parts = fundingAmount.split(separator).map(p => p.trim());
+          
+          if (parts.length >= 2) {
+            minAmount = convertToNumber(parts[0]);
+            maxAmount = convertToNumber(parts[1]);
+          }
         } else {
-          amount = parseInt(amountStr);
+          // Format: "$50,000" or "$50K" - exact amount
+          minAmount = convertToNumber(fundingAmount);
+          maxAmount = minAmount;
         }
         
-        // Apply the filter based on the amount
+        // If we couldn't extract values (rare case), default to using average
+        if (minAmount === 0 && maxAmount === 0) {
+          const amountStr = grant.fundingAmount.replace(/[^0-9\-]/g, '');
+          
+          if (amountStr.includes('-')) {
+            const [min, max] = amountStr.split('-').map(n => parseInt(n));
+            minAmount = min;
+            maxAmount = max;
+          } else {
+            minAmount = maxAmount = parseInt(amountStr) || 0;
+          }
+        }
+        
+        // Use the range to determine if the grant matches the filter
+        // A grant matches if ANY part of its range falls within the filter criteria
         switch (filters.grantAmount) {
           case "under_10k":
-            if (amount >= 10000) return false;
+            if (minAmount >= 10000) return false;
             break;
           case "10k_50k":
-            if (amount < 10000 || amount >= 50000) return false;
+            if (maxAmount < 10000 || minAmount >= 50000) return false;
             break;
           case "50k_100k":
-            if (amount < 50000 || amount >= 100000) return false;
+            if (maxAmount < 50000 || minAmount >= 100000) return false;
             break;
           case "100k_500k":
-            if (amount < 100000 || amount >= 500000) return false;
+            if (maxAmount < 100000 || minAmount >= 500000) return false;
             break;
           case "over_500k":
-            if (amount < 500000) return false;
+            if (maxAmount < 500000) return false;
             break;
         }
       }
