@@ -2,26 +2,96 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Grant } from "@shared/schema";
 import GrantCard from "@/components/grant-card";
-import IndustryFilter from "@/components/industry-filter";
+import ProvincialGrantFilters from "@/components/provincial-grant-filters";
 import GrantCarousel from "@/components/grant-carousel";
 
 export default function ProvincialGrants() {
-  const [industryFilter, setIndustryFilter] = useState("");
+  const [filters, setFilters] = useState({
+    province: "",
+    industry: "",
+    grantAmount: "",
+    deadline: "",
+  });
   
   // Fetch all provincial grants
   const { data: grants, isLoading, isError } = useQuery<Grant[]>({
     queryKey: ["/api/grants/type/provincial"],
   });
   
-  // Filter grants by industry if a filter is selected
+  // Apply all filters to grants
   const filteredGrants = useMemo(() => {
     if (!grants) return [];
-    if (!industryFilter) return grants;
     
-    return grants.filter(grant => 
-      grant.industry && grant.industry.toLowerCase().includes(industryFilter.toLowerCase())
-    );
-  }, [grants, industryFilter]);
+    return grants.filter(grant => {
+      // Province filter
+      if (filters.province && filters.province !== "all_provinces" && 
+          grant.province?.toLowerCase() !== filters.province.toLowerCase()) {
+        return false;
+      }
+      
+      // Industry filter
+      if (filters.industry && filters.industry !== "all_industries" && 
+          !grant.industry?.toLowerCase().includes(filters.industry.toLowerCase())) {
+        return false;
+      }
+      
+      // Grant amount filter
+      if (filters.grantAmount && filters.grantAmount !== "any_amount") {
+        const amount = parseInt(grant.fundingAmount.replace(/[^0-9]/g, ''));
+        
+        switch (filters.grantAmount) {
+          case "under_10k":
+            if (amount >= 10000) return false;
+            break;
+          case "10k_50k":
+            if (amount < 10000 || amount >= 50000) return false;
+            break;
+          case "50k_100k":
+            if (amount < 50000 || amount >= 100000) return false;
+            break;
+          case "100k_500k":
+            if (amount < 100000 || amount >= 500000) return false;
+            break;
+          case "over_500k":
+            if (amount < 500000) return false;
+            break;
+        }
+      }
+      
+      // Deadline filter
+      if (filters.deadline && filters.deadline !== "any_deadline") {
+        const deadlineDate = new Date(grant.deadline);
+        const today = new Date();
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(today.getDate() + 30);
+        const sixtyDaysFromNow = new Date();
+        sixtyDaysFromNow.setDate(today.getDate() + 60);
+        const ninetyDaysFromNow = new Date();
+        ninetyDaysFromNow.setDate(today.getDate() + 90);
+        const endOfYear = new Date(today.getFullYear(), 11, 31);
+        
+        switch (filters.deadline) {
+          case "ongoing":
+            if (grant.deadline !== "Ongoing" && grant.deadline !== "No Deadline") return false;
+            break;
+          case "30_days":
+            if (deadlineDate > thirtyDaysFromNow) return false;
+            break;
+          case "60_days":
+            if (deadlineDate > sixtyDaysFromNow) return false;
+            break;
+          case "90_days":
+            if (deadlineDate > ninetyDaysFromNow) return false;
+            break;
+          case "this_year":
+            if (deadlineDate > endOfYear) return false;
+            break;
+        }
+      }
+      
+      return true;
+    });
+  }, [grants, filters]);
   
   // Group grants by provinces for carousel display
   const provinceGroups = useMemo(() => {
@@ -73,9 +143,8 @@ export default function ProvincialGrants() {
           </p>
           
           <div className="mt-6 mb-6">
-            <IndustryFilter 
-              onFilterChange={setIndustryFilter} 
-              type="dropdown"
+            <ProvincialGrantFilters 
+              onFilterChange={setFilters}
               className="mb-4" 
             />
           </div>
@@ -130,7 +199,7 @@ export default function ProvincialGrants() {
           </div>
         ) : (
           <div className="text-center py-10 text-gray-400">
-            No provincial grants found for the selected industry.
+            No provincial grants found matching your filter criteria. Try adjusting your filters.
           </div>
         )}
       </div>

@@ -2,12 +2,20 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [, navigate] = useLocation();
+  const { user, logoutMutation } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,9 +87,42 @@ export default function Header() {
             </button>
           </form>
           
-          <Button variant="netflix" size="sm">
-            Sign In
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden md:inline-block">{user.username}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-900 border-gray-800 text-white">
+                <DropdownMenuItem onClick={() => navigate("/my-list")} className="cursor-pointer">
+                  My List
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate("/grant-sherpa")} 
+                  className="cursor-pointer"
+                >
+                  GrantSherpa
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => logoutMutation.mutate()} 
+                  className="text-red-500 cursor-pointer flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button 
+              variant="netflix" 
+              size="sm"
+              onClick={() => navigate("/auth")}
+            >
+              Sign In
+            </Button>
+          )}
         </div>
       </div>
       
@@ -109,9 +150,23 @@ export default function Header() {
               </Link>
             </li>
             <li>
-              <Link href="/search">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Search</a>
+              <Link href="/grant-sherpa">
+                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">GrantSherpa</a>
               </Link>
+            </li>
+            <li>
+              {!user ? (
+                <Link href="/auth">
+                  <a className="text-sm text-primary font-semibold whitespace-nowrap">Sign In</a>
+                </Link>
+              ) : (
+                <a 
+                  onClick={() => logoutMutation.mutate()} 
+                  className="text-sm text-red-500 cursor-pointer whitespace-nowrap"
+                >
+                  Logout
+                </a>
+              )}
             </li>
           </ul>
         </nav>

@@ -1,15 +1,18 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertUserGrantSchema } from "@shared/schema";
 import OpenAI from "openai";
+import { setupAuth } from "./auth";
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
   // API routes
   const apiRouter = express.Router();
   
@@ -82,8 +85,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Authentication middleware
+  function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ message: "Authentication required" });
+  }
+
   // Get user's saved grants (My List)
-  apiRouter.get("/mylist/:userId", async (req: Request, res: Response) => {
+  apiRouter.get("/mylist/:userId", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       if (isNaN(userId)) {
@@ -98,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add grant to user's list
-  apiRouter.post("/mylist", async (req: Request, res: Response) => {
+  apiRouter.post("/mylist", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const result = insertUserGrantSchema.safeParse(req.body);
       
@@ -132,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Remove grant from user's list
-  apiRouter.delete("/mylist/:userId/:grantId", async (req: Request, res: Response) => {
+  apiRouter.delete("/mylist/:userId/:grantId", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       const grantId = parseInt(req.params.grantId);
@@ -154,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if grant is in user's list
-  apiRouter.get("/mylist/:userId/:grantId", async (req: Request, res: Response) => {
+  apiRouter.get("/mylist/:userId/:grantId", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       const grantId = parseInt(req.params.grantId);
@@ -174,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GrantSherpa endpoints
   
   // Generate application assistance
-  apiRouter.post("/grantsherpa/assist", async (req: Request, res: Response) => {
+  apiRouter.post("/grantsherpa/assist", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { grantId, applicationText } = req.body;
       
@@ -231,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Check for plagiarism
-  apiRouter.post("/grantsherpa/plagiarism-check", async (req: Request, res: Response) => {
+  apiRouter.post("/grantsherpa/plagiarism-check", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { text } = req.body;
       
@@ -286,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Generate ideas for grant applications
-  apiRouter.post("/grantsherpa/generate-ideas", async (req: Request, res: Response) => {
+  apiRouter.post("/grantsherpa/generate-ideas", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { grantId, projectType, keywords } = req.body;
       

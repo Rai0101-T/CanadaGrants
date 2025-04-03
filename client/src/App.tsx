@@ -10,7 +10,10 @@ import ProvincialGrants from "@/pages/provincial-grants";
 import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
 import GrantSherpa from "@/pages/grant-sherpa";
+import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   return (
@@ -22,8 +25,9 @@ function Router() {
           <Route path="/federal-grants" component={FederalGrants} />
           <Route path="/provincial-grants" component={ProvincialGrants} />
           <Route path="/grant/:id" component={GrantDetails} />
-          <Route path="/my-list" component={MyList} />
-          <Route path="/grant-sherpa" component={GrantSherpa} />
+          <ProtectedRoute path="/my-list" component={MyList} />
+          <ProtectedRoute path="/grant-sherpa" component={GrantSherpa} />
+          <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -35,8 +39,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
