@@ -12,6 +12,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger
 } from "@/components/ui/accordion";
 import { useMyList } from "@/hooks/use-my-list";
+import { CompatibilityScore } from "@/components/compatibility-score";
 
 export default function GrantDetails() {
   const params = useParams();
@@ -289,8 +290,11 @@ export default function GrantDetails() {
           
           {/* Sidebar - Right 1/3 */}
           <div className="space-y-6">
+            {/* Compatibility Score */}
+            <CompatibilityScore grantId={grant.id} />
+            
             {/* Application Actions */}
-            <div className="bg-gradient-to-b from-[#1a1a1a] to-[#121212] rounded-xl p-6 border border-[#333333] shadow-lg">
+            <div className="bg-gradient-to-b from-[#1a1a1a] to-[#121212] rounded-xl p-6 border border-[#333333] shadow-lg mt-6">
               <h3 className="text-xl font-semibold mb-4">Apply Now</h3>
               
               <div className="space-y-4">

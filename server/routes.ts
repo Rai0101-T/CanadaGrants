@@ -7,6 +7,7 @@ import { insertUserGrantSchema } from "@shared/schema";
 import OpenAI from "openai";
 import { setupAuth } from "./auth";
 import { runAllScrapers, scheduleScrapingJob } from "./scrapers/scraper";
+import { calculateGrantCompatibility } from "./services/compatibility-service";
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -180,6 +181,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ isInList });
     } catch (error) {
       res.status(500).json({ message: "Failed to check grant status" });
+    }
+  });
+
+  // Get compatibility score between a user's business profile and a grant
+  apiRouter.post("/grants/compatibility/:grantId", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const grantId = parseInt(req.params.grantId);
+      if (isNaN(grantId)) {
+        return res.status(400).json({ message: "Invalid grant ID" });
+      }
+      
+      // Get the grant and user
+      const grant = await storage.getGrantById(grantId);
+      if (!grant) {
+        return res.status(404).json({ message: "Grant not found" });
+      }
+      
+      // Get the authenticated user
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Calculate compatibility score
+      const compatibilityResult = await calculateGrantCompatibility(user, grant);
+      
+      res.json({
+        grant,
+        compatibility: compatibilityResult
+      });
+    } catch (error) {
+      console.error("Compatibility calculation error:", error);
+      res.status(500).json({ message: "Failed to calculate compatibility score" });
     }
   });
 
