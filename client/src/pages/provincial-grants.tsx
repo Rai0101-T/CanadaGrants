@@ -325,28 +325,16 @@ export default function ProvincialGrants() {
                 filters.deadline === "any_deadline";
               
               if (isNoFilterApplied) {
-                // When no filters are applied, show category-based views
+                // When no filters are applied, show all provincial grants in a grid
                 return (
-                  <>
-                    {/* Province-specific Carousel Sections */}
-                    {topProvinces.map(province => (
-                      provinceGroups[province] && provinceGroups[province].length > 0 && (
-                        <GrantCarousel
-                          key={province}
-                          title={`${province} Grants`}
-                          grants={provinceGroups[province]}
-                        />
-                      )
-                    ))}
-                    
-                    {/* Upcoming Deadlines Carousel */}
-                    {upcomingDeadlines.length > 0 && (
-                      <GrantCarousel
-                        title="Approaching Deadlines"
-                        grants={upcomingDeadlines}
-                      />
-                    )}
-                  </>
+                  <div>
+                    <h2 className="text-2xl font-bold mb-4">All Provincial Grants</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {filteredGrants.map((grant) => (
+                        <GrantCard key={grant.id} grant={grant} />
+                      ))}
+                    </div>
+                  </div>
                 );
               } else {
                 // When filters are applied, only show filtered grants
