@@ -44,8 +44,7 @@ export default function AboutUs() {
       
       <main className="relative z-10">
         {/* How It Works Section with ID */}
-        <div id="how-it-works" className="scroll-mt-24"></div>
-        <section className="max-w-6xl mx-auto px-4 py-12 mb-16">
+        <section id="how-it-works" className="max-w-6xl mx-auto px-4 py-12 mb-16 scroll-mt-24">
           <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -88,8 +87,7 @@ export default function AboutUs() {
         </section>
         
         {/* Contact Us Section with ID */}
-        <div id="contact-us" className="scroll-mt-24"></div>
-        <section className="max-w-6xl mx-auto px-4 py-12 mb-16">
+        <section id="contact-us" className="max-w-6xl mx-auto px-4 py-12 mb-16 scroll-mt-24">
           <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -210,8 +208,7 @@ export default function AboutUs() {
         </section>
         
         {/* FAQ Section with ID */}
-        <div id="faq" className="scroll-mt-24"></div>
-        <section className="bg-[#0c0c0c] py-16 mb-16">
+        <section id="faq" className="bg-[#0c0c0c] py-16 mb-16 scroll-mt-24">
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
             
@@ -278,15 +275,36 @@ export default function AboutUs() {
       <div className="bg-[#0c0c0c] py-8 mb-12" id="about-footer-nav">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
-            <a href="#how-it-works" className="text-gray-300 hover:text-primary flex items-center">
+            <a 
+              href="#how-it-works" 
+              className="text-gray-300 hover:text-primary flex items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CheckCircle className="h-5 w-5 mr-2" />
               How It Works
             </a>
-            <a href="#faq" className="text-gray-300 hover:text-primary flex items-center">
+            <a 
+              href="#faq" 
+              className="text-gray-300 hover:text-primary flex items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CheckCircle className="h-5 w-5 mr-2" />
               FAQ
             </a>
-            <a href="#contact-us" className="text-gray-300 hover:text-primary flex items-center">
+            <a 
+              href="#contact-us" 
+              className="text-gray-300 hover:text-primary flex items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('contact-us')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CheckCircle className="h-5 w-5 mr-2" />
               Contact Us
             </a>
