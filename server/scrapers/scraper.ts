@@ -13,6 +13,7 @@ import {
   scrapeAlbertaInnovates,
   scrapeAlbertaHealth
 } from './site-scrapers';
+import { scrapeTradeFundingPrograms } from './trade-commissioner-scraper';
 
 interface ScrapedGrant {
   title: string;
@@ -279,6 +280,11 @@ export async function runAllScrapers(): Promise<void> {
     const albertaHealthGrants = await scrapeAlbertaHealth(browser);
     allScrapedGrants.push(...albertaHealthGrants);
     
+    console.log('Scraping Trade Commissioner Service Funding Programs...');
+    const tradeFundingPrograms = await scrapeTradeFundingPrograms(browser);
+    // Since this scraper returns InsertGrant objects directly, we'll process them separately
+    const tradeFundingProgramsProcessed = tradeFundingPrograms;
+    
     console.log(`Total grants scraped: ${allScrapedGrants.length}`);
     
     // Process grants (validate, deduplicate, format)
@@ -286,6 +292,12 @@ export async function runAllScrapers(): Promise<void> {
     
     // Save to database
     await saveGrantsToDatabase(processedGrants);
+    
+    // Also save the trade funding programs grants that were already processed
+    if (tradeFundingProgramsProcessed.length > 0) {
+      console.log(`Saving ${tradeFundingProgramsProcessed.length} Trade Commissioner Service grants`);
+      await saveGrantsToDatabase(tradeFundingProgramsProcessed);
+    }
     
     console.log('Grant scraping operation completed successfully!');
   } catch (error) {

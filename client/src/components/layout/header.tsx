@@ -67,6 +67,11 @@ export default function Header() {
                 </Link>
               </li>
               <li>
+                <Link href="/trade-commissioner-grants">
+                  <a className="text-gray-300 hover:text-primary transition-colors">Trade Commissioner</a>
+                </Link>
+              </li>
+              <li>
                 <Link href="/my-list">
                   <a className="text-gray-300 hover:text-primary transition-colors">My List</a>
                 </Link>
@@ -157,6 +162,11 @@ export default function Header() {
             <li>
               <Link href="/private-grants">
                 <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Private</a>
+              </Link>
+            </li>
+            <li>
+              <Link href="/trade-commissioner-grants">
+                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Trade</a>
               </Link>
             </li>
             <li>
