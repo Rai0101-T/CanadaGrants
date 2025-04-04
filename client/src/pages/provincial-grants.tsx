@@ -316,84 +316,89 @@ export default function ProvincialGrants() {
           </div>
         ) : filteredGrants.length > 0 ? (
           <div className="space-y-12">
-            {/* Province-specific Carousel Sections - Only show when no filters are applied */}
-            {filters.province === "all_provinces" && 
-             filters.industry === "all_industries" && 
-             filters.grantAmount === "any_amount" && 
-             filters.deadline === "any_deadline" && 
-             topProvinces.map(province => (
-              provinceGroups[province] && provinceGroups[province].length > 0 && (
-                <GrantCarousel
-                  key={province}
-                  title={`${province} Grants`}
-                  grants={provinceGroups[province]}
-                />
-              )
-            ))}
-            
-            {/* Removed High Value Grants Carousel as requested */}
-            
-            {/* Upcoming Deadlines Carousel - Only show when no filters are applied */}
-            {upcomingDeadlines.length > 0 && 
-             filters.province === "all_provinces" && 
-             filters.industry === "all_industries" && 
-             filters.grantAmount === "any_amount" && 
-             filters.deadline === "any_deadline" && (
-              <GrantCarousel
-                title="Approaching Deadlines"
-                grants={upcomingDeadlines}
-              />
-            )}
-            
-            {/* All Filtered Grants with Dynamic Title */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4">
-                {/* Dynamic title based on filters */}
-                {filters.province !== "all_provinces" && 
-                  (() => {
-                    const provinceName = filters.province.split('_').map(word => 
-                      word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-                    // Handle special cases
-                    if (provinceName === "Pei") return "PEI Grants";
-                    if (provinceName === "British Columbia") return "BC Grants";
-                    return `${provinceName} Grants`;
-                  })()}
-                {filters.industry !== "all_industries" && filters.province === "all_provinces" && 
-                  `${filters.industry.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Industry Grants`}
-                {filters.grantAmount !== "any_amount" && filters.province === "all_provinces" && 
-                 filters.industry === "all_industries" && 
-                  (() => {
-                    switch (filters.grantAmount) {
-                      case "under_10k": return "Small Provincial Grants (Under $10,000)";
-                      case "10k_50k": return "Provincial Grants $10,000 - $50,000";
-                      case "50k_100k": return "Provincial Grants $50,000 - $100,000";
-                      case "100k_500k": return "Provincial Grants $100,000 - $500,000";
-                      case "over_500k": return "Large Provincial Grants (Over $500,000)";
-                      default: return "Provincial Grants";
-                    }
-                  })()}
-                {filters.deadline !== "any_deadline" && filters.province === "all_provinces" && 
-                 filters.industry === "all_industries" && filters.grantAmount === "any_amount" && 
-                  (() => {
-                    switch (filters.deadline) {
-                      case "ongoing": return "Ongoing Provincial Grants";
-                      case "30_days": return "Provincial Grants Closing in 30 Days";
-                      case "60_days": return "Provincial Grants Closing in 60 Days";
-                      case "90_days": return "Provincial Grants Closing in 90 Days";
-                      case "this_year": return "Provincial Grants Closing This Year";
-                      default: return "Provincial Grants";
-                    }
-                  })()}
-                {filters.province === "all_provinces" && filters.industry === "all_industries" && 
-                 filters.grantAmount === "any_amount" && filters.deadline === "any_deadline" && 
-                  "All Provincial Grants"}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredGrants.map((grant) => (
-                  <GrantCard key={grant.id} grant={grant} />
-                ))}
-              </div>
-            </div>
+            {/* Check if any filters are applied */}
+            {(() => {
+              const isNoFilterApplied = 
+                filters.province === "all_provinces" && 
+                filters.industry === "all_industries" && 
+                filters.grantAmount === "any_amount" && 
+                filters.deadline === "any_deadline";
+              
+              if (isNoFilterApplied) {
+                // When no filters are applied, show category-based views
+                return (
+                  <>
+                    {/* Province-specific Carousel Sections */}
+                    {topProvinces.map(province => (
+                      provinceGroups[province] && provinceGroups[province].length > 0 && (
+                        <GrantCarousel
+                          key={province}
+                          title={`${province} Grants`}
+                          grants={provinceGroups[province]}
+                        />
+                      )
+                    ))}
+                    
+                    {/* Upcoming Deadlines Carousel */}
+                    {upcomingDeadlines.length > 0 && (
+                      <GrantCarousel
+                        title="Approaching Deadlines"
+                        grants={upcomingDeadlines}
+                      />
+                    )}
+                  </>
+                );
+              } else {
+                // When filters are applied, only show filtered grants
+                return (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-4">
+                      {/* Dynamic title based on filters */}
+                      {filters.province !== "all_provinces" && 
+                        (() => {
+                          const provinceName = filters.province.split('_').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                          // Handle special cases
+                          if (provinceName === "Pei") return "PEI Grants";
+                          if (provinceName === "British Columbia") return "BC Grants";
+                          return `${provinceName} Grants`;
+                        })()}
+                      {filters.industry !== "all_industries" && filters.province === "all_provinces" && 
+                        `${filters.industry.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Industry Grants`}
+                      {filters.grantAmount !== "any_amount" && filters.province === "all_provinces" && 
+                       filters.industry === "all_industries" && 
+                        (() => {
+                          switch (filters.grantAmount) {
+                            case "under_10k": return "Small Provincial Grants (Under $10,000)";
+                            case "10k_50k": return "Provincial Grants $10,000 - $50,000";
+                            case "50k_100k": return "Provincial Grants $50,000 - $100,000";
+                            case "100k_500k": return "Provincial Grants $100,000 - $500,000";
+                            case "over_500k": return "Large Provincial Grants (Over $500,000)";
+                            default: return "Provincial Grants";
+                          }
+                        })()}
+                      {filters.deadline !== "any_deadline" && filters.province === "all_provinces" && 
+                       filters.industry === "all_industries" && filters.grantAmount === "any_amount" && 
+                        (() => {
+                          switch (filters.deadline) {
+                            case "ongoing": return "Ongoing Provincial Grants";
+                            case "30_days": return "Provincial Grants Closing in 30 Days";
+                            case "60_days": return "Provincial Grants Closing in 60 Days";
+                            case "90_days": return "Provincial Grants Closing in 90 Days";
+                            case "this_year": return "Provincial Grants Closing This Year";
+                            default: return "Provincial Grants";
+                          }
+                        })()}
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {filteredGrants.map((grant) => (
+                        <GrantCard key={grant.id} grant={grant} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+            })()}
           </div>
         ) : (
           <div className="text-center py-10 text-gray-400">

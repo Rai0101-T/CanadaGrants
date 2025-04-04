@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,27 +25,7 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { user, loginMutation, registerMutation } = useAuth();
 
-  // Get redirect path from sessionStorage if it exists
-  const getRedirectPath = () => {
-    if (typeof window !== 'undefined') {
-      const redirectPath = sessionStorage.getItem('redirectAfterAuth');
-      if (redirectPath) {
-        // Clear the stored path to avoid future redirects
-        sessionStorage.removeItem('redirectAfterAuth');
-        return redirectPath;
-      }
-    }
-    return "/";
-  };
-  
-  // Redirect if already logged in
-  if (user) {
-    const redirectPath = getRedirectPath();
-    navigate(redirectPath);
-    return null;
-  }
-
-  // Login form
+  // Login form - Always initialize hooks regardless of user state
   const loginForm = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -54,7 +34,7 @@ export default function AuthPage() {
     },
   });
 
-  // Register form
+  // Register form - Always initialize hooks regardless of user state
   const registerForm = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -68,6 +48,27 @@ export default function AuthPage() {
       isBusiness: true,
     },
   });
+
+  // Get redirect path from sessionStorage if it exists
+  const getRedirectPath = () => {
+    if (typeof window !== 'undefined') {
+      const redirectPath = sessionStorage.getItem('redirectAfterAuth');
+      if (redirectPath) {
+        // Clear the stored path to avoid future redirects
+        sessionStorage.removeItem('redirectAfterAuth');
+        return redirectPath;
+      }
+    }
+    return "/";
+  };
+  
+  // Redirect effect - Must be after all hooks are initialized
+  useEffect(() => {
+    if (user) {
+      const redirectPath = getRedirectPath();
+      navigate(redirectPath);
+    }
+  }, [user, navigate]);
 
   // Handle login submission
   const onLogin = async (data: z.infer<typeof signInSchema>) => {
