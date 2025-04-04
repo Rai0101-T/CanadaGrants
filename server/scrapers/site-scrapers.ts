@@ -403,224 +403,374 @@ export async function scrapeAlbertaInnovates(browser: puppeteer.Browser): Promis
   const processedUrls = new Set<string>(); // Track processed URLs to avoid duplicates
   
   try {
-    console.log('Starting Alberta Innovates scraper with pagination support...');
+    console.log('Starting Alberta Innovates scraper with enhanced extraction...');
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
     
-    // Navigate to Alberta Innovates funding page
-    await page.goto('https://albertainnovates.ca/funding/', {
-      waitUntil: 'networkidle2',
-      timeout: 60000
-    });
+    // Scrape both the main funding page and the programs page
+    const fundingUrls = [
+      'https://albertainnovates.ca/funding/',
+      'https://albertainnovates.ca/programs/'
+    ];
     
-    // Wait for funding items to load
-    await page.waitForSelector('.funding-item', { timeout: 30000 });
-    
-    // Check if there's pagination on the page
-    const hasPagination = await page.evaluate(() => {
-      return !!document.querySelector('.pagination');
-    });
-    
-    console.log(`Alberta Innovates pagination detected: ${hasPagination}`);
-    
-    // If there's pagination, determine the total number of pages
-    let totalPages = 1;
-    if (hasPagination) {
-      totalPages = await page.evaluate(() => {
-        const paginationItems = document.querySelectorAll('.pagination .page-numbers');
-        if (!paginationItems.length) return 1;
-        
-        let maxPage = 1;
-        paginationItems.forEach(item => {
-          const pageText = item.textContent?.trim() || '';
-          const pageNum = parseInt(pageText);
-          if (!isNaN(pageNum) && pageNum > maxPage) {
-            maxPage = pageNum;
-          }
-        });
-        
-        return maxPage;
-      });
-    }
-    
-    console.log(`Alberta Innovates total pages to scrape: ${totalPages}`);
-    
-    // Process each page
-    for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
-      console.log(`Processing Alberta Innovates page ${currentPage} of ${totalPages}`);
+    for (const fundingUrl of fundingUrls) {
+      console.log(`Scraping Alberta Innovates URL: ${fundingUrl}`);
       
-      // Navigate to the current page (first page is already loaded)
-      if (currentPage > 1) {
-        await page.goto(`https://albertainnovates.ca/funding/page/${currentPage}/`, {
-          waitUntil: 'networkidle2',
-          timeout: 60000
-        });
-        await page.waitForSelector('.funding-item', { timeout: 30000 });
+      // Navigate to Alberta Innovates funding/programs page
+      await page.goto(fundingUrl, {
+        waitUntil: 'networkidle2',
+        timeout: 60000
+      });
+      
+      // Wait for items to load - handle different page structures
+      try {
+        await Promise.race([
+          page.waitForSelector('.funding-item', { timeout: 15000 }),
+          page.waitForSelector('.program-item', { timeout: 15000 }),
+          page.waitForSelector('.post-card', { timeout: 15000 }),
+          page.waitForSelector('.card', { timeout: 15000 })
+        ]);
+      } catch (err) {
+        console.warn(`No expected selectors found on ${fundingUrl}, trying to continue anyway`);
       }
       
-      // Extract all grant detail links from the current page
-      const detailLinks = await page.evaluate(() => {
-        const links: string[] = [];
-        document.querySelectorAll('.funding-item a').forEach(link => {
-          const href = link.getAttribute('href');
-          if (href) links.push(href);
-        });
-        return [...new Set(links)]; // Remove duplicates
+      // Check if there's pagination on the page
+      const hasPagination = await page.evaluate(() => {
+        return !!document.querySelector('.pagination') || 
+               !!document.querySelector('.nav-links') ||
+               !!document.querySelector('.page-numbers');
       });
       
-      console.log(`Found ${detailLinks.length} grant links on page ${currentPage}`);
+      console.log(`Alberta Innovates pagination detected on ${fundingUrl}: ${hasPagination}`);
       
-      // Get basic info from the current page
-      const content = await page.content();
-      const $ = cheerio.load(content);
+      // If there's pagination, determine the total number of pages
+      let totalPages = 1;
+      if (hasPagination) {
+        totalPages = await page.evaluate(() => {
+          const paginationItems = document.querySelectorAll('.pagination .page-numbers, .nav-links .page-numbers, .page-numbers');
+          if (!paginationItems.length) return 1;
+          
+          let maxPage = 1;
+          paginationItems.forEach(item => {
+            const pageText = item.textContent?.trim() || '';
+            const pageNum = parseInt(pageText);
+            if (!isNaN(pageNum) && pageNum > maxPage) {
+              maxPage = pageNum;
+            }
+          });
+          
+          return maxPage;
+        });
+      }
       
-      // Process each funding item on the current page
-      for (let i = 0; i < detailLinks.length; i++) {
-        const detailUrl = detailLinks[i];
+      console.log(`Alberta Innovates total pages to scrape on ${fundingUrl}: ${totalPages}`);
+      
+      // Process each page
+      for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
+        console.log(`Processing Alberta Innovates page ${currentPage} of ${totalPages} on ${fundingUrl}`);
         
-        // Skip already processed URLs
-        if (processedUrls.has(detailUrl)) {
-          console.log(`Skipping already processed URL: ${detailUrl}`);
-          continue;
-        }
-        
-        processedUrls.add(detailUrl);
-        
-        try {
-          // Navigate to the detail page
-          await page.goto(detailUrl, {
+        // Navigate to the current page (first page is already loaded)
+        if (currentPage > 1) {
+          const pageUrl = fundingUrl.endsWith('/') 
+            ? `${fundingUrl}page/${currentPage}/` 
+            : `${fundingUrl}/page/${currentPage}/`;
+            
+          await page.goto(pageUrl, {
             waitUntil: 'networkidle2',
             timeout: 60000
           });
           
-          // Extract detailed grant information
-          const grantDetail = await page.evaluate((sourceUrl) => {
-            // Get the title
-            const title = document.querySelector('h1')?.textContent?.trim() || 
-                         document.querySelector('h2')?.textContent?.trim() || 
-                         document.querySelector('.entry-title')?.textContent?.trim() || 
-                         'Unknown Grant';
-            
-            // Gather description from content
-            let description = '';
-            document.querySelectorAll('.entry-content p, .content-area p, .entry p').forEach((p) => {
-              description += p.textContent?.trim() + ' ';
+          // Wait for items to load - handle different page structures
+          try {
+            await Promise.race([
+              page.waitForSelector('.funding-item', { timeout: 15000 }),
+              page.waitForSelector('.program-item', { timeout: 15000 }),
+              page.waitForSelector('.post-card', { timeout: 15000 }),
+              page.waitForSelector('.card', { timeout: 15000 })
+            ]);
+          } catch (err) {
+            console.warn(`No expected selectors found on page ${currentPage}, trying to continue anyway`);
+          }
+        }
+        
+        // Extract all grant detail links from the current page - handle multiple potential selectors
+        const detailLinks = await page.evaluate(() => {
+          const links: string[] = [];
+          // Try different selectors for different page structures
+          const selectors = [
+            '.funding-item a', 
+            '.program-item a', 
+            '.post-card a',
+            '.card a', 
+            '.entry-content a',
+            'article a'
+          ];
+          
+          selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(link => {
+              const href = link.getAttribute('href');
+              if (href && href.includes('albertainnovates.ca') && !href.includes('#')) {
+                links.push(href);
+              }
             });
-            description = description.trim().substring(0, 500) + (description.length > 500 ? '...' : '');
+          });
+          
+          return [...new Set(links)]; // Remove duplicates
+        });
+        
+        console.log(`Found ${detailLinks.length} grant links on page ${currentPage} of ${fundingUrl}`);
+        
+        // Process each funding item on the current page
+        for (let i = 0; i < detailLinks.length; i++) {
+          const detailUrl = detailLinks[i];
+          
+          // Skip already processed URLs
+          if (processedUrls.has(detailUrl)) {
+            console.log(`Skipping already processed URL: ${detailUrl}`);
+            continue;
+          }
+          
+          processedUrls.add(detailUrl);
+          
+          try {
+            // Navigate to the detail page
+            await page.goto(detailUrl, {
+              waitUntil: 'networkidle2',
+              timeout: 60000
+            });
             
-            // Look for funding amount in the content
-            const contentText = document.body.textContent || '';
-            let fundingAmount = 'Varies by program';
-            
-            const fundingPatterns = [
-              /funding:?\s*([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i,
-              /amount:?\s*([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i,
-              /grant:?\s*([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i,
-              /up to:?\s*([$€£][\d,.]+[KkMm]?)/i,
-              /([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i
-            ];
-            
-            for (const pattern of fundingPatterns) {
-              const match = contentText.match(pattern);
-              if (match && match[1]) {
-                fundingAmount = match[1].trim();
-                break;
+            // Extract detailed grant information
+            const grantDetail = await page.evaluate((sourceUrl) => {
+              // Get the title - try various heading elements
+              const title = document.querySelector('h1')?.textContent?.trim() || 
+                           document.querySelector('h2')?.textContent?.trim() || 
+                           document.querySelector('.entry-title')?.textContent?.trim() || 
+                           document.querySelector('.page-title')?.textContent?.trim() || 
+                           document.querySelector('.post-title')?.textContent?.trim() || 
+                           'Alberta Innovates Funding Program';
+              
+              // Gather description from content - try multiple potential content containers
+              let description = '';
+              const contentSelectors = [
+                '.entry-content p', 
+                '.content-area p', 
+                '.program-description p',
+                '.post-content p',
+                'article p',
+                '.entry p',
+                '.card-text'
+              ];
+              
+              contentSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach((p) => {
+                  if (p.textContent) {
+                    description += p.textContent.trim() + ' ';
+                  }
+                });
+              });
+              
+              // If we still don't have a description, try to get any paragraph
+              if (!description) {
+                document.querySelectorAll('p').forEach((p) => {
+                  description += p.textContent?.trim() + ' ';
+                });
               }
-            }
-            
-            // Look for eligibility information
-            let eligibility = 'Alberta-based businesses and researchers';
-            const eligibilityPatterns = [
-              /eligibility:?\s*([^.]+\.)/i,
-              /eligible:?\s*([^.]+\.)/i,
-              /who can apply:?\s*([^.]+\.)/i
-            ];
-            
-            for (const pattern of eligibilityPatterns) {
-              const match = contentText.match(pattern);
-              if (match && match[1]) {
-                eligibility = match[1].trim();
-                break;
+              
+              description = description.trim();
+              if (description.length > 500) {
+                description = description.substring(0, 500) + '...';
               }
-            }
-            
-            // Look for deadline information
-            let deadline = 'Check website for program deadlines';
-            const deadlinePatterns = [
-              /deadline:?\s*([^.]+\d{4})/i,
-              /closes:?\s*([^.]+\d{4})/i,
-              /applications due:?\s*([^.]+\d{4})/i,
-              /applications close:?\s*([^.]+\d{4})/i
-            ];
-            
-            for (const pattern of deadlinePatterns) {
-              const match = contentText.match(pattern);
-              if (match && match[1]) {
-                deadline = match[1].trim();
-                break;
-              }
-            }
-            
-            // Determine industry focus
-            let industry = 'Innovation & Technology';
-            
-            // Look for industry keywords in the content
-            const industryKeywords = {
-              'Health': ['health', 'medical', 'medicine', 'healthcare', 'pharma'],
-              'Energy': ['energy', 'oil', 'gas', 'renewable', 'solar', 'wind'],
-              'Agriculture': ['agriculture', 'farm', 'food', 'agtech', 'crop'],
-              'Clean Technology': ['clean tech', 'cleantech', 'environmental', 'green'],
-              'Manufacturing': ['manufacturing', 'production', 'factory'],
-              'Biotechnology': ['bio', 'biotech', 'biotechnology', 'life science'],
-              'Digital Technology': ['digital', 'software', 'AI', 'artificial intelligence', 'machine learning'],
-              'Research & Development': ['research', 'R&D', 'development', 'innovation'],
-              'Education': ['education', 'academic', 'university', 'school', 'training']
-            };
-            
-            for (const [industryName, keywords] of Object.entries(industryKeywords)) {
-              for (const keyword of keywords) {
-                if (contentText.toLowerCase().includes(keyword.toLowerCase())) {
-                  industry = industryName;
+              
+              // Get the main content text for pattern matching
+              const contentText = document.body.textContent || '';
+              
+              // Look for funding amount with expanded patterns
+              let fundingAmount = 'Varies by program';
+              
+              const fundingPatterns = [
+                /funding:?\s*([$€£C]?\s?[\d,.]+[KkMm]?(?:\s*-\s*[$€£C]?\s?[\d,.]+[KkMm]?)?)/i,
+                /amount:?\s*([$€£C]?\s?[\d,.]+[KkMm]?(?:\s*-\s*[$€£C]?\s?[\d,.]+[KkMm]?)?)/i,
+                /grant:?\s*([$€£C]?\s?[\d,.]+[KkMm]?(?:\s*-\s*[$€£C]?\s?[\d,.]+[KkMm]?)?)/i,
+                /up to:?\s*([$€£C]?\s?[\d,.]+[KkMm]?)/i,
+                /provides\s*([$€£C]?\s?[\d,.]+[KkMm]?)/i,
+                /awarded\s*([$€£C]?\s?[\d,.]+[KkMm]?)/i,
+                /([$€£C]?\s?[\d,.]+[KkMm]?(?:\s*-\s*[$€£C]?\s?[\d,.]+[KkMm]?)?)\s*in funding/i
+              ];
+              
+              for (const pattern of fundingPatterns) {
+                const match = contentText.match(pattern);
+                if (match && match[1]) {
+                  fundingAmount = match[1].trim();
                   break;
                 }
               }
+              
+              // Look for eligibility information with expanded patterns
+              let eligibility = 'Alberta-based businesses and researchers';
+              const eligibilityPatterns = [
+                /eligibility criteria:?\s*([^.]+\.)/i,
+                /eligibility:?\s*([^.]+\.)/i,
+                /eligible:?\s*([^.]+\.)/i,
+                /who can apply:?\s*([^.]+\.)/i,
+                /who is eligible:?\s*([^.]+\.)/i,
+                /available to:?\s*([^.]+\.)/i,
+                /applicants must:?\s*([^.]+\.)/i
+              ];
+              
+              for (const pattern of eligibilityPatterns) {
+                const match = contentText.match(pattern);
+                if (match && match[1]) {
+                  eligibility = match[1].trim();
+                  break;
+                }
+              }
+              
+              // Also check for eligibility in list items
+              if (eligibility === 'Alberta-based businesses and researchers') {
+                const eligibilitySection = Array.from(document.querySelectorAll('h2, h3, h4')).find(
+                  h => h.textContent?.toLowerCase().includes('eligibility') || 
+                      h.textContent?.toLowerCase().includes('who can apply')
+                );
+                
+                if (eligibilitySection) {
+                  let nextEl = eligibilitySection.nextElementSibling;
+                  let eli = '';
+                  
+                  // Gather content from the next few elements after the heading
+                  for (let i = 0; i < 5 && nextEl; i++, nextEl = nextEl.nextElementSibling) {
+                    if (nextEl.tagName === 'UL' || nextEl.tagName === 'OL') {
+                      const items = Array.from(nextEl.querySelectorAll('li')).map(li => li.textContent?.trim());
+                      eli = items.join('. ');
+                      break;
+                    } else if (nextEl.tagName === 'P') {
+                      eli = nextEl.textContent?.trim() || '';
+                      break;
+                    }
+                  }
+                  
+                  if (eli) {
+                    eligibility = eli;
+                  }
+                }
+              }
+              
+              // Look for deadline information with expanded patterns
+              let deadline = 'Check website for current deadlines';
+              const deadlinePatterns = [
+                /deadline:?\s*([^.]+\d{1,2}[,\s]+\d{4})/i,
+                /deadline:?\s*([^.]+\d{4})/i,
+                /closes:?\s*([^.]+\d{4})/i,
+                /closing date:?\s*([^.]+\d{4})/i,
+                /applications due:?\s*([^.]+\d{4})/i,
+                /applications close:?\s*([^.]+\d{4})/i,
+                /submission deadline:?\s*([^.]+\d{4})/i,
+                /apply by:?\s*([^.]+\d{4})/i
+              ];
+              
+              for (const pattern of deadlinePatterns) {
+                const match = contentText.match(pattern);
+                if (match && match[1]) {
+                  deadline = match[1].trim();
+                  break;
+                }
+              }
+              
+              // Also check for "continuous intake" or "ongoing" deadlines
+              if (contentText.toLowerCase().includes('continuous intake') || 
+                  contentText.toLowerCase().includes('rolling deadline') ||
+                  contentText.toLowerCase().includes('no deadline') ||
+                  contentText.toLowerCase().includes('ongoing program')) {
+                deadline = 'Continuous intake / No deadline';
+              }
+              
+              // Determine industry focus with expanded keywords
+              let industry = 'Innovation & Technology';
+              
+              // Look for industry keywords in the content
+              const industryKeywords = {
+                'Health & Life Sciences': ['health', 'medical', 'medicine', 'healthcare', 'pharma', 'life sciences', 'clinical', 'biomedical'],
+                'Clean Energy': ['energy', 'oil', 'gas', 'renewable', 'solar', 'wind', 'clean energy', 'sustainable energy'],
+                'Agriculture & Food': ['agriculture', 'farm', 'food', 'agtech', 'crop', 'farming', 'agricultural'],
+                'Clean Technology': ['clean tech', 'cleantech', 'environmental', 'green', 'sustainability', 'climate'],
+                'Manufacturing': ['manufacturing', 'production', 'factory', 'industry', 'industrial'],
+                'Biotechnology': ['bio', 'biotech', 'biotechnology', 'life science', 'biological'],
+                'Digital Technology': ['digital', 'software', 'AI', 'artificial intelligence', 'machine learning', 'tech', 'data', 'information technology'],
+                'Research & Development': ['research', 'R&D', 'development', 'innovation', 'discovery', 'laboratory'],
+                'Education & Training': ['education', 'academic', 'university', 'school', 'training', 'learning', 'skill development']
+              };
+              
+              // Calculate which industry has the most keyword matches
+              const industryCounts: {[key: string]: number} = {};
+              for (const [industryName, keywords] of Object.entries(industryKeywords)) {
+                industryCounts[industryName] = 0;
+                for (const keyword of keywords) {
+                  // Count occurrences of each keyword
+                  const regex = new RegExp(keyword, 'gi');
+                  const matches = contentText.match(regex);
+                  if (matches) {
+                    industryCounts[industryName] += matches.length;
+                  }
+                }
+              }
+              
+              // Find the industry with the most matches
+              let maxCount = 0;
+              for (const [industryName, count] of Object.entries(industryCounts)) {
+                if (count > maxCount) {
+                  maxCount = count;
+                  industry = industryName;
+                }
+              }
+              
+              // Get the application URL - either the current page or a specific apply button
+              let applicationUrl = window.location.href;
+              const applyButton = 
+                Array.from(document.querySelectorAll('a')).find(a => 
+                  a.textContent?.toLowerCase().includes('apply') || 
+                  a.textContent?.toLowerCase().includes('submit') ||
+                  a.textContent?.toLowerCase().includes('application')
+                );
+              
+              if (applyButton && applyButton.href) {
+                applicationUrl = applyButton.href;
+              }
+              
+              return {
+                title,
+                description,
+                fundingAmount,
+                eligibility,
+                deadline,
+                industry,
+                applicationUrl,
+                sourceUrl
+              };
+            }, detailUrl);
+            
+            // Create the grant object
+            const grant: ScrapedGrant = {
+              title: grantDetail.title,
+              description: grantDetail.description,
+              fundingAmount: grantDetail.fundingAmount,
+              eligibility: grantDetail.eligibility,
+              deadline: grantDetail.deadline,
+              applicationUrl: grantDetail.applicationUrl,
+              sourceUrl: detailUrl,
+              sourceWebsite: 'Alberta Innovates',
+              type: 'provincial',
+              industry: grantDetail.industry,
+              province: 'Alberta'
+            };
+            
+            // Add the grant if it has required fields
+            if (grant.title && grant.description && !grant.title.includes('Page not found')) {
+              console.log(`Added grant: ${grant.title}`);
+              grants.push(grant);
             }
             
-            return {
-              title,
-              description,
-              fundingAmount,
-              eligibility,
-              deadline,
-              industry,
-              applicationUrl: window.location.href,
-              sourceUrl
-            };
-          }, detailUrl);
-          
-          // Create the grant object
-          const grant: ScrapedGrant = {
-            title: grantDetail.title,
-            description: grantDetail.description,
-            fundingAmount: grantDetail.fundingAmount,
-            eligibility: grantDetail.eligibility,
-            deadline: grantDetail.deadline,
-            applicationUrl: grantDetail.applicationUrl,
-            sourceUrl: 'https://albertainnovates.ca/funding/',
-            sourceWebsite: 'Alberta Innovates',
-            type: 'provincial',
-            industry: grantDetail.industry,
-            province: 'Alberta'
-          };
-          
-          // Add the grant if it has required fields
-          if (grant.title && grant.description) {
-            console.log(`Added grant: ${grant.title}`);
-            grants.push(grant);
+          } catch (err) {
+            console.error(`Error processing detail page ${detailUrl}:`, err);
           }
-          
-        } catch (err) {
-          console.error(`Error processing detail page ${detailUrl}:`, err);
         }
       }
     }
