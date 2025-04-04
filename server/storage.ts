@@ -594,6 +594,8 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.ontario.ca/business-grants",
         featured: true,
+        province: "Ontario",
+        industry: "Business",
         createdAt: new Date().toISOString()
       },
       {
@@ -627,6 +629,8 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.quebec.ca/culture-grants",
         featured: true,
+        province: "Quebec",
+        industry: "Arts & Culture",
         createdAt: new Date().toISOString()
       },
       {
@@ -660,6 +664,8 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.britishcolumbia.ca/tech-grants",
         featured: false,
+        province: "British Columbia",
+        industry: "Technology",
         createdAt: new Date().toISOString()
       },
       {
@@ -693,6 +699,8 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.alberta.ca/energy-grants",
         featured: false,
+        province: "Alberta",
+        industry: "Energy",
         createdAt: new Date().toISOString()
       },
       {
@@ -726,6 +734,8 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.manitoba.ca/agriculture-grants",
         featured: false,
+        province: "Manitoba",
+        industry: "Agriculture",
         createdAt: new Date().toISOString()
       },
       {
@@ -759,6 +769,8 @@ export class MemStorage implements IStorage {
         ],
         websiteUrl: "https://www.novascotia.ca/ocean-tech",
         featured: false,
+        province: "Nova Scotia",
+        industry: "Marine & Ocean Technology",
         createdAt: new Date().toISOString()
       },
       
