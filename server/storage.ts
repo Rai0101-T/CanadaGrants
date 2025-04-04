@@ -949,6 +949,188 @@ export class MemStorage implements IStorage {
         province: null,
         fundingOrganization: "Desjardins Group",
         createdAt: new Date().toISOString()
+      },
+
+      // Alberta Innovates Grants
+      {
+        title: "Digital Innovation in Clean Energy (DICE)",
+        description: "Supporting the development of digital technology that helps create jobs in the digital economy and addresses the challenges of climate change in Alberta's energy industry.",
+        type: "provincial",
+        imageUrl: "https://images.unsplash.com/photo-1624397640148-949b1732bb0a?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Jun 30, 2025",
+        fundingAmount: "$100K-300K",
+        category: "Clean Energy",
+        eligibilityCriteria: [
+          "Alberta-based small and medium-sized enterprises",
+          "Digital technology innovation focus",
+          "Clean energy application",
+          "GHG emissions reduction potential",
+          "Technology readiness level 4-7"
+        ],
+        pros: [
+          "Builds on previous successful funding competitions",
+          "Access to Alberta Innovates network and resources",
+          "Significant funding amount for qualifying projects",
+          "Support for commercialization and market adoption",
+          "Focus on Alberta job creation"
+        ],
+        cons: [
+          "Requires minimum 25% matching funds",
+          "Project must complete within 24 months",
+          "Quarterly reporting requirements",
+          "Competitive selection process",
+          "Must demonstrate economic and environmental benefits"
+        ],
+        websiteUrl: "https://albertainnovates.ca/funding/digital-innovation-in-clean-energy-dice/",
+        featured: true,
+        province: "Alberta",
+        industry: "Energy & Environment",
+        fundingOrganization: "Alberta Innovates",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "Accelerating Innovations into CarE (AICE)",
+        description: "Accelerating health technology adoption into Alberta's healthcare system, bridging the gap between innovation and implementation for healthy aging technologies.",
+        type: "provincial",
+        imageUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Apr 15, 2025",
+        fundingAmount: "$150K-300K",
+        category: "Healthcare",
+        eligibilityCriteria: [
+          "Alberta-based small and medium-sized enterprises",
+          "Innovative health technology solutions",
+          "Clinical/industry partnerships",
+          "Addressing senior care needs",
+          "Technology readiness level 6+"
+        ],
+        pros: [
+          "Direct pathway to healthcare implementation",
+          "Access to healthcare system partners",
+          "Support from Alberta Innovates network",
+          "Potential provincial-wide adoption",
+          "Real-world validation opportunities"
+        ],
+        cons: [
+          "Requires healthcare partnership commitment",
+          "Strict regulatory compliance required",
+          "Multiple approval stages",
+          "Complex implementation environment",
+          "Extended timeline for adoption"
+        ],
+        websiteUrl: "https://albertainnovates.ca/funding/accelerating-innovations-into-care-aice-tech-for-healthy-aging/",
+        featured: false,
+        province: "Alberta",
+        industry: "Healthcare & Life Sciences",
+        fundingOrganization: "Alberta Innovates",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "Product Demonstration Program",
+        description: "Supporting Alberta SMEs in demonstrating and creating market value for their innovative technology product or service through real-world implementation.",
+        type: "provincial",
+        imageUrl: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Ongoing",
+        fundingAmount: "$50K-150K",
+        category: "Technology",
+        eligibilityCriteria: [
+          "Alberta-based small and medium-sized enterprises",
+          "Minimum viable product developed",
+          "Partner committed to implement technology",
+          "Market validation strategy",
+          "Technical feasibility demonstrated"
+        ],
+        pros: [
+          "Market-pull focused approach",
+          "Real-world implementation support",
+          "Connection to potential customers",
+          "Technology validation opportunity",
+          "Builds product credibility"
+        ],
+        cons: [
+          "Requires committed partner organization",
+          "Co-funding requirement (50% match)",
+          "Limited to technology readiness level 7-9",
+          "Performance metrics reporting required",
+          "Competitive application process"
+        ],
+        websiteUrl: "https://albertainnovates.ca/programs/product-demonstration-program/",
+        featured: false,
+        province: "Alberta",
+        industry: "Technology & Innovation",
+        fundingOrganization: "Alberta Innovates",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "r&d Associates Program",
+        description: "Supporting the hiring of highly-qualified personnel to help Alberta SMEs advance their research, development, and innovation activities.",
+        type: "provincial",
+        imageUrl: "https://images.unsplash.com/photo-1581092921461-fd5e8f8d2594?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Rolling intake",
+        fundingAmount: "$67.5K-105K",
+        category: "R&D",
+        eligibilityCriteria: [
+          "Alberta-based small and medium-sized enterprises",
+          "R&D project with clear innovation goals",
+          "Commercially viable technology development",
+          "Hiring need for specialized expertise",
+          "Business strategy alignment"
+        ],
+        pros: [
+          "Subsidizes hiring of specialized talent",
+          "1-2 year funding commitment",
+          "Helps with competitive recruitment",
+          "Builds Alberta innovation capacity",
+          "Connects to academic expertise"
+        ],
+        cons: [
+          "Company must contribute 25% of salary",
+          "Limited to specific technical roles",
+          "Hiring process restrictions",
+          "Detailed reporting requirements",
+          "Subject to performance reviews"
+        ],
+        websiteUrl: "https://albertainnovates.ca/programs/r-and-d-associates/",
+        featured: false,
+        province: "Alberta",
+        industry: "Research & Development",
+        fundingOrganization: "Alberta Innovates",
+        createdAt: new Date().toISOString()
+      },
+      {
+        title: "Micro-Voucher Program",
+        description: "Providing quick access to funding for early feasibility, proof-of-concept, prototype development, and other early-stage innovation activities.",
+        type: "provincial",
+        imageUrl: "https://images.unsplash.com/photo-1542361345-89e58247f2d5?auto=format&fit=crop&w=500&h=280&q=80",
+        deadline: "Continuous",
+        fundingAmount: "$10K-25K",
+        category: "Early-Stage Innovation",
+        eligibilityCriteria: [
+          "Alberta-based small and medium-sized enterprises",
+          "Early-stage technology development",
+          "Clear innovation opportunity identified",
+          "Defined project scope and deliverables",
+          "First-time innovation projects preferred"
+        ],
+        pros: [
+          "Quick application and approval process",
+          "Low barrier to entry for first-time innovators",
+          "Minimal reporting requirements",
+          "Connects to service providers",
+          "Wide range of eligible activities"
+        ],
+        cons: [
+          "Limited funding amount",
+          "One-time support only",
+          "Must use approved service providers",
+          "Short project timeline (under 6 months)",
+          "Competitive allocation process"
+        ],
+        websiteUrl: "https://albertainnovates.ca/programs/micro-voucher/",
+        featured: false,
+        province: "Alberta",
+        industry: "Technology & Innovation",
+        fundingOrganization: "Alberta Innovates",
+        createdAt: new Date().toISOString()
       }
     ];
 
