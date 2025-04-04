@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ArrowRight, CheckCircle, Mail, MapPin, Phone } from 'lucide-react';
 import Header from '@/components/layout/header';
+import { smoothScrollToSection } from '@/lib/utils';
 
 export default function AboutUs() {
   return (
@@ -277,10 +278,11 @@ export default function AboutUs() {
           <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
             <a 
               href="#how-it-works" 
-              className="text-gray-300 hover:text-primary flex items-center"
+              className="text-gray-300 hover:text-primary flex items-center special-anchor"
+              data-section="how-it-works"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                smoothScrollToSection('how-it-works');
               }}
             >
               <CheckCircle className="h-5 w-5 mr-2" />
@@ -288,10 +290,11 @@ export default function AboutUs() {
             </a>
             <a 
               href="#faq" 
-              className="text-gray-300 hover:text-primary flex items-center"
+              className="text-gray-300 hover:text-primary flex items-center special-anchor"
+              data-section="faq"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                smoothScrollToSection('faq');
               }}
             >
               <CheckCircle className="h-5 w-5 mr-2" />
@@ -299,10 +302,11 @@ export default function AboutUs() {
             </a>
             <a 
               href="#contact-us" 
-              className="text-gray-300 hover:text-primary flex items-center"
+              className="text-gray-300 hover:text-primary flex items-center special-anchor"
+              data-section="contact-us"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('contact-us')?.scrollIntoView({ behavior: 'smooth' });
+                smoothScrollToSection('contact-us');
               }}
             >
               <CheckCircle className="h-5 w-5 mr-2" />

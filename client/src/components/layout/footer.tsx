@@ -42,17 +42,17 @@ export default function Footer() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/about-us#how-it-works">
-                    <a className="hover:text-primary transition-colors">How It Works</a>
+                    <a className="hover:text-primary transition-colors special-anchor" data-section="how-it-works">How It Works</a>
                   </Link>
                 </li>
                 <li>
                   <Link href="/about-us#faq">
-                    <a className="hover:text-primary transition-colors">FAQ</a>
+                    <a className="hover:text-primary transition-colors special-anchor" data-section="faq">FAQ</a>
                   </Link>
                 </li>
                 <li>
                   <Link href="/about-us#contact-us">
-                    <a className="hover:text-primary transition-colors">Contact Us</a>
+                    <a className="hover:text-primary transition-colors special-anchor" data-section="contact-us">Contact Us</a>
                   </Link>
                 </li>
               </ul>

@@ -5,6 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Smoothly scrolls to a specific section by ID with header offset
+ * @param sectionId The ID of the section to scroll to
+ * @param headerOffset Offset to account for fixed header (default: 100px)
+ */
+export function smoothScrollToSection(sectionId: string, headerOffset = 100): void {
+  setTimeout(() => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }, 300); // Delay to ensure DOM is ready
+}
+
 // Format currency (e.g. $1,000)
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-CA', {
