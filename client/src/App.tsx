@@ -16,8 +16,12 @@ import AboutUs from "@/pages/about-us";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { useScrollTop } from "@/hooks/use-scroll-top";
 
 function Router() {
+  // Use the scroll restoration hook
+  useScrollTop();
+  
   return (
     <div className="bg-black min-h-screen flex flex-col">
       <Header />
