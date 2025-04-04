@@ -6,7 +6,23 @@ import { z } from "zod";
 import { insertUserGrantSchema } from "@shared/schema";
 import OpenAI from "openai";
 import { setupAuth } from "./auth";
-import { runAllScrapers, scheduleScrapingJob } from "./scrapers/scraper";
+import puppeteer from "puppeteer";
+import { 
+  runAllScrapers, 
+  scheduleScrapingJob, 
+  processGrants, 
+  saveGrantsToDatabase 
+} from "./scrapers/scraper";
+import { 
+  scrapeAlbertaInnovates, 
+  scrapeInnovationCanada,
+  scrapeTradeCommissioner,
+  scrapeFuturpreneur,
+  scrapeWomenEntrepreneurship,
+  scrapeLaunchOnline,
+  scrapeAlbertaHealth
+} from './scrapers/site-scrapers';
+import { scrapeTradeFundingPrograms } from './scrapers/trade-commissioner-scraper';
 import { calculateGrantCompatibility } from "./services/compatibility-service";
 
 // Initialize OpenAI
@@ -502,6 +518,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error triggering scraper:', error);
       res.status(500).json({ message: "Failed to trigger scraper" });
+    }
+  });
+  
+  // Admin endpoint to run specific scrapers
+  apiRouter.post("/admin/scraper/run/:source", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      // Check if user is an admin
+      if (req.user && req.user.email && (req.user.email.includes('admin') || req.user.email === 'admin@grantflix.com')) {
+        const { source } = req.params;
+        
+        console.log(`Specific scraper '${source}' manually triggered by admin`);
+        
+        // Run the specific scraper in the background
+        (async () => {
+          try {
+            // Initialize browser
+            console.log('Launching browser for specific scraper...');
+            const browser = await puppeteer.launch({
+              headless: true,
+              args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-extensions'
+              ]
+            });
+            
+            let scraperFunction;
+            let scraperName = '';
+            
+            // Select the appropriate scraper based on the source parameter
+            switch(source) {
+              case 'alberta-innovates':
+                scraperFunction = scrapeAlbertaInnovates;
+                scraperName = 'Alberta Innovates';
+                break;
+              case 'innovation-canada':
+                scraperFunction = scrapeInnovationCanada;
+                scraperName = 'Innovation Canada';
+                break;
+              case 'trade-commissioner':
+                scraperFunction = scrapeTradeCommissioner;
+                scraperName = 'Trade Commissioner';
+                break;
+              case 'trade-funding-programs':
+                scraperFunction = scrapeTradeFundingPrograms;
+                scraperName = 'Trade Funding Programs';
+                break;
+              case 'futurpreneur':
+                scraperFunction = scrapeFuturpreneur;
+                scraperName = 'Futurpreneur';
+                break;
+              case 'women-entrepreneurship':
+                scraperFunction = scrapeWomenEntrepreneurship;
+                scraperName = 'Women Entrepreneurship Strategy';
+                break;
+              case 'launch-online':
+                scraperFunction = scrapeLaunchOnline;
+                scraperName = 'Launch Online';
+                break;
+              case 'alberta-health':
+                scraperFunction = scrapeAlbertaHealth;
+                scraperName = 'Alberta Health';
+                break;
+              default:
+                console.error(`Invalid scraper source: ${source}`);
+                await browser.close();
+                return;
+            }
+            
+            console.log(`Running ${scraperName} scraper...`);
+            
+            // Run the specific scraper
+            const scrapedGrants = await scraperFunction(browser);
+            console.log(`${scraperName} scraper completed with ${scrapedGrants.length} grants`);
+            
+            // Process and save the grants
+            if (source === 'trade-funding-programs') {
+              // This scraper returns InsertGrant objects directly
+              await saveGrantsToDatabase(scrapedGrants);
+            } else {
+              // Other scrapers return ScrapedGrant objects that need processing
+              const processedGrants = await processGrants(scrapedGrants);
+              await saveGrantsToDatabase(processedGrants);
+            }
+            
+            await browser.close();
+            console.log(`${scraperName} scraper job completed successfully`);
+          } catch (error) {
+            console.error(`Error running specific scraper '${source}':`, error);
+          }
+        })();
+        
+        res.json({ message: `${source} scraping process started in the background. Check server logs for progress.` });
+      } else {
+        res.status(403).json({ message: "Admin access required" });
+      }
+    } catch (error) {
+      console.error("Error triggering specific scraper:", error);
+      res.status(500).json({ message: "Failed to trigger specific grant scraper" });
     }
   });
   

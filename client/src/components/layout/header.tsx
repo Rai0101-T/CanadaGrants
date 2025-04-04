@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, User, LogOut } from "lucide-react";
+import { Search, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
@@ -16,6 +16,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
+  
+  // Check if user is admin
+  const isAdmin = user?.email?.includes("admin") || user?.email === "admin@grantflix.com";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,6 +123,15 @@ export default function Header() {
                 >
                   GrantScribe
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem 
+                    onClick={() => navigate("/admin/scraper")} 
+                    className="cursor-pointer flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Scraper Admin
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem 
                   onClick={() => logoutMutation.mutate()} 
                   className="text-red-500 cursor-pointer flex items-center gap-2"
@@ -179,6 +191,13 @@ export default function Header() {
                 <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">GrantScribe</a>
               </Link>
             </li>
+            {isAdmin && (
+              <li>
+                <Link href="/admin/scraper">
+                  <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Admin</a>
+                </Link>
+              </li>
+            )}
             <li>
               <Link href="/about-us">
                 <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">About Us</a>

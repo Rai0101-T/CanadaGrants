@@ -400,8 +400,10 @@ export async function scrapeLaunchOnline(browser: puppeteer.Browser): Promise<Sc
  */
 export async function scrapeAlbertaInnovates(browser: puppeteer.Browser): Promise<ScrapedGrant[]> {
   const grants: ScrapedGrant[] = [];
+  const processedUrls = new Set<string>(); // Track processed URLs to avoid duplicates
   
   try {
+    console.log('Starting Alberta Innovates scraper with pagination support...');
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
     
@@ -414,42 +416,218 @@ export async function scrapeAlbertaInnovates(browser: puppeteer.Browser): Promis
     // Wait for funding items to load
     await page.waitForSelector('.funding-item', { timeout: 30000 });
     
-    // Get page content
-    const content = await page.content();
-    const $ = cheerio.load(content);
-    
-    // Find funding items
-    $('.funding-item').each((i, element) => {
-      try {
-        const title = $(element).find('h3').text().trim();
-        const description = $(element).find('p').text().trim();
-        
-        // Get the link to the program
-        let applicationUrl = $(element).find('a').attr('href') || 'https://albertainnovates.ca/funding/';
-        
-        const grant: ScrapedGrant = {
-          title,
-          description,
-          fundingAmount: 'Varies by program',
-          eligibility: 'Alberta-based businesses and researchers',
-          deadline: 'Check website for program deadlines',
-          applicationUrl,
-          sourceUrl: 'https://albertainnovates.ca/funding/',
-          sourceWebsite: 'Alberta Innovates',
-          type: 'provincial',
-          industry: 'Innovation & Technology',
-          province: 'Alberta'
-        };
-        
-        if (grant.title && grant.description) {
-          grants.push(grant);
-        }
-      } catch (err) {
-        console.error('Error extracting Alberta Innovates grant:', err);
-      }
+    // Check if there's pagination on the page
+    const hasPagination = await page.evaluate(() => {
+      return !!document.querySelector('.pagination');
     });
     
+    console.log(`Alberta Innovates pagination detected: ${hasPagination}`);
+    
+    // If there's pagination, determine the total number of pages
+    let totalPages = 1;
+    if (hasPagination) {
+      totalPages = await page.evaluate(() => {
+        const paginationItems = document.querySelectorAll('.pagination .page-numbers');
+        if (!paginationItems.length) return 1;
+        
+        let maxPage = 1;
+        paginationItems.forEach(item => {
+          const pageText = item.textContent?.trim() || '';
+          const pageNum = parseInt(pageText);
+          if (!isNaN(pageNum) && pageNum > maxPage) {
+            maxPage = pageNum;
+          }
+        });
+        
+        return maxPage;
+      });
+    }
+    
+    console.log(`Alberta Innovates total pages to scrape: ${totalPages}`);
+    
+    // Process each page
+    for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
+      console.log(`Processing Alberta Innovates page ${currentPage} of ${totalPages}`);
+      
+      // Navigate to the current page (first page is already loaded)
+      if (currentPage > 1) {
+        await page.goto(`https://albertainnovates.ca/funding/page/${currentPage}/`, {
+          waitUntil: 'networkidle2',
+          timeout: 60000
+        });
+        await page.waitForSelector('.funding-item', { timeout: 30000 });
+      }
+      
+      // Extract all grant detail links from the current page
+      const detailLinks = await page.evaluate(() => {
+        const links: string[] = [];
+        document.querySelectorAll('.funding-item a').forEach(link => {
+          const href = link.getAttribute('href');
+          if (href) links.push(href);
+        });
+        return [...new Set(links)]; // Remove duplicates
+      });
+      
+      console.log(`Found ${detailLinks.length} grant links on page ${currentPage}`);
+      
+      // Get basic info from the current page
+      const content = await page.content();
+      const $ = cheerio.load(content);
+      
+      // Process each funding item on the current page
+      for (let i = 0; i < detailLinks.length; i++) {
+        const detailUrl = detailLinks[i];
+        
+        // Skip already processed URLs
+        if (processedUrls.has(detailUrl)) {
+          console.log(`Skipping already processed URL: ${detailUrl}`);
+          continue;
+        }
+        
+        processedUrls.add(detailUrl);
+        
+        try {
+          // Navigate to the detail page
+          await page.goto(detailUrl, {
+            waitUntil: 'networkidle2',
+            timeout: 60000
+          });
+          
+          // Extract detailed grant information
+          const grantDetail = await page.evaluate((sourceUrl) => {
+            // Get the title
+            const title = document.querySelector('h1')?.textContent?.trim() || 
+                         document.querySelector('h2')?.textContent?.trim() || 
+                         document.querySelector('.entry-title')?.textContent?.trim() || 
+                         'Unknown Grant';
+            
+            // Gather description from content
+            let description = '';
+            document.querySelectorAll('.entry-content p, .content-area p, .entry p').forEach((p) => {
+              description += p.textContent?.trim() + ' ';
+            });
+            description = description.trim().substring(0, 500) + (description.length > 500 ? '...' : '');
+            
+            // Look for funding amount in the content
+            const contentText = document.body.textContent || '';
+            let fundingAmount = 'Varies by program';
+            
+            const fundingPatterns = [
+              /funding:?\s*([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i,
+              /amount:?\s*([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i,
+              /grant:?\s*([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i,
+              /up to:?\s*([$€£][\d,.]+[KkMm]?)/i,
+              /([$€£][\d,.]+[KkMm]?(?:\s*-\s*[$€£][\d,.]+[KkMm]?)?)/i
+            ];
+            
+            for (const pattern of fundingPatterns) {
+              const match = contentText.match(pattern);
+              if (match && match[1]) {
+                fundingAmount = match[1].trim();
+                break;
+              }
+            }
+            
+            // Look for eligibility information
+            let eligibility = 'Alberta-based businesses and researchers';
+            const eligibilityPatterns = [
+              /eligibility:?\s*([^.]+\.)/i,
+              /eligible:?\s*([^.]+\.)/i,
+              /who can apply:?\s*([^.]+\.)/i
+            ];
+            
+            for (const pattern of eligibilityPatterns) {
+              const match = contentText.match(pattern);
+              if (match && match[1]) {
+                eligibility = match[1].trim();
+                break;
+              }
+            }
+            
+            // Look for deadline information
+            let deadline = 'Check website for program deadlines';
+            const deadlinePatterns = [
+              /deadline:?\s*([^.]+\d{4})/i,
+              /closes:?\s*([^.]+\d{4})/i,
+              /applications due:?\s*([^.]+\d{4})/i,
+              /applications close:?\s*([^.]+\d{4})/i
+            ];
+            
+            for (const pattern of deadlinePatterns) {
+              const match = contentText.match(pattern);
+              if (match && match[1]) {
+                deadline = match[1].trim();
+                break;
+              }
+            }
+            
+            // Determine industry focus
+            let industry = 'Innovation & Technology';
+            
+            // Look for industry keywords in the content
+            const industryKeywords = {
+              'Health': ['health', 'medical', 'medicine', 'healthcare', 'pharma'],
+              'Energy': ['energy', 'oil', 'gas', 'renewable', 'solar', 'wind'],
+              'Agriculture': ['agriculture', 'farm', 'food', 'agtech', 'crop'],
+              'Clean Technology': ['clean tech', 'cleantech', 'environmental', 'green'],
+              'Manufacturing': ['manufacturing', 'production', 'factory'],
+              'Biotechnology': ['bio', 'biotech', 'biotechnology', 'life science'],
+              'Digital Technology': ['digital', 'software', 'AI', 'artificial intelligence', 'machine learning'],
+              'Research & Development': ['research', 'R&D', 'development', 'innovation'],
+              'Education': ['education', 'academic', 'university', 'school', 'training']
+            };
+            
+            for (const [industryName, keywords] of Object.entries(industryKeywords)) {
+              for (const keyword of keywords) {
+                if (contentText.toLowerCase().includes(keyword.toLowerCase())) {
+                  industry = industryName;
+                  break;
+                }
+              }
+            }
+            
+            return {
+              title,
+              description,
+              fundingAmount,
+              eligibility,
+              deadline,
+              industry,
+              applicationUrl: window.location.href,
+              sourceUrl
+            };
+          }, detailUrl);
+          
+          // Create the grant object
+          const grant: ScrapedGrant = {
+            title: grantDetail.title,
+            description: grantDetail.description,
+            fundingAmount: grantDetail.fundingAmount,
+            eligibility: grantDetail.eligibility,
+            deadline: grantDetail.deadline,
+            applicationUrl: grantDetail.applicationUrl,
+            sourceUrl: 'https://albertainnovates.ca/funding/',
+            sourceWebsite: 'Alberta Innovates',
+            type: 'provincial',
+            industry: grantDetail.industry,
+            province: 'Alberta'
+          };
+          
+          // Add the grant if it has required fields
+          if (grant.title && grant.description) {
+            console.log(`Added grant: ${grant.title}`);
+            grants.push(grant);
+          }
+          
+        } catch (err) {
+          console.error(`Error processing detail page ${detailUrl}:`, err);
+        }
+      }
+    }
+    
     await page.close();
+    console.log(`Alberta Innovates scraper finished with ${grants.length} grants`);
+    
   } catch (err) {
     console.error('Error scraping Alberta Innovates:', err);
   }

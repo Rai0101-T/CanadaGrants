@@ -90,7 +90,7 @@ function isGrantActive(deadlineStr: string): boolean {
   }
 }
 
-async function processGrants(grants: ScrapedGrant[]): Promise<InsertGrant[]> {
+export async function processGrants(grants: ScrapedGrant[]): Promise<InsertGrant[]> {
   console.log(`Processing ${grants.length} scraped grants`);
   
   // Filter out inactive grants
@@ -170,7 +170,7 @@ async function processGrants(grants: ScrapedGrant[]): Promise<InsertGrant[]> {
   });
 }
 
-async function saveGrantsToDatabase(grants: InsertGrant[]): Promise<void> {
+export async function saveGrantsToDatabase(grants: InsertGrant[]): Promise<void> {
   console.log(`Saving ${grants.length} grants to database`);
   
   let savedCount = 0;

@@ -14,6 +14,7 @@ import MyList from "@/pages/my-list";
 import GrantScribe from "@/pages/grant-scribe";
 import AuthPage from "@/pages/auth-page";
 import AboutUs from "@/pages/about-us";
+import ScraperAdminPage from "@/pages/admin/scraper-admin";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -38,6 +39,7 @@ function Router() {
           <ProtectedRoute path="/grant-scribe" component={GrantScribe} />
           <Route path="/about-us" component={AboutUs} />
           <Route path="/auth" component={AuthPage} />
+          <Route path="/admin/scraper" component={ScraperAdminPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
