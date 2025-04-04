@@ -14,6 +14,7 @@ export interface IStorage {
   getGrantsByType(type: string): Promise<Grant[]>;
   getFeaturedGrants(): Promise<Grant[]>;
   searchGrants(query: string): Promise<Grant[]>;
+  addGrant(grant: InsertGrant): Promise<Grant>; // Add method for scraped grants
   
   // User Grants methods (My List)
   getUserGrants(userId: number): Promise<Grant[]>;
@@ -206,6 +207,45 @@ export class MemStorage implements IStorage {
     
     this.userGrants.set(id, updatedUserGrant);
     return updatedUserGrant;
+  }
+  
+  // Add a new grant (for the scraper)
+  async addGrant(insertGrant: InsertGrant): Promise<Grant> {
+    const id = this.grantIdCounter++;
+    
+    // Map InsertGrant to Grant with proper defaults for missing fields
+    const grant: Grant = {
+      ...insertGrant,
+      id,
+      createdAt: new Date().toISOString(),
+      // Ensure all fields have proper defaults
+      category: insertGrant.category || insertGrant.industry || 'Various',
+      imageUrl: insertGrant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80',
+      competitionLevel: 'Medium',
+      eligibilityCriteria: insertGrant.eligibilityCriteria || [insertGrant.eligibility || 'See website for details'],
+      websiteUrl: insertGrant.applicationUrl || '',
+      applicationLink: insertGrant.applicationUrl || '',
+      pros: null,
+      cons: null,
+      fundingOrganization: insertGrant.department || insertGrant.organization || null,
+      applicationProcess: null,
+      documents: null,
+      contactEmail: null,
+      contactPhone: null,
+      whoCanApply: null,
+      industryFocus: null,
+      locationRestrictions: null,
+      otherRequirements: null,
+      applicationDates: insertGrant.deadline || 'Ongoing',
+      howToApply: null,
+      reviewProcess: null,
+      restrictions: null,
+      faqQuestions: null,
+      faqAnswers: null
+    };
+    
+    this.grants.set(id, grant);
+    return grant;
   }
 
   // Initialize with real grants data from Innovation Canada

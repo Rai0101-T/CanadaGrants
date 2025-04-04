@@ -6,6 +6,7 @@ import { z } from "zod";
 import { insertUserGrantSchema } from "@shared/schema";
 import OpenAI from "openai";
 import { setupAuth } from "./auth";
+import { runAllScrapers, scheduleScrapingJob } from "./scrapers/scraper";
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -446,6 +447,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to generate ideas" });
     }
   });
+
+  // Grant Scraper routes - protected by admin authentication
+  apiRouter.post("/admin/scraper/run", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      // Check if user is an admin (you can add more robust admin checks)
+      if (req.user && req.user.email && (req.user.email.includes('admin') || req.user.email === 'admin@grantflix.com')) {
+        // Run the scraper
+        console.log('Grant scraper manually triggered by admin');
+        
+        // Run the scraper in the background so we don't block the response
+        runAllScrapers().catch(err => {
+          console.error('Error during manual scraping:', err);
+        });
+        
+        res.json({ message: "Grant scraping process started in the background. Check server logs for progress." });
+      } else {
+        res.status(403).json({ message: "Admin access required" });
+      }
+    } catch (error) {
+      console.error('Error triggering scraper:', error);
+      res.status(500).json({ message: "Failed to trigger scraper" });
+    }
+  });
+  
+  // Schedule the scraper to run weekly
+  try {
+    scheduleScrapingJob();
+    console.log('Grant scraper scheduled successfully');
+  } catch (error) {
+    console.error('Error scheduling scraper:', error);
+  }
 
   // Mount API routes with prefix
   app.use("/api", apiRouter);

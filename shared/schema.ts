@@ -33,9 +33,9 @@ export const grants = pgTable("grants", {
   deadline: text("deadline").notNull(),
   fundingAmount: text("funding_amount").notNull(),
   category: text("category").notNull(),
-  eligibilityCriteria: text("eligibility_criteria").notNull().array(),
-  pros: text("pros").notNull().array(),
-  cons: text("cons").notNull().array(),
+  eligibilityCriteria: text("eligibility_criteria").array(),
+  pros: text("pros").array(),
+  cons: text("cons").array(),
   websiteUrl: text("website_url").notNull(),
   featured: boolean("featured").default(false),
   // Netflix filter fields
@@ -48,6 +48,9 @@ export const grants = pgTable("grants", {
   applicationProcess: text("application_process").array(),
   documents: text("required_documents").array(),
   contactEmail: text("contact_email"),
+  // Scraper-related fields
+  department: text("department"),
+  organization: text("organization"),
   contactPhone: text("contact_phone"),
   // New structured fields
   whoCanApply: text("who_can_apply").array(),
