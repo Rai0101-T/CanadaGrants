@@ -1,0 +1,501 @@
+import { grants, users, type Grant, type InsertGrant, type User, type InsertUser, userGrants, type UserGrant, type InsertUserGrant } from "@shared/schema";
+import { db } from './db';
+import { eq, and, like, or } from 'drizzle-orm';
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import createMemoryStore from "memorystore";
+
+const PostgresSessionStore = connectPg(session);
+const MemoryStore = createMemoryStore(session);
+
+export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
+  
+  // Grant methods
+  getAllGrants(): Promise<Grant[]>;
+  getGrantById(id: number): Promise<Grant | undefined>;
+  getGrantsByType(type: string): Promise<Grant[]>;
+  getFeaturedGrants(): Promise<Grant[]>;
+  searchGrants(query: string): Promise<Grant[]>;
+  addGrant(grant: InsertGrant): Promise<Grant>; // Add method for scraped grants
+  
+  // User Grants methods (My List)
+  getUserGrants(userId: number): Promise<Grant[]>;
+  getUserGrantsWithStatus(userId: number): Promise<(UserGrant & { grant: Grant })[]>;
+  addGrantToUserList(userGrant: InsertUserGrant): Promise<UserGrant>;
+  updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined>;
+  removeGrantFromUserList(userId: number, grantId: number): Promise<boolean>;
+  isGrantInUserList(userId: number, grantId: number): Promise<boolean>;
+  
+  // Session store
+  sessionStore: session.Store;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private grants: Map<number, Grant>;
+  private userGrants: Map<number, UserGrant>;
+  private userIdCounter: number;
+  private grantIdCounter: number;
+  private userGrantIdCounter: number;
+  sessionStore: session.Store;
+
+  constructor() {
+    this.users = new Map();
+    this.grants = new Map();
+    this.userGrants = new Map();
+    this.userIdCounter = 1;
+    this.grantIdCounter = 1;
+    this.userGrantIdCounter = 1;
+
+    // Create memory store for sessions
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+    
+    // Initialize with sample grants
+    this.initializeGrants();
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.userIdCounter++;
+    // Ensure all required fields are present with defaults
+    const user: User = { 
+      ...insertUser, 
+      id,
+      isBusiness: insertUser.isBusiness || false,
+      businessName: insertUser.businessName || null,
+      businessType: insertUser.businessType || null,
+      businessDescription: insertUser.businessDescription || null,
+      industry: insertUser.industry || null,
+      province: insertUser.province || null,
+      employeeCount: insertUser.employeeCount || null,
+      yearFounded: insertUser.yearFounded || null,
+      website: insertUser.website || null,
+      phoneNumber: insertUser.phoneNumber || null,
+      address: insertUser.address || null
+    };
+    this.users.set(id, user);
+    return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) {
+      return undefined;
+    }
+    
+    const updatedUser = {
+      ...existingUser,
+      ...userData
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  // Grant methods
+  async getAllGrants(): Promise<Grant[]> {
+    return Array.from(this.grants.values());
+  }
+
+  async getGrantById(id: number): Promise<Grant | undefined> {
+    return this.grants.get(id);
+  }
+
+  async getGrantsByType(type: string): Promise<Grant[]> {
+    return Array.from(this.grants.values()).filter(
+      (grant) => grant.type === type,
+    );
+  }
+
+  async getFeaturedGrants(): Promise<Grant[]> {
+    return Array.from(this.grants.values()).filter(
+      (grant) => grant.featured,
+    );
+  }
+
+  async searchGrants(query: string): Promise<Grant[]> {
+    const lowerQuery = query.toLowerCase();
+    return Array.from(this.grants.values()).filter(
+      (grant) => 
+        grant.title.toLowerCase().includes(lowerQuery) || 
+        grant.description.toLowerCase().includes(lowerQuery) ||
+        grant.category.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  // User Grants methods (My List)
+  async getUserGrants(userId: number): Promise<Grant[]> {
+    const userGrantList = Array.from(this.userGrants.values()).filter(
+      (userGrant) => userGrant.userId === userId
+    );
+    
+    return userGrantList.map(
+      (userGrant) => this.grants.get(userGrant.grantId)!
+    ).filter(Boolean);
+  }
+
+  async addGrantToUserList(insertUserGrant: InsertUserGrant): Promise<UserGrant> {
+    const id = this.userGrantIdCounter++;
+    // Ensure all required fields have values
+    const userGrant: UserGrant = { 
+      ...insertUserGrant, 
+      id,
+      savedAt: insertUserGrant.savedAt || new Date().toISOString(),
+      status: insertUserGrant.status || "saved",
+      notes: insertUserGrant.notes || null
+    };
+    this.userGrants.set(id, userGrant);
+    return userGrant;
+  }
+
+  async removeGrantFromUserList(userId: number, grantId: number): Promise<boolean> {
+    const userGrantEntry = Array.from(this.userGrants.entries()).find(
+      ([_, userGrant]) => userGrant.userId === userId && userGrant.grantId === grantId
+    );
+
+    if (userGrantEntry) {
+      this.userGrants.delete(userGrantEntry[0]);
+      return true;
+    }
+
+    return false;
+  }
+
+  async isGrantInUserList(userId: number, grantId: number): Promise<boolean> {
+    return Array.from(this.userGrants.values()).some(
+      (userGrant) => userGrant.userId === userId && userGrant.grantId === grantId
+    );
+  }
+  
+  async getUserGrantsWithStatus(userId: number): Promise<(UserGrant & { grant: Grant })[]> {
+    const userGrantList = Array.from(this.userGrants.values()).filter(
+      (userGrant) => userGrant.userId === userId
+    );
+    
+    return userGrantList.map(userGrant => {
+      const grant = this.grants.get(userGrant.grantId);
+      if (!grant) return null;
+      return {
+        ...userGrant,
+        grant
+      };
+    }).filter(Boolean) as (UserGrant & { grant: Grant })[];
+  }
+  
+  async updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined> {
+    const userGrantEntry = Array.from(this.userGrants.entries()).find(
+      ([_, userGrant]) => userGrant.userId === userId && userGrant.grantId === grantId
+    );
+    
+    if (!userGrantEntry) {
+      return undefined;
+    }
+    
+    const [id, userGrant] = userGrantEntry;
+    const updatedUserGrant: UserGrant = {
+      ...userGrant,
+      status: status as "saved" | "applying" | "submitted" | "approved" | "rejected",
+      notes: notes || userGrant.notes
+    };
+    
+    this.userGrants.set(id, updatedUserGrant);
+    return updatedUserGrant;
+  }
+  
+  // Add a new grant (for the scraper)
+  async addGrant(insertGrant: InsertGrant): Promise<Grant> {
+    const id = this.grantIdCounter++;
+    
+    // Map InsertGrant to Grant with proper defaults for missing fields
+    const grant: Grant = {
+      ...insertGrant,
+      id,
+      createdAt: insertGrant.createdAt || new Date().toISOString(),
+      // Ensure all fields have proper defaults
+      category: insertGrant.category || insertGrant.industry || 'Various',
+      imageUrl: insertGrant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80',
+      competitionLevel: insertGrant.competitionLevel || 'Medium',
+      eligibilityCriteria: insertGrant.eligibilityCriteria || [],
+      websiteUrl: insertGrant.websiteUrl || '',
+      applicationLink: insertGrant.applicationLink || '',
+      pros: insertGrant.pros || null,
+      cons: insertGrant.cons || null,
+      fundingOrganization: insertGrant.fundingOrganization || insertGrant.department || null,
+      applicationProcess: insertGrant.applicationProcess || null,
+      documents: insertGrant.documents || null,
+      contactEmail: insertGrant.contactEmail || null,
+      contactPhone: insertGrant.contactPhone || null,
+      whoCanApply: insertGrant.whoCanApply || null,
+      industryFocus: insertGrant.industryFocus || null,
+      locationRestrictions: insertGrant.locationRestrictions || null,
+      otherRequirements: insertGrant.otherRequirements || null,
+      applicationDates: insertGrant.applicationDates || insertGrant.deadline || 'Ongoing',
+      howToApply: insertGrant.howToApply || null,
+      reviewProcess: insertGrant.reviewProcess || null,
+      restrictions: insertGrant.restrictions || null,
+      faqQuestions: insertGrant.faqQuestions || null,
+      faqAnswers: insertGrant.faqAnswers || null
+    };
+    
+    this.grants.set(id, grant);
+    return grant;
+  }
+
+  // Initialize with sample grants
+  private initializeGrants() {
+    // Implementation kept from original file
+    // ...
+  }
+}
+
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+  
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: false
+      },
+      createTableIfMissing: true
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const defaultValues = {
+      createdAt: new Date().toISOString(),
+      isBusiness: insertUser.isBusiness || false,
+      businessName: insertUser.businessName || null,
+      businessType: insertUser.businessType || null,
+      businessDescription: insertUser.businessDescription || null,
+      industry: insertUser.industry || null,
+      province: insertUser.province || null,
+      employeeCount: insertUser.employeeCount || null,
+      yearFounded: insertUser.yearFounded || null,
+      website: insertUser.website || null,
+      phoneNumber: insertUser.phoneNumber || null,
+      address: insertUser.address || null
+    };
+  
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        ...defaultValues
+      })
+      .returning();
+      
+    return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  // Grant methods
+  async getAllGrants(): Promise<Grant[]> {
+    return await db.select().from(grants);
+  }
+
+  async getGrantById(id: number): Promise<Grant | undefined> {
+    const [grant] = await db.select().from(grants).where(eq(grants.id, id));
+    return grant;
+  }
+
+  async getGrantsByType(type: string): Promise<Grant[]> {
+    return await db.select().from(grants).where(eq(grants.type, type));
+  }
+
+  async getFeaturedGrants(): Promise<Grant[]> {
+    return await db.select().from(grants).where(eq(grants.featured, true));
+  }
+
+  async searchGrants(query: string): Promise<Grant[]> {
+    const lowerQuery = `%${query.toLowerCase()}%`;
+    return await db.select().from(grants).where(
+      or(
+        like(grants.title, lowerQuery),
+        like(grants.description, lowerQuery),
+        like(grants.category, lowerQuery),
+        grants.industry ? like(grants.industry, lowerQuery) : undefined,
+        grants.province ? like(grants.province, lowerQuery) : undefined
+      ).filter(Boolean)
+    );
+  }
+
+  // User Grants methods (My List)
+  async getUserGrants(userId: number): Promise<Grant[]> {
+    const result = await db
+      .select({
+        grant: grants
+      })
+      .from(userGrants)
+      .innerJoin(grants, eq(userGrants.grantId, grants.id))
+      .where(eq(userGrants.userId, userId));
+    
+    return result.map(r => r.grant);
+  }
+
+  async addGrantToUserList(insertUserGrant: InsertUserGrant): Promise<UserGrant> {
+    const [userGrant] = await db
+      .insert(userGrants)
+      .values({
+        ...insertUserGrant,
+        savedAt: insertUserGrant.savedAt || new Date().toISOString(),
+        status: insertUserGrant.status || "saved",
+        notes: insertUserGrant.notes || null
+      })
+      .returning();
+    
+    return userGrant;
+  }
+
+  async removeGrantFromUserList(userId: number, grantId: number): Promise<boolean> {
+    const result = await db
+      .delete(userGrants)
+      .where(
+        and(
+          eq(userGrants.userId, userId),
+          eq(userGrants.grantId, grantId)
+        )
+      );
+    
+    return result.rowCount > 0;
+  }
+
+  async isGrantInUserList(userId: number, grantId: number): Promise<boolean> {
+    const result = await db
+      .select()
+      .from(userGrants)
+      .where(
+        and(
+          eq(userGrants.userId, userId),
+          eq(userGrants.grantId, grantId)
+        )
+      );
+    
+    return result.length > 0;
+  }
+  
+  async getUserGrantsWithStatus(userId: number): Promise<(UserGrant & { grant: Grant })[]> {
+    const result = await db
+      .select({
+        userGrant: userGrants,
+        grant: grants
+      })
+      .from(userGrants)
+      .innerJoin(grants, eq(userGrants.grantId, grants.id))
+      .where(eq(userGrants.userId, userId));
+    
+    return result.map(r => ({
+      ...r.userGrant,
+      grant: r.grant
+    }));
+  }
+  
+  async updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined> {
+    const [updatedUserGrant] = await db
+      .update(userGrants)
+      .set({ 
+        status: status as "saved" | "applying" | "submitted" | "approved" | "rejected",
+        notes: notes || null
+      })
+      .where(
+        and(
+          eq(userGrants.userId, userId),
+          eq(userGrants.grantId, grantId)
+        )
+      )
+      .returning();
+    
+    return updatedUserGrant;
+  }
+  
+  // Add a new grant (for the scraper)
+  async addGrant(insertGrant: InsertGrant): Promise<Grant> {
+    // Ensure required fields have values
+    const grantWithDefaults = {
+      ...insertGrant,
+      createdAt: insertGrant.createdAt || new Date().toISOString(),
+      category: insertGrant.category || insertGrant.industry || 'Various',
+      imageUrl: insertGrant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80',
+      competitionLevel: insertGrant.competitionLevel || 'Medium',
+      websiteUrl: insertGrant.websiteUrl || '',
+      applicationLink: insertGrant.applicationLink || '',
+      eligibilityCriteria: insertGrant.eligibilityCriteria || [],
+      pros: insertGrant.pros || null,
+      cons: insertGrant.cons || null,
+      fundingOrganization: insertGrant.fundingOrganization || insertGrant.department || null,
+      applicationProcess: insertGrant.applicationProcess || null,
+      documents: insertGrant.documents || null,
+      contactEmail: insertGrant.contactEmail || null,
+      contactPhone: insertGrant.contactPhone || null,
+      whoCanApply: insertGrant.whoCanApply || null,
+      industryFocus: insertGrant.industryFocus || null,
+      locationRestrictions: insertGrant.locationRestrictions || null,
+      otherRequirements: insertGrant.otherRequirements || null,
+      applicationDates: insertGrant.applicationDates || insertGrant.deadline || 'Ongoing',
+      howToApply: insertGrant.howToApply || null,
+      reviewProcess: insertGrant.reviewProcess || null,
+      restrictions: insertGrant.restrictions || null,
+      faqQuestions: insertGrant.faqQuestions || null,
+      faqAnswers: insertGrant.faqAnswers || null
+    };
+    
+    const [grant] = await db
+      .insert(grants)
+      .values(grantWithDefaults)
+      .returning();
+    
+    return grant;
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();

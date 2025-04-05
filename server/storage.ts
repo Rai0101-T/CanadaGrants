@@ -1,4 +1,12 @@
 import { grants, users, type Grant, type InsertGrant, type User, type InsertUser, userGrants, type UserGrant, type InsertUserGrant } from "@shared/schema";
+import { db } from './db';
+import { eq, and, like, or } from 'drizzle-orm';
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import createMemoryStore from "memorystore";
+
+const PostgresSessionStore = connectPg(session);
+const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
   // User methods
@@ -23,6 +31,9 @@ export interface IStorage {
   updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined>;
   removeGrantFromUserList(userId: number, grantId: number): Promise<boolean>;
   isGrantInUserList(userId: number, grantId: number): Promise<boolean>;
+  
+  // Session store
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
@@ -32,6 +43,7 @@ export class MemStorage implements IStorage {
   private userIdCounter: number;
   private grantIdCounter: number;
   private userGrantIdCounter: number;
+  sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -40,6 +52,11 @@ export class MemStorage implements IStorage {
     this.userIdCounter = 1;
     this.grantIdCounter = 1;
     this.userGrantIdCounter = 1;
+
+    // Create memory store for sessions
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
     
     // Initialize with sample grants
     this.initializeGrants();
@@ -217,31 +234,33 @@ export class MemStorage implements IStorage {
     const grant: Grant = {
       ...insertGrant,
       id,
-      createdAt: new Date().toISOString(),
-      // Ensure all fields have proper defaults
-      category: insertGrant.category || insertGrant.industry || 'Various',
+      createdAt: insertGrant.createdAt || new Date().toISOString(),
+      industry: insertGrant.industry || null,
+      province: insertGrant.province || null,
+      category: insertGrant.category || 'Various',
       imageUrl: insertGrant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80',
-      competitionLevel: 'Medium',
-      eligibilityCriteria: insertGrant.eligibilityCriteria || [insertGrant.eligibility || 'See website for details'],
-      websiteUrl: insertGrant.applicationUrl || '',
-      applicationLink: insertGrant.applicationUrl || '',
-      pros: null,
-      cons: null,
-      fundingOrganization: insertGrant.department || insertGrant.organization || null,
-      applicationProcess: null,
-      documents: null,
-      contactEmail: null,
-      contactPhone: null,
-      whoCanApply: null,
-      industryFocus: null,
-      locationRestrictions: null,
-      otherRequirements: null,
-      applicationDates: insertGrant.deadline || 'Ongoing',
-      howToApply: null,
-      reviewProcess: null,
-      restrictions: null,
-      faqQuestions: null,
-      faqAnswers: null
+      competitionLevel: insertGrant.competitionLevel || 'Medium',
+      eligibilityCriteria: insertGrant.eligibilityCriteria || ['See website for details'],
+      pros: insertGrant.pros || null,
+      cons: insertGrant.cons || null,
+      featured: insertGrant.featured || false,
+      fundingOrganization: insertGrant.fundingOrganization || null,
+      applicationProcess: insertGrant.applicationProcess || null,
+      documents: insertGrant.documents || null,
+      contactEmail: insertGrant.contactEmail || null,
+      contactPhone: insertGrant.contactPhone || null,
+      whoCanApply: insertGrant.whoCanApply || null,
+      industryFocus: insertGrant.industryFocus || null,
+      locationRestrictions: insertGrant.locationRestrictions || null,
+      otherRequirements: insertGrant.otherRequirements || null,
+      applicationDates: insertGrant.applicationDates || insertGrant.deadline || 'Ongoing',
+      applicationLink: insertGrant.applicationLink || '',
+      howToApply: insertGrant.howToApply || null,
+      reviewProcess: insertGrant.reviewProcess || null,
+      restrictions: insertGrant.restrictions || null,
+      faqQuestions: insertGrant.faqQuestions || null,
+      faqAnswers: insertGrant.faqAnswers || null,
+      department: insertGrant.department || null
     };
     
     this.grants.set(id, grant);
@@ -1414,4 +1433,232 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+  
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: false
+      },
+      createTableIfMissing: true
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const defaultValues = {
+      createdAt: new Date().toISOString(),
+      isBusiness: insertUser.isBusiness || false,
+      businessName: insertUser.businessName || null,
+      businessType: insertUser.businessType || null,
+      businessDescription: insertUser.businessDescription || null,
+      industry: insertUser.industry || null,
+      province: insertUser.province || null,
+      employeeCount: insertUser.employeeCount || null,
+      yearFounded: insertUser.yearFounded || null,
+      website: insertUser.website || null,
+      phoneNumber: insertUser.phoneNumber || null,
+      address: insertUser.address || null
+    };
+  
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        ...defaultValues
+      })
+      .returning();
+      
+    return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  // Grant methods
+  async getAllGrants(): Promise<Grant[]> {
+    return await db.select().from(grants);
+  }
+
+  async getGrantById(id: number): Promise<Grant | undefined> {
+    const [grant] = await db.select().from(grants).where(eq(grants.id, id));
+    return grant;
+  }
+
+  async getGrantsByType(type: string): Promise<Grant[]> {
+    return await db.select().from(grants).where(eq(grants.type, type));
+  }
+
+  async getFeaturedGrants(): Promise<Grant[]> {
+    return await db.select().from(grants).where(eq(grants.featured, true));
+  }
+
+  async searchGrants(query: string): Promise<Grant[]> {
+    const lowerQuery = `%${query.toLowerCase()}%`;
+    return await db.select().from(grants).where(
+      or(
+        like(grants.title, lowerQuery),
+        like(grants.description, lowerQuery),
+        like(grants.category, lowerQuery),
+        grants.industry ? like(grants.industry, lowerQuery) : undefined,
+        grants.province ? like(grants.province, lowerQuery) : undefined
+      ).filter(Boolean)
+    );
+  }
+
+  // User Grants methods (My List)
+  async getUserGrants(userId: number): Promise<Grant[]> {
+    const result = await db
+      .select({
+        grant: grants
+      })
+      .from(userGrants)
+      .innerJoin(grants, eq(userGrants.grantId, grants.id))
+      .where(eq(userGrants.userId, userId));
+    
+    return result.map(r => r.grant);
+  }
+
+  async addGrantToUserList(insertUserGrant: InsertUserGrant): Promise<UserGrant> {
+    const [userGrant] = await db
+      .insert(userGrants)
+      .values({
+        ...insertUserGrant,
+        savedAt: insertUserGrant.savedAt || new Date().toISOString(),
+        status: insertUserGrant.status || "saved",
+        notes: insertUserGrant.notes || null
+      })
+      .returning();
+    
+    return userGrant;
+  }
+
+  async removeGrantFromUserList(userId: number, grantId: number): Promise<boolean> {
+    const result = await db
+      .delete(userGrants)
+      .where(
+        and(
+          eq(userGrants.userId, userId),
+          eq(userGrants.grantId, grantId)
+        )
+      );
+    
+    return result.rowCount > 0;
+  }
+
+  async isGrantInUserList(userId: number, grantId: number): Promise<boolean> {
+    const result = await db
+      .select()
+      .from(userGrants)
+      .where(
+        and(
+          eq(userGrants.userId, userId),
+          eq(userGrants.grantId, grantId)
+        )
+      );
+    
+    return result.length > 0;
+  }
+  
+  async getUserGrantsWithStatus(userId: number): Promise<(UserGrant & { grant: Grant })[]> {
+    const result = await db
+      .select({
+        userGrant: userGrants,
+        grant: grants
+      })
+      .from(userGrants)
+      .innerJoin(grants, eq(userGrants.grantId, grants.id))
+      .where(eq(userGrants.userId, userId));
+    
+    return result.map(r => ({
+      ...r.userGrant,
+      grant: r.grant
+    }));
+  }
+  
+  async updateUserGrantStatus(userId: number, grantId: number, status: string, notes?: string): Promise<UserGrant | undefined> {
+    const [updatedUserGrant] = await db
+      .update(userGrants)
+      .set({ 
+        status: status as "saved" | "applying" | "submitted" | "approved" | "rejected",
+        notes: notes || null
+      })
+      .where(
+        and(
+          eq(userGrants.userId, userId),
+          eq(userGrants.grantId, grantId)
+        )
+      )
+      .returning();
+    
+    return updatedUserGrant;
+  }
+  
+  // Add a new grant (for the scraper)
+  async addGrant(insertGrant: InsertGrant): Promise<Grant> {
+    // Ensure required fields have values
+    const grantWithDefaults = {
+      ...insertGrant,
+      createdAt: insertGrant.createdAt || new Date().toISOString(),
+      category: insertGrant.category || insertGrant.industry || 'Various',
+      imageUrl: insertGrant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80',
+      competitionLevel: insertGrant.competitionLevel || 'Medium',
+      websiteUrl: insertGrant.websiteUrl || '',
+      applicationLink: insertGrant.applicationLink || '',
+      eligibilityCriteria: insertGrant.eligibilityCriteria || [],
+      pros: insertGrant.pros || null,
+      cons: insertGrant.cons || null,
+      fundingOrganization: insertGrant.fundingOrganization || null,
+      department: insertGrant.department || null,
+      organization: insertGrant.organization || null,
+      applicationProcess: insertGrant.applicationProcess || null,
+      documents: insertGrant.documents || null,
+      contactEmail: insertGrant.contactEmail || null,
+      contactPhone: insertGrant.contactPhone || null,
+      whoCanApply: insertGrant.whoCanApply || null,
+      industryFocus: insertGrant.industryFocus || null,
+      locationRestrictions: insertGrant.locationRestrictions || null,
+      otherRequirements: insertGrant.otherRequirements || null,
+      applicationDates: insertGrant.applicationDates || insertGrant.deadline || 'Ongoing',
+      howToApply: insertGrant.howToApply || null,
+      reviewProcess: insertGrant.reviewProcess || null,
+      restrictions: insertGrant.restrictions || null,
+      faqQuestions: insertGrant.faqQuestions || null,
+      faqAnswers: insertGrant.faqAnswers || null
+    };
+    
+    const [grant] = await db
+      .insert(grants)
+      .values(grantWithDefaults)
+      .returning();
+    
+    return grant;
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();

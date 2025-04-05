@@ -48,7 +48,6 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  const MemoryStore = memorystore(session);
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "grant-sherpa-secret-key",
     resave: false,
@@ -57,9 +56,7 @@ export function setupAuth(app: Express) {
       maxAge: 86400000, // 24 hours
       secure: false,
     },
-    store: new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-    }),
+    store: storage.sessionStore,
   };
 
   app.use(session(sessionSettings));
