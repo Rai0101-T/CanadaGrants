@@ -11,6 +11,7 @@ import PrivateGrants from "@/pages/private-grants";
 import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
 import GrantScribe from "@/pages/grant-scribe";
+import SearchResults from "@/pages/search-results";
 import AuthPage from "@/pages/auth-page";
 import AboutUs from "@/pages/about-us";
 import ScraperAdminPage from "@/pages/admin/scraper-admin";
