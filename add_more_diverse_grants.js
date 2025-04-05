@@ -23,361 +23,569 @@ async function addGrant(grantData) {
   }
 }
 
-// Function to generate grants for all provinces
+// Function to add more provincial grants with specific focuses
 async function addProvincialGrants() {
-  console.log("Adding provincial grants batch 1...");
+  console.log("Adding more specialized provincial grants...");
   
-  const provinces = [
-    {name: "Ontario", abbr: "ON"},
-    {name: "Quebec", abbr: "QC"},
-    {name: "British Columbia", abbr: "BC"},
-    {name: "Alberta", abbr: "AB"},
-    {name: "Manitoba", abbr: "MB"},
-    {name: "Saskatchewan", abbr: "SK"},
-    {name: "Nova Scotia", abbr: "NS"},
-    {name: "New Brunswick", abbr: "NB"},
-    {name: "Newfoundland and Labrador", abbr: "NL"},
-    {name: "Prince Edward Island", abbr: "PEI"},
-    {name: "Northwest Territories", abbr: "NT"},
-    {name: "Yukon", abbr: "YT"},
-    {name: "Nunavut", abbr: "NU"}
-  ];
-  
-  const industryTypes = [
-    "Technology", "Manufacturing", "Agriculture", "Tourism", 
-    "Healthcare", "Cultural Industries", "Clean Energy", 
-    "Food Processing", "Mining", "Forestry", "Fisheries"
-  ];
-  
-  const grantTypes = [
+  const provincialGrants = [
+    // Ontario
     {
-      type: "Research and Innovation",
-      description: "Provides funding support for innovative research projects that advance technology and knowledge in key sectors.",
-      fundingRanges: ["$10,000 to $50,000", "$50,000 to $250,000", "Up to $500,000"]
+      title: "Ontario Interactive Digital Media Tax Credit",
+      description: "A refundable tax credit available to eligible Ontario-based corporations for creating interactive digital media products in Ontario.",
+      province: "Ontario",
+      industry: "Digital Media",
+      fundingAmount: "40% of eligible Ontario labour expenditures",
+      category: "Tax Credit",
+      department: "Ontario Creates",
+      websiteUrl: "https://www.ontariocreates.ca/",
+      competitionLevel: "Medium"
     },
     {
-      type: "Business Expansion",
-      description: "Supports established businesses looking to grow, expand markets, or scale operations within the province.",
-      fundingRanges: ["$25,000 to $100,000", "$100,000 to $500,000", "Up to $1 million"]
+      title: "Ontario Film and Television Tax Credit",
+      description: "A refundable tax credit available to eligible Ontario-based Canadian corporations for producing film and television productions in Ontario.",
+      province: "Ontario",
+      industry: "Film and Television",
+      fundingAmount: "35% of eligible Ontario labour expenditures",
+      category: "Tax Credit",
+      department: "Ontario Creates",
+      websiteUrl: "https://www.ontariocreates.ca/",
+      competitionLevel: "Medium"
     },
     {
-      type: "Export Development",
-      description: "Helps businesses develop new export markets and expand international trade opportunities.",
-      fundingRanges: ["$5,000 to $25,000", "$25,000 to $75,000", "Up to $150,000"]
+      title: "Ontario Automotive Modernization Program",
+      description: "Provides funding to small and medium-sized automotive parts suppliers to invest in technology adoption and/or training in lean manufacturing.",
+      province: "Ontario",
+      industry: "Automotive",
+      fundingAmount: "Up to $100,000 (covering up to 50% of eligible project costs)",
+      category: "Manufacturing",
+      department: "Ontario Ministry of Economic Development, Job Creation and Trade",
+      websiteUrl: "https://www.ontario.ca/page/ontario-automotive-modernization-program",
+      competitionLevel: "Medium"
+    },
+    // British Columbia
+    {
+      title: "BC Agritech Land Matching Program",
+      description: "Supports agricultural technology companies by helping them secure land for development and testing of innovative agricultural technologies.",
+      province: "British Columbia",
+      industry: "AgTech",
+      fundingAmount: "Land matching and advisory services",
+      category: "Agriculture",
+      department: "BC Ministry of Agriculture",
+      websiteUrl: "https://www2.gov.bc.ca/gov/content/industry/agriculture-seafood",
+      competitionLevel: "Low"
     },
     {
-      type: "Skills Training",
-      description: "Provides funding to help employers train current employees or hire and train new staff with specialized skills.",
-      fundingRanges: ["$5,000 to $20,000", "$20,000 to $50,000", "Up to $100,000 per year"]
+      title: "BC Clean Energy Vehicle Program",
+      description: "Provides incentives for the purchase or lease of eligible clean energy vehicles, including electric, hydrogen fuel cell, and longer-range plug-in hybrid vehicles.",
+      province: "British Columbia",
+      industry: "Clean Energy",
+      fundingAmount: "Up to $3,000 for eligible vehicles",
+      category: "Clean Technology",
+      department: "BC Ministry of Energy, Mines and Low Carbon Innovation",
+      websiteUrl: "https://goelectricbc.gov.bc.ca/",
+      competitionLevel: "Low"
     },
     {
-      type: "Capital Investment",
-      description: "Supports businesses making significant capital investments in equipment, facilities or technology.",
-      fundingRanges: ["$50,000 to $250,000", "$250,000 to $1 million", "Up to $5 million"]
+      title: "BC Tech Co-op Grants Program",
+      description: "Provides grants to eligible technology companies to hire co-op students from BC post-secondary institutions.",
+      province: "British Columbia",
+      industry: "Technology",
+      fundingAmount: "Up to $10,800 per year (covering up to 70% of a co-op student's salary)",
+      category: "Workforce Development",
+      department: "BC Ministry of Advanced Education and Skills Training",
+      websiteUrl: "https://www.workbc.ca/",
+      competitionLevel: "Medium"
+    },
+    // Alberta
+    {
+      title: "Alberta Innovation Vouchers",
+      description: "Helps small technology and knowledge-driven businesses in Alberta get their ideas and products to market faster through services provided by Alberta's post-secondary institutions and research organizations.",
+      province: "Alberta",
+      industry: "Technology",
+      fundingAmount: "Up to $100,000",
+      category: "Innovation",
+      department: "Alberta Innovates",
+      websiteUrl: "https://albertainnovates.ca/",
+      competitionLevel: "Medium"
     },
     {
-      type: "Start-up Support",
-      description: "Provides early-stage funding for new businesses and entrepreneurs launching innovative ventures.",
-      fundingRanges: ["$5,000 to $25,000", "$25,000 to $100,000", "Up to $250,000"]
+      title: "Alberta Film and Television Tax Credit",
+      description: "A refundable tax credit for eligible film and television productions that encourages the development of Alberta's film and television industry.",
+      province: "Alberta",
+      industry: "Film and Television",
+      fundingAmount: "22-30% of eligible Alberta production costs",
+      category: "Tax Credit",
+      department: "Alberta Ministry of Jobs, Economy and Innovation",
+      websiteUrl: "https://www.alberta.ca/alberta-film-and-television-tax-credit.aspx",
+      competitionLevel: "Medium"
     },
     {
-      type: "Community Economic Development",
-      description: "Supports projects that promote economic growth and diversification in local communities.",
-      fundingRanges: ["$10,000 to $50,000", "$50,000 to $200,000", "Up to $500,000"]
+      title: "Alberta Micro Voucher Program",
+      description: "Helps entrepreneurs and small technology companies get their innovations into the market by providing funding for early-stage product development.",
+      province: "Alberta",
+      industry: "Technology",
+      fundingAmount: "Up to $10,000",
+      category: "Innovation",
+      department: "Alberta Innovates",
+      websiteUrl: "https://albertainnovates.ca/",
+      competitionLevel: "Low"
+    },
+    // Quebec
+    {
+      title: "Quebec Scientific Research and Experimental Development Tax Credit",
+      description: "A refundable tax credit for businesses conducting scientific research and experimental development in Quebec.",
+      province: "Quebec",
+      industry: "Research & Development",
+      fundingAmount: "14-30% of eligible R&D expenditures",
+      category: "Tax Credit",
+      department: "Revenu Québec",
+      websiteUrl: "https://www.revenuquebec.ca/",
+      competitionLevel: "Medium"
+    },
+    {
+      title: "Quebec Innovation Program",
+      description: "Supports innovation projects carried out by Quebec businesses to improve their productivity and competitiveness.",
+      province: "Quebec",
+      industry: "Any",
+      fundingAmount: "Up to 50% of eligible project expenses (maximum $350,000)",
+      category: "Innovation",
+      department: "Investissement Québec",
+      websiteUrl: "https://www.investquebec.com/",
+      competitionLevel: "Medium"
+    },
+    {
+      title: "Quebec Digital Transformation Program",
+      description: "Helps Quebec businesses acquire digital technologies to improve their productivity and competitiveness.",
+      province: "Quebec",
+      industry: "Any",
+      fundingAmount: "Up to 50% of eligible project costs (maximum $100,000)",
+      category: "Digital Transformation",
+      department: "Investissement Québec",
+      websiteUrl: "https://www.investquebec.com/",
+      competitionLevel: "Medium"
+    },
+    // Nova Scotia
+    {
+      title: "Nova Scotia Film and Television Production Incentive Fund",
+      description: "Provides financial incentives to eligible productions filming in Nova Scotia, based on eligible Nova Scotia expenditures.",
+      province: "Nova Scotia",
+      industry: "Film and Television",
+      fundingAmount: "25-32% of eligible Nova Scotia costs",
+      category: "Production",
+      department: "Nova Scotia Business Inc.",
+      websiteUrl: "https://www.novascotiabusiness.com/",
+      competitionLevel: "Medium"
+    },
+    {
+      title: "Nova Scotia Innovation Rebate Program",
+      description: "Provides financial incentives to Nova Scotia companies investing in innovative processes or product technologies to improve productivity and competitiveness.",
+      province: "Nova Scotia",
+      industry: "Any",
+      fundingAmount: "25% of eligible project costs (maximum $3.75 million)",
+      category: "Innovation",
+      department: "Nova Scotia Business Inc.",
+      websiteUrl: "https://www.novascotiabusiness.com/",
+      competitionLevel: "Medium"
+    },
+    {
+      title: "Nova Scotia Digital Animation Tax Credit",
+      description: "A refundable tax credit for eligible companies producing digital animation in Nova Scotia.",
+      province: "Nova Scotia",
+      industry: "Digital Animation",
+      fundingAmount: "25% of eligible Nova Scotia labour expenditures",
+      category: "Tax Credit",
+      department: "Nova Scotia Department of Finance and Treasury Board",
+      websiteUrl: "https://novascotia.ca/",
+      competitionLevel: "Low"
     }
   ];
   
-  // Generate province-specific grants
-  for (const province of provinces) {
-    for (const industry of industryTypes) {
-      for (const grantType of grantTypes) {
-        // Skip some combinations to avoid too many similar grants
-        if (Math.random() > 0.3) continue;
-        
-        const fundingAmount = grantType.fundingRanges[Math.floor(Math.random() * grantType.fundingRanges.length)];
-        const title = `${province.name} ${industry} ${grantType.type} Fund`;
-        
-        await addGrant({
-          title: title,
-          description: `${grantType.description} This program focuses specifically on supporting ${industry.toLowerCase()} businesses in ${province.name}.`,
-          type: "provincial",
-          imageUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000000)}?auto=format&fit=crop&w=500&h=280&q=80`,
-          deadline: Math.random() > 0.5 ? "Ongoing (applications accepted year-round)" : "Annual deadline (check website for current cycle)",
-          fundingAmount: fundingAmount,
-          category: grantType.type,
-          eligibilityCriteria: [
-            `Business must be located in ${province.name}`,
-            `Must operate in the ${industry} sector`,
-            `In operation for at least one year`,
-            `Minimum annual revenue requirements may apply`,
-            `Project must align with provincial economic priorities`
-          ],
-          pros: [
-            "Designed specifically for provincial businesses",
-            "Focused on local economic development",
-            "Access to provincial business development officers",
-            "May stack with federal programs",
-            "Regional application support available"
-          ],
-          cons: [
-            "Limited to businesses within the province",
-            "Competitive application process",
-            "May require matching funds",
-            "Detailed reporting requirements",
-            "Limited funding envelope each year"
-          ],
-          websiteUrl: `https://www.${province.abbr.toLowerCase()}.ca/business`,
-          featured: false,
-          industry: industry,
-          province: province.name,
-          competitionLevel: Math.random() > 0.7 ? "High" : Math.random() > 0.4 ? "Medium" : "Low",
-          department: `${province.name} Ministry of Economic Development`,
-          documents: [
-            "Business registration documents",
-            "Financial statements",
-            "Project proposal",
-            "Budget and timeline",
-            "Impact assessment"
-          ],
-          applicationDates: Math.random() > 0.5 ? "Ongoing (applications accepted year-round)" : "Annual deadline (check website for current cycle)"
-        });
-      }
-    }
-    console.log(`Added grants for ${province.name}`);
+  for (const grant of provincialGrants) {
+    await addGrant({
+      title: grant.title,
+      description: grant.description,
+      type: "provincial",
+      imageUrl: "https://images.unsplash.com/photo-1607827448594-a6eaef4c1a7d?auto=format&fit=crop&w=500&h=280&q=80",
+      deadline: "Annual deadlines (check program website for current cycle)",
+      fundingAmount: grant.fundingAmount,
+      category: grant.category,
+      eligibilityCriteria: [
+        `Business operating in ${grant.province}`,
+        `Project in the ${grant.industry} sector`,
+        "Meet program-specific requirements",
+        "In good standing with provincial government",
+        "Compliance with all applicable regulations"
+      ],
+      pros: [
+        "Designed for specific provincial economic priorities",
+        "Targeted to local industry needs",
+        "May have less competition than federal programs",
+        "Local support and resources available",
+        "May offer faster application processing"
+      ],
+      cons: [
+        "Limited to businesses in the province",
+        "May have industry-specific requirements",
+        "Funding may be limited or competitive",
+        "Application windows may be narrow",
+        "Detailed reporting requirements"
+      ],
+      websiteUrl: grant.websiteUrl,
+      featured: false,
+      industry: grant.industry,
+      province: grant.province,
+      competitionLevel: grant.competitionLevel,
+      department: grant.department,
+      documents: [
+        "Completed application form",
+        "Business registration documents",
+        "Project proposal and timeline",
+        "Detailed budget",
+        "Additional supporting documentation as specified"
+      ],
+      applicationDates: "Annual deadlines (check program website for current cycle)"
+    });
   }
+  console.log("Added more specialized provincial grants");
 }
 
-// Function to add more industry-specific federal grants
+// Function to add more federal industry-specific grants
 async function addFederalIndustryGrants() {
-  console.log("Adding federal industry grants...");
+  console.log("Adding more federal industry-specific grants...");
   
-  const industries = [
-    "Aerospace", "Automotive", "Biotechnology", "Clean Technology", 
-    "Digital Media", "Pharmaceuticals", "Telecommunications", "Oil and Gas",
-    "Mining", "Construction", "Transportation", "Retail", "Hospitality"
-  ];
-  
-  const federalProgramTypes = [
+  const federalIndustryGrants = [
+    // Agriculture
     {
-      type: "Research and Development",
-      description: "Supports research and development activities aimed at creating new products, processes, or services.",
-      fundingRanges: ["$100,000 to $500,000", "$500,000 to $2 million", "Up to $5 million"]
+      title: "AgriInnovate Program",
+      description: "Provides repayable contributions for projects that aim to accelerate the demonstration, commercialization and/or adoption of innovative products, technologies, processes or services in the agriculture sector.",
+      industry: "Agriculture",
+      fundingAmount: "Up to $10 million (50% of eligible costs)",
+      category: "Innovation",
+      department: "Agriculture and Agri-Food Canada",
+      websiteUrl: "https://agriculture.canada.ca/en/agricultural-programs-and-services/agriinnovate-program",
+      competitionLevel: "High"
     },
     {
-      type: "Market Expansion",
-      description: "Helps Canadian businesses access new markets both domestically and internationally.",
-      fundingRanges: ["$50,000 to $250,000", "$250,000 to $1 million", "Up to $2 million"]
+      title: "Agricultural Clean Technology Program",
+      description: "Supports the research, development, and adoption of clean technologies in the agriculture sector to help reduce greenhouse gas emissions.",
+      industry: "Agriculture",
+      fundingAmount: "Up to $2 million for adoption stream; up to $5 million for research stream",
+      category: "Clean Technology",
+      department: "Agriculture and Agri-Food Canada",
+      websiteUrl: "https://agriculture.canada.ca/en/agricultural-programs-and-services/agricultural-clean-technology-program",
+      competitionLevel: "Medium"
+    },
+    // Clean Technology
+    {
+      title: "Clean Growth Program",
+      description: "Provides funding for clean technology research, development, and demonstration projects in Canada's energy, mining, and forestry sectors.",
+      industry: "Clean Technology",
+      fundingAmount: "Up to $5 million per project (50% of eligible costs)",
+      category: "Research and Development",
+      department: "Natural Resources Canada",
+      websiteUrl: "https://www.nrcan.gc.ca/climate-change/clean-growth-program/20254",
+      competitionLevel: "High"
     },
     {
-      type: "Innovation Adoption",
-      description: "Supports the adoption of innovative technologies and practices to increase productivity and competitiveness.",
-      fundingRanges: ["$75,000 to $300,000", "$300,000 to $1 million", "Up to $3 million"]
+      title: "Energy Innovation Program",
+      description: "Supports clean energy innovation projects focusing on renewable energy, smart grids, energy storage, and reducing diesel use in rural and remote communities.",
+      industry: "Energy",
+      fundingAmount: "Up to 75% of eligible costs",
+      category: "Innovation",
+      department: "Natural Resources Canada",
+      websiteUrl: "https://www.nrcan.gc.ca/science-and-data/funding-partnerships/funding-opportunities/funding-grants-incentives/energy-innovation-program/18876",
+      competitionLevel: "High"
+    },
+    // Manufacturing
+    {
+      title: "Advanced Manufacturing Fund",
+      description: "Supports large-scale, transformative manufacturing activities in Canada, particularly in the aerospace, automotive, and information and communication technology sectors.",
+      industry: "Manufacturing",
+      fundingAmount: "Varies by project (typically $5-20 million)",
+      category: "Manufacturing",
+      department: "Innovation, Science and Economic Development Canada",
+      websiteUrl: "https://www.ic.gc.ca/eic/site/125.nsf/eng/home",
+      competitionLevel: "High"
     },
     {
-      type: "Business Scale-up",
-      description: "Helps high-growth businesses scale their operations and expand market reach.",
-      fundingRanges: ["$250,000 to $1 million", "$1 million to $5 million", "Up to $10 million"]
+      title: "Innovative Solutions Canada",
+      description: "Helps Canadian innovators by funding R&D and testing prototypes in real-life settings, with a focus on early-stage, pre-commercial innovations.",
+      industry: "Any",
+      fundingAmount: "Up to $150,000 for Phase 1; up to $1 million for Phase 2",
+      category: "Innovation",
+      department: "Innovation, Science and Economic Development Canada",
+      websiteUrl: "https://www.ic.gc.ca/eic/site/101.nsf/eng/home",
+      competitionLevel: "High"
+    },
+    // Digital Media
+    {
+      title: "Canada Media Fund",
+      description: "Supports the creation of Canadian digital and broadcast content across multiple platforms, including television and digital media.",
+      industry: "Digital Media",
+      fundingAmount: "Varies by program stream (up to 75% of eligible costs)",
+      category: "Content Creation",
+      department: "Canada Media Fund",
+      websiteUrl: "https://cmf-fmc.ca/",
+      competitionLevel: "High"
     },
     {
-      type: "Green Initiatives",
-      description: "Supports projects that reduce environmental impact and promote sustainable business practices.",
-      fundingRanges: ["$100,000 to $500,000", "$500,000 to $2 million", "Up to $5 million"]
+      title: "Strategic Innovation Fund",
+      description: "Supports large-scale, transformative, and collaborative projects across all industrial and technology sectors that will help position Canada as an innovation leader.",
+      industry: "Any",
+      fundingAmount: "Varies by project (typically $10 million+)",
+      category: "Innovation",
+      department: "Innovation, Science and Economic Development Canada",
+      websiteUrl: "https://www.ic.gc.ca/eic/site/125.nsf/eng/home",
+      competitionLevel: "Very High"
     },
+    // Forestry
     {
-      type: "Workforce Development",
-      description: "Supports initiatives to develop specialized skills and address workforce needs in specific sectors.",
-      fundingRanges: ["$50,000 to $250,000", "$250,000 to $1 million", "Up to $2 million"]
+      title: "Investments in Forest Industry Transformation Program",
+      description: "Supports Canada's forest sector in becoming more economically competitive and environmentally sustainable through innovative technologies and processes.",
+      industry: "Forestry",
+      fundingAmount: "Up to $20 million per project",
+      category: "Innovation",
+      department: "Natural Resources Canada",
+      websiteUrl: "https://www.nrcan.gc.ca/science-and-data/funding-partnerships/funding-opportunities/forest-sector-funding-programs/investments-forest-industry-transformation-ifit/13139",
+      competitionLevel: "Medium"
+    },
+    // Healthcare
+    {
+      title: "Health Research Foundation Grant",
+      description: "Supports health research in Canadian academic health centers and promotes the development of the next generation of health researchers.",
+      industry: "Healthcare",
+      fundingAmount: "Varies by program stream",
+      category: "Research",
+      department: "Canadian Institutes of Health Research",
+      websiteUrl: "https://cihr-irsc.gc.ca/",
+      competitionLevel: "Very High"
+    },
+    // Tourism
+    {
+      title: "Tourism Growth Program",
+      description: "Supports the development of tourism experiences that attract high-value tourists, extend the tourism season, expand into new markets, and diversify Canada's tourism sector.",
+      industry: "Tourism",
+      fundingAmount: "Up to 50% of eligible costs",
+      category: "Business Development",
+      department: "Canadian Experiences Fund (Innovation, Science and Economic Development Canada)",
+      websiteUrl: "https://www.ic.gc.ca/eic/site/134.nsf/eng/home",
+      competitionLevel: "Medium"
     }
   ];
   
-  const federalDepartments = [
-    "Innovation, Science and Economic Development Canada",
-    "Natural Resources Canada",
-    "Agriculture and Agri-Food Canada",
-    "Environment and Climate Change Canada",
-    "Transport Canada",
-    "Employment and Social Development Canada",
-    "Global Affairs Canada"
-  ];
-  
-  // Generate federal industry grants
-  for (const industry of industries) {
-    for (const programType of federalProgramTypes) {
-      // Skip some combinations to avoid too many similar grants
-      if (Math.random() > 0.4) continue;
-      
-      const departmentIndex = Math.floor(Math.random() * federalDepartments.length);
-      const department = federalDepartments[departmentIndex];
-      const fundingAmount = programType.fundingRanges[Math.floor(Math.random() * programType.fundingRanges.length)];
-      const title = `Canadian ${industry} ${programType.type} Initiative`;
-      
-      await addGrant({
-        title: title,
-        description: `${programType.description} This program is specifically designed for businesses in the ${industry} sector across Canada.`,
-        type: "federal",
-        imageUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000000)}?auto=format&fit=crop&w=500&h=280&q=80`,
-        deadline: Math.random() > 0.5 ? "Ongoing (applications accepted year-round)" : "Annual deadline (check website for current cycle)",
-        fundingAmount: fundingAmount,
-        category: programType.type,
-        eligibilityCriteria: [
-          `Canadian business in the ${industry} sector`,
-          "Incorporated business with operations in Canada",
-          "Minimum revenue requirements may apply",
-          "Project must align with program objectives",
-          "Financial capacity to complete the project"
-        ],
-        pros: [
-          "Significant funding amounts available",
-          "Available to businesses across Canada",
-          "Access to federal resources and networks",
-          "Potential for multi-year funding",
-          "Can lead to additional government opportunities"
-        ],
-        cons: [
-          "Highly competitive application process",
-          "Complex application requirements",
-          "May require substantial matching funds",
-          "Extensive reporting and compliance obligations",
-          "Long application processing times"
-        ],
-        websiteUrl: "https://www.canada.ca/en/innovation-science-economic-development.html",
-        featured: false,
-        industry: industry,
-        province: null,
-        competitionLevel: Math.random() > 0.7 ? "High" : Math.random() > 0.4 ? "Medium" : "Low",
-        department: department,
-        documents: [
-          "Comprehensive business plan",
-          "Financial statements and projections",
-          "Technical proposal",
-          "Environmental impact assessment (if applicable)",
-          "Detailed budget and project timeline"
-        ],
-        applicationDates: Math.random() > 0.5 ? "Ongoing (applications accepted year-round)" : "Annual deadline (check website for current cycle)"
-      });
-    }
-    console.log(`Added federal grants for ${industry} industry`);
+  for (const grant of federalIndustryGrants) {
+    await addGrant({
+      title: grant.title,
+      description: grant.description,
+      type: "federal",
+      imageUrl: "https://images.unsplash.com/photo-1629640644118-9442dc47b2b4?auto=format&fit=crop&w=500&h=280&q=80",
+      deadline: "Annual application cycles (check program website)",
+      fundingAmount: grant.fundingAmount,
+      category: grant.category,
+      eligibilityCriteria: [
+        "Canadian-incorporated entity",
+        `Project relates to the ${grant.industry} sector`,
+        "Meet program-specific requirements",
+        "Demonstrate innovation and economic impact",
+        "Capacity to complete and sustain the project"
+      ],
+      pros: [
+        "Substantial funding amounts available",
+        "Available to businesses across Canada",
+        "Access to federal resources and networks",
+        "Potential for follow-on funding",
+        "Creates credibility with other funders and partners"
+      ],
+      cons: [
+        "Highly competitive application process",
+        "Complex application requirements",
+        "Long evaluation and approval timelines",
+        "Extensive reporting obligations",
+        "May require significant matching funds"
+      ],
+      websiteUrl: grant.websiteUrl,
+      featured: false,
+      industry: grant.industry,
+      province: null,
+      competitionLevel: grant.competitionLevel,
+      department: grant.department,
+      documents: [
+        "Detailed project proposal",
+        "Business plan",
+        "Financial statements and projections",
+        "Evidence of other funding sources",
+        "Supporting technical documentation"
+      ],
+      applicationDates: "Annual application cycles (check program website)"
+    });
   }
+  console.log("Added more federal industry-specific grants");
 }
 
-// Function to add more private foundation and corporate grants
+// Function to add more private and foundation grants
 async function addPrivateGrants() {
-  console.log("Adding private organization grants...");
+  console.log("Adding more private and foundation grants...");
   
-  const corporations = [
-    "TD Bank", "BMO", "CIBC", "Manulife", "Sun Life",
-    "Telus", "Bell", "Rogers", "IBM", "Microsoft", 
-    "Google", "Facebook", "Amazon", "Walmart", "Sobeys",
-    "Loblaws", "Canadian Tire", "Home Depot", "Shell", "Suncor"
-  ];
-  
-  const foundationTypes = [
+  const privateGrants = [
+    // Banks
     {
-      type: "Social Innovation",
-      description: "Supports innovative solutions to pressing social challenges across Canadian communities.",
-      fundingRanges: ["$5,000 to $25,000", "$25,000 to $100,000", "Up to $250,000"]
+      title: "RBC Future Launch",
+      description: "Supports programs that help young Canadians access skills development, networking, work experience, and mental wellbeing services as they prepare for the future of work.",
+      organization: "Royal Bank of Canada",
+      fundingAmount: "Varies by project (typically $25,000 - $500,000)",
+      category: "Youth Skills",
+      websiteUrl: "https://www.rbc.com/community-social-impact/",
+      competitionLevel: "High"
     },
     {
-      type: "Environmental Sustainability",
-      description: "Funds initiatives that protect the environment and promote sustainable practices.",
-      fundingRanges: ["$10,000 to $50,000", "$50,000 to $150,000", "Up to $300,000"]
+      title: "Scotiabank Climate Change Program",
+      description: "Supports organizations working on climate change mitigation, adaptation, and resilience initiatives across Canada.",
+      organization: "Scotiabank",
+      fundingAmount: "$25,000 - $250,000",
+      category: "Environment",
+      websiteUrl: "https://www.scotiabank.com/corporate/en/home/corporate-responsibility.html",
+      competitionLevel: "Medium"
+    },
+    // Telecommunications
+    {
+      title: "TELUS Friendly Future Foundation",
+      description: "Supports health programs for youth in underserved communities across Canada, with a focus on mental health and well-being.",
+      organization: "TELUS",
+      fundingAmount: "$20,000 - $100,000",
+      category: "Health",
+      websiteUrl: "https://www.friendlyfuture.com/",
+      competitionLevel: "Medium"
     },
     {
-      type: "Education and Skills",
-      description: "Supports educational initiatives and skills development programs across Canada.",
-      fundingRanges: ["$5,000 to $20,000", "$20,000 to $75,000", "Up to $150,000"]
+      title: "Rogers Community Grants",
+      description: "Supports programs that help Canadian youth succeed through education programs, particularly those focusing on digital literacy and STEM education.",
+      organization: "Rogers Communications",
+      fundingAmount: "$15,000 - $25,000",
+      category: "Education",
+      websiteUrl: "https://about.rogers.com/giving-back/",
+      competitionLevel: "Medium"
+    },
+    // Technology
+    {
+      title: "Google.org Impact Challenge Canada",
+      description: "Supports nonprofit organizations using technology and innovation to tackle social challenges in Canada.",
+      organization: "Google",
+      fundingAmount: "$250,000 - $1,000,000",
+      category: "Social Innovation",
+      websiteUrl: "https://impactchallenge.withgoogle.com/canada2020",
+      competitionLevel: "Very High"
     },
     {
-      type: "Community Development",
-      description: "Funds projects that strengthen communities and improve quality of life.",
-      fundingRanges: ["$5,000 to $25,000", "$25,000 to $100,000", "Up to $200,000"]
+      title: "Microsoft Canada Community Empowerment Fund",
+      description: "Supports nonprofit organizations working to increase digital skills and access to technology for underserved communities in Canada.",
+      organization: "Microsoft Canada",
+      fundingAmount: "$50,000 - $200,000",
+      category: "Digital Skills",
+      websiteUrl: "https://www.microsoft.com/en-ca/corporate-responsibility",
+      competitionLevel: "High"
+    },
+    // Retail
+    {
+      title: "Walmart Canada Community Grants",
+      description: "Supports local organizations that focus on hunger relief, disaster preparedness, community engagement, and environmental sustainability.",
+      organization: "Walmart Canada",
+      fundingAmount: "$1,000 - $25,000",
+      category: "Community Development",
+      websiteUrl: "https://www.walmartcanada.ca/community-giving",
+      competitionLevel: "Medium"
     },
     {
-      type: "Entrepreneurship",
-      description: "Supports innovative entrepreneurs and small businesses with growth potential.",
-      fundingRanges: ["$10,000 to $50,000", "$50,000 to $200,000", "Up to $500,000"]
+      title: "Best Buy School Tech Grants",
+      description: "Provides technology grants to secondary schools across Canada to improve or integrate technology in classrooms.",
+      organization: "Best Buy Canada",
+      fundingAmount: "$10,000 - $20,000 in technology products",
+      category: "Education Technology",
+      websiteUrl: "https://www.bestbuy.ca/en-ca/about/school-tech-grants/blt0b1339a4b083a827",
+      competitionLevel: "Medium"
+    },
+    // Foundations
+    {
+      title: "The MasterCard Foundation Fund for Rural Prosperity",
+      description: "Supports innovative financial products, services, and processes that expand access to financial services for people living in poverty in rural areas.",
+      organization: "MasterCard Foundation",
+      fundingAmount: "$200,000 - $2,500,000",
+      category: "Financial Inclusion",
+      websiteUrl: "https://mastercardfdn.org/",
+      competitionLevel: "Very High"
     },
     {
-      type: "Health and Wellness",
-      description: "Funds initiatives that improve health outcomes and wellness in Canadian communities.",
-      fundingRanges: ["$5,000 to $25,000", "$25,000 to $100,000", "Up to $250,000"]
+      title: "Aviva Community Fund",
+      description: "Provides funding for community initiatives across Canada in categories such as community resilience, community health, and community development.",
+      organization: "Aviva Canada",
+      fundingAmount: "Up to $100,000",
+      category: "Community Development",
+      websiteUrl: "https://www.avivacommunityfund.org/",
+      competitionLevel: "High"
     }
   ];
   
-  // Generate corporate foundation grants
-  for (const corporation of corporations) {
-    for (const foundationType of foundationTypes) {
-      // Skip some combinations to avoid too many similar grants
-      if (Math.random() > 0.2) continue;
-      
-      const fundingAmount = foundationType.fundingRanges[Math.floor(Math.random() * foundationType.fundingRanges.length)];
-      const title = `${corporation} ${foundationType.type} Fund`;
-      
-      await addGrant({
-        title: title,
-        description: `${foundationType.description} The ${corporation} ${foundationType.type} Fund represents the company's commitment to giving back to Canadian communities.`,
-        type: "private",
-        imageUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000000)}?auto=format&fit=crop&w=500&h=280&q=80`,
-        deadline: Math.random() > 0.5 ? "Quarterly application deadlines" : "Annual deadline (check website for current cycle)",
-        fundingAmount: fundingAmount,
-        category: foundationType.type,
-        eligibilityCriteria: [
-          "Canadian registered charity or non-profit organization",
-          "For-profit businesses with clear social/environmental mission",
-          "Project aligns with fund priorities and corporate values",
-          "Demonstrated community impact",
-          "Sustainability plan for long-term impact"
-        ],
-        pros: [
-          "Less complex application compared to government grants",
-          "Potential for corporate partnership beyond funding",
-          "Access to corporate networks and expertise",
-          "Marketing and promotional opportunities",
-          "Potential for multi-year support"
-        ],
-        cons: [
-          "Typically smaller funding amounts than government programs",
-          "Must align with corporate priorities",
-          "Highly competitive application process",
-          "May require significant brand visibility for corporate sponsor",
-          "Funding priorities may shift with corporate strategy"
-        ],
-        websiteUrl: `https://www.${corporation.toLowerCase().replace(' ', '')}.ca/community`,
-        featured: false,
-        industry: "any",
-        province: null,
-        competitionLevel: Math.random() > 0.7 ? "High" : Math.random() > 0.4 ? "Medium" : "Low",
-        organization: `${corporation} Foundation`,
-        documents: [
-          "Project proposal",
-          "Organizational background",
-          "Budget breakdown",
-          "Impact measurement plan",
-          "Letters of support"
-        ],
-        applicationDates: Math.random() > 0.5 ? "Quarterly application deadlines" : "Annual deadline (check website for current cycle)"
-      });
-    }
-    console.log(`Added private grants for ${corporation}`);
+  for (const grant of privateGrants) {
+    await addGrant({
+      title: grant.title,
+      description: grant.description,
+      type: "private",
+      imageUrl: "https://images.unsplash.com/photo-1562565652-7a69e5a98e47?auto=format&fit=crop&w=500&h=280&q=80",
+      deadline: "Annual or semi-annual application cycles",
+      fundingAmount: grant.fundingAmount,
+      category: grant.category,
+      eligibilityCriteria: [
+        "Canadian registered charity or non-profit",
+        "For-profit businesses with clear social/environmental mission",
+        "Project aligns with funding priorities",
+        "Demonstrated impact and sustainability",
+        "Compliance with application guidelines"
+      ],
+      pros: [
+        "Less bureaucratic than government funding",
+        "Faster decision-making process",
+        "Access to corporate networks and expertise",
+        "Potential for multi-year partnerships",
+        "Visibility through corporate channels"
+      ],
+      cons: [
+        "Competitive application process",
+        "Must align with corporate priorities",
+        "Funding amounts may be smaller than government grants",
+        "May require significant brand visibility",
+        "Priorities may shift with corporate strategy"
+      ],
+      websiteUrl: grant.websiteUrl,
+      featured: false,
+      industry: "any",
+      province: null,
+      competitionLevel: grant.competitionLevel,
+      organization: grant.organization,
+      documents: [
+        "Grant application form",
+        "Project description and timeline",
+        "Budget details",
+        "Organizational information",
+        "Impact measurement plan"
+      ],
+      applicationDates: "Annual or semi-annual application cycles"
+    });
   }
+  console.log("Added more private and foundation grants");
 }
 
 // Main function to add various grants
 async function addAllGrants() {
   try {
-    // Add provincial grants (potentially 7 grant types × 11 industries × 13 provinces = 1001 grants)
-    // We'll add a portion of these by using random selection in the function
+    // Add more provincial grants
     await addProvincialGrants();
     
-    // Add federal industry grants (6 program types × 13 industries = 78 grants)
-    // We'll add a portion of these by using random selection in the function
+    // Add more federal industry grants
     await addFederalIndustryGrants();
     
-    // Add private and corporate grants (6 foundation types × 20 corporations = 120 grants)
-    // We'll add a portion of these by using random selection in the function
+    // Add more private grants
     await addPrivateGrants();
     
-    console.log("All grants added successfully!");
+    console.log("All additional diverse grants added successfully!");
   } catch (error) {
     console.error("Error adding grants:", error);
   }
