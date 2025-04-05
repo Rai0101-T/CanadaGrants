@@ -1444,6 +1444,30 @@ export class DatabaseStorage implements IStorage {
       },
       createTableIfMissing: true
     });
+    
+    // Initialize the database with sample grants if empty
+    this.initializeDatabaseIfEmpty();
+  }
+  
+  private async initializeDatabaseIfEmpty() {
+    try {
+      const existingGrants = await this.getAllGrants();
+      if (existingGrants.length === 0) {
+        console.log("Database is empty, seeding with sample grants...");
+        const memStorage = new MemStorage();
+        const sampleGrants = await memStorage.getAllGrants();
+        
+        // Insert grants in batches
+        for (const grant of sampleGrants) {
+          const { id, ...grantWithoutId } = grant;
+          await this.addGrant(grantWithoutId as InsertGrant);
+        }
+        
+        console.log(`Successfully seeded database with ${sampleGrants.length} grants`);
+      }
+    } catch (error) {
+      console.error("Error initializing database:", error);
+    }
   }
 
   // User methods
@@ -1510,7 +1534,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGrantsByType(type: string): Promise<Grant[]> {
-    return await db.select().from(grants).where(eq(grants.type, type));
+    // Ensure we're passing a valid type
+    const validType = type as "federal" | "provincial" | "private";
+    return await db.select().from(grants).where(eq(grants.type, validType));
   }
 
   async getFeaturedGrants(): Promise<Grant[]> {
@@ -1523,10 +1549,8 @@ export class DatabaseStorage implements IStorage {
       or(
         like(grants.title, lowerQuery),
         like(grants.description, lowerQuery),
-        like(grants.category, lowerQuery),
-        grants.industry ? like(grants.industry, lowerQuery) : undefined,
-        grants.province ? like(grants.province, lowerQuery) : undefined
-      ).filter(Boolean)
+        like(grants.category, lowerQuery)
+      )
     );
   }
 
@@ -1558,7 +1582,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeGrantFromUserList(userId: number, grantId: number): Promise<boolean> {
-    const result = await db
+    await db
       .delete(userGrants)
       .where(
         and(
@@ -1567,7 +1591,8 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
-    return result.rowCount > 0;
+    // Since we can't check rowCount, we'll check if the entry still exists
+    return !(await this.isGrantInUserList(userId, grantId));
   }
 
   async isGrantInUserList(userId: number, grantId: number): Promise<boolean> {
