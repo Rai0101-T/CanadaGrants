@@ -625,6 +625,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Add a new grant (admin endpoint - no auth for demonstration purposes)
+  apiRouter.post("/admin/grants/add", async (req: Request, res: Response) => {
+    try {
+      const grantData = req.body;
+      
+      // Ensure required fields
+      if (!grantData.title || !grantData.description || !grantData.type) {
+        return res.status(400).json({ error: "Missing required fields: title, description, or type" });
+      }
+
+      // Add defaults for required fields if missing
+      const processedGrant = {
+        ...grantData,
+        createdAt: grantData.createdAt || new Date().toISOString(),
+        featured: grantData.featured !== undefined ? grantData.featured : false,
+        pros: Array.isArray(grantData.pros) ? grantData.pros : [],
+        cons: Array.isArray(grantData.cons) ? grantData.cons : [],
+        eligibilityCriteria: Array.isArray(grantData.eligibilityCriteria) ? grantData.eligibilityCriteria : [],
+        documents: Array.isArray(grantData.documents) ? grantData.documents : [],
+        imageUrl: grantData.imageUrl || "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80",
+        competitionLevel: grantData.competitionLevel || "Medium",
+        faqQuestions: null,
+        faqAnswers: null
+      };
+      
+      const grant = await storage.addGrant(processedGrant);
+      res.status(201).json(grant);
+    } catch (error) {
+      console.error("Error adding grant:", error);
+      res.status(500).json({ error: "Failed to add grant" });
+    }
+  });
+  
   // Schedule the scraper to run weekly
   try {
     scheduleScrapingJob();
