@@ -149,7 +149,7 @@ function getRandomImage(imageArray) {
 // Function to update a grant's image
 async function updateGrantImage(id, imageUrl) {
   try {
-    const response = await fetch('http://localhost:3000/api/admin/grants/update-image', {
+    const response = await fetch('http://localhost:5000/api/admin/grants/update-image', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -174,7 +174,7 @@ async function updateGrantImage(id, imageUrl) {
 async function updateGrantImages() {
   try {
     // Fetch all grants
-    const response = await fetch('http://localhost:3000/api/grants');
+    const response = await fetch('http://localhost:5000/api/grants');
     const grants = await response.json();
     
     console.log(`Found ${grants.length} grants to process`);
