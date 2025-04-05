@@ -95,3 +95,26 @@ export function filterBySearchTerm<T extends Record<string, any>>(
     });
   });
 }
+
+// Parse funding amount from string (e.g. "$1M - $5M" => 1000000)
+export function parseFundingAmount(fundingAmount: string): number {
+  if (!fundingAmount) return 0;
+  
+  // Find the first number with potential K/M suffix in the string
+  const match = fundingAmount.match(/\$?(\d+(?:\.\d+)?)\s*([KMB])?/i);
+  if (!match) return 0;
+  
+  const [, numStr, suffix] = match;
+  let num = parseFloat(numStr);
+  
+  // Convert based on suffix
+  if (suffix && suffix.toUpperCase() === 'K') {
+    num *= 1000;
+  } else if (suffix && suffix.toUpperCase() === 'M') {
+    num *= 1000000;
+  } else if (suffix && suffix.toUpperCase() === 'B') {
+    num *= 1000000000;
+  }
+  
+  return num;
+}

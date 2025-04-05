@@ -71,9 +71,15 @@ export default function SearchResults() {
   });
   
   // Extract all unique industries, types, and provinces for filter options
-  const industries = [...new Set(searchResults?.map(grant => grant.industry).filter(Boolean))];
-  const types = [...new Set(searchResults?.map(grant => grant.type))];
-  const provinces = [...new Set(searchResults?.map(grant => grant.province).filter(Boolean))];
+  const industries = searchResults 
+    ? Array.from(new Set(searchResults.map(grant => grant.industry).filter(Boolean) as string[]))
+    : [];
+  const types = searchResults 
+    ? Array.from(new Set(searchResults.map(grant => grant.type)))
+    : [];
+  const provinces = searchResults 
+    ? Array.from(new Set(searchResults.map(grant => grant.province).filter(Boolean) as string[]))
+    : [];
   
   // Format the funding range for display
   const formatFundingAmount = (value: number) => {

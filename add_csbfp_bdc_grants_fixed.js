@@ -144,7 +144,7 @@ const grants = [
       "May require regular reporting on business metrics",
       "Not suitable for distressed businesses"
     ],
-    applicationProcess: ["Apply online or through a BDC account manager who will work with you to structure the working capital solution that fits your specific needs.",
+    applicationProcess: ["Apply online or through a BDC account manager who will work with you to structure the working capital solution that fits your specific needs."],
     documents: [
       "Current and projected financial statements",
       "Accounts receivable and accounts payable listings",
@@ -195,7 +195,7 @@ const grants = [
       "More documentation required than standard loans",
       "May require vendor estimates and implementation timelines"
     ],
-    applicationProcess: ["Apply through BDC's website or work with a BDC account manager who can help validate your technology investment plan and structure the appropriate financing.",
+    applicationProcess: ["Apply through BDC's website or work with a BDC account manager who can help validate your technology investment plan and structure the appropriate financing."],
     documents: [
       "Technology implementation plan",
       "Vendor quotes and proposals",
@@ -246,7 +246,7 @@ const grants = [
       "Equity investment rather than non-dilutive funding",
       "Expects significant growth and eventual exit potential"
     ],
-    applicationProcess: "Companies don't apply directly but are referred through the fund's network or can be discovered through industry events, accelerators, or other venture capital partners.",
+    applicationProcess: ["Companies don't apply directly but are referred through the fund's network or can be discovered through industry events, accelerators, or other venture capital partners."],
     documents: [
       "Detailed business plan",
       "Financial projections with clear path to profitability",
@@ -297,7 +297,7 @@ const grants = [
       "Regular reporting requirements",
       "May include business covenants and restrictions"
     ],
-    applicationProcess: "Connect with a BDC Growth & Transition Capital team member who will assess your business needs and structure a customized financing solution.",
+    applicationProcess: ["Connect with a BDC Growth & Transition Capital team member who will assess your business needs and structure a customized financing solution."],
     documents: [
       "Business plan with growth or transition strategy",
       "3-5 years of financial statements",
