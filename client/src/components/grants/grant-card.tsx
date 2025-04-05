@@ -27,7 +27,7 @@ export default function GrantCard({ grant, showLessInfo = false }: GrantCardProp
   const typeColors = {
     federal: "bg-blue-900/60 text-blue-300",
     provincial: "bg-green-900/60 text-green-300",
-    private: "bg-purple-900/60 text-purple-300",
+    private: "bg-purple-900/40 text-purple-200",
   };
 
   return (
@@ -35,7 +35,7 @@ export default function GrantCard({ grant, showLessInfo = false }: GrantCardProp
       <div 
         className="h-40 bg-cover bg-center" 
         style={{ 
-          backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8)), url(${grant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80'})` 
+          backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.5)), url(${grant.imageUrl || 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80'})` 
         }}
       >
         <div className="p-3 flex justify-between items-start h-full">
