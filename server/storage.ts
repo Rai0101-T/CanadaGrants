@@ -23,6 +23,7 @@ export interface IStorage {
   getFeaturedGrants(): Promise<Grant[]>;
   searchGrants(query: string): Promise<Grant[]>;
   addGrant(grant: InsertGrant): Promise<Grant>; // Add method for scraped grants
+  updateGrantImage(id: number, imageUrl: string): Promise<Grant | undefined>; // Update grant image
   
   // User Grants methods (My List)
   getUserGrants(userId: number): Promise<Grant[]>;
@@ -265,6 +266,23 @@ export class MemStorage implements IStorage {
     
     this.grants.set(id, grant);
     return grant;
+  }
+  
+  // Update grant image
+  async updateGrantImage(id: number, imageUrl: string): Promise<Grant | undefined> {
+    const grant = this.grants.get(id);
+    
+    if (!grant) {
+      return undefined;
+    }
+    
+    const updatedGrant = {
+      ...grant,
+      imageUrl
+    };
+    
+    this.grants.set(id, updatedGrant);
+    return updatedGrant;
   }
 
   // Initialize with real grants data from Innovation Canada
@@ -1682,6 +1700,28 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return grant;
+  }
+  
+  // Update grant image
+  async updateGrantImage(id: number, imageUrl: string): Promise<Grant | undefined> {
+    // Check if grant exists
+    const [existingGrant] = await db
+      .select()
+      .from(grants)
+      .where(eq(grants.id, id));
+      
+    if (!existingGrant) {
+      return undefined;
+    }
+    
+    // Update the grant's image
+    const [updatedGrant] = await db
+      .update(grants)
+      .set({ imageUrl })
+      .where(eq(grants.id, id))
+      .returning();
+      
+    return updatedGrant;
   }
 }
 

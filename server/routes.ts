@@ -658,6 +658,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update grant image (admin endpoint - no auth for demonstration purposes)
+  apiRouter.post("/admin/grants/update-image", async (req: Request, res: Response) => {
+    try {
+      const { id, imageUrl } = req.body;
+      
+      if (!id || !imageUrl) {
+        return res.status(400).json({ error: "Missing required fields: id or imageUrl" });
+      }
+      
+      // Get the grant to verify it exists
+      const grant = await storage.getGrantById(Number(id));
+      if (!grant) {
+        return res.status(404).json({ error: "Grant not found" });
+      }
+      
+      // Update the grant's image
+      const updatedGrant = await storage.updateGrantImage(Number(id), imageUrl);
+      
+      if (!updatedGrant) {
+        return res.status(500).json({ error: "Failed to update grant image" });
+      }
+      
+      res.status(200).json(updatedGrant);
+    } catch (error) {
+      console.error("Error updating grant image:", error);
+      res.status(500).json({ error: "Failed to update grant image" });
+    }
+  });
+  
   // Schedule the scraper to run weekly
   try {
     scheduleScrapingJob();
