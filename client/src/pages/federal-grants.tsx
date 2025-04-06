@@ -29,6 +29,7 @@ export default function FederalGrants() {
         const deptLower = filters.department.toLowerCase();
         const fundingOrgLower = grant.fundingOrganization?.toLowerCase() || '';
         const categoryLower = grant.category?.toLowerCase() || '';
+        const departmentLower = grant.department?.toLowerCase() || '';
         
         // Map department filter values to possible matches in the data
         const deptMappings: Record<string, string[]> = {
@@ -45,12 +46,15 @@ export default function FederalGrants() {
         
         // Check if this grant matches the selected department
         const matchesDept = deptMappings[deptLower]?.some(term => 
-          fundingOrgLower.includes(term) || categoryLower.includes(term)
+          fundingOrgLower.includes(term) || 
+          categoryLower.includes(term) || 
+          departmentLower.includes(term)
         );
         
         if (!matchesDept && 
             !fundingOrgLower.includes(deptLower) && 
-            !categoryLower.includes(deptLower)) {
+            !categoryLower.includes(deptLower) &&
+            !departmentLower.includes(deptLower)) {
           return false;
         }
       }

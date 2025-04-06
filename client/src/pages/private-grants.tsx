@@ -30,6 +30,8 @@ export default function PrivateGrants() {
         const orgLower = filters.organization.toLowerCase();
         const fundingOrgLower = grant.fundingOrganization?.toLowerCase() || '';
         const categoryLower = grant.category.toLowerCase();
+        const titleLower = grant.title.toLowerCase() || '';
+        const descriptionLower = grant.description.toLowerCase() || '';
         
         // Map some common organization values to their full names (for improved matching)
         const orgMappings: Record<string, string[]> = {
@@ -42,8 +44,15 @@ export default function PrivateGrants() {
         
         // Check if this grant matches the selected organization
         const matchesOrg = orgMappings[orgLower]?.some(term => 
-          fundingOrgLower.includes(term) || categoryLower.includes(term)
-        ) || fundingOrgLower.includes(orgLower) || categoryLower.includes(orgLower);
+          fundingOrgLower.includes(term) || 
+          categoryLower.includes(term) || 
+          titleLower.includes(term) || 
+          descriptionLower.includes(term)
+        ) || 
+        fundingOrgLower.includes(orgLower) || 
+        categoryLower.includes(orgLower) || 
+        titleLower.includes(orgLower) || 
+        descriptionLower.includes(orgLower);
         
         if (!matchesOrg) {
           return false;
