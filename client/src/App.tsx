@@ -10,6 +10,7 @@ import ProvincialGrants from "@/pages/provincial-grants";
 import PrivateGrants from "@/pages/private-grants";
 import GrantDetails from "@/pages/grant-details";
 import MyList from "@/pages/my-list";
+import Profile from "@/pages/profile";
 import GrantScribe from "@/pages/grant-scribe";
 import SearchResults from "@/pages/search-results";
 import AuthPage from "@/pages/auth-page";
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/grant/:id" component={GrantDetails} />
           <Route path="/search/:query" component={SearchResults} />
           <ProtectedRoute path="/my-list" component={MyList} />
+          <ProtectedRoute path="/profile" component={Profile} />
           <ProtectedRoute path="/grant-scribe" component={GrantScribe} />
           <Route path="/about-us" component={AboutUs} />
           <Route path="/auth" component={AuthPage} />

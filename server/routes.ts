@@ -110,6 +110,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.status(401).json({ message: "Authentication required" });
   }
+  
+  // Update user profile
+  apiRouter.post("/user/update", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id; // Type assertion with ! since isAuthenticated ensures user exists
+      const userData = req.body;
+      
+      // Update the user data
+      const updatedUser = await storage.updateUser(userId, userData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update the session user object
+      req.login(updatedUser, (err) => {
+        if (err) return res.status(500).json({ message: "Failed to update session" });
+        res.status(200).json(updatedUser);
+      });
+    } catch (error) {
+      console.error("User update error:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
 
   // Get user's saved grants (My List)
   apiRouter.get("/mylist/:userId", isAuthenticated, async (req: Request, res: Response) => {
@@ -254,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Description: ${grant.description}
           Industry: ${grant.industry || "Any"}
           Category: ${grant.category}
-          Eligibility: ${grant.eligibilityCriteria.join(", ")}
+          Eligibility: ${grant.eligibilityCriteria ? grant.eligibilityCriteria.join(", ") : "No specific criteria"}
         `;
       }).join("\n\n");
       
@@ -289,14 +313,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Parse the JSON response
-      const assistantResponse = JSON.parse(response.choices[0].message.content);
+      const content = response.choices[0].message.content;
+      const assistantResponse = content ? JSON.parse(content) : { recommendations: [] };
       
       // Get the full grant details for the recommended grants
-      const recommendedGrantIds = assistantResponse.recommendations.map(rec => rec.grantId);
+      const recommendedGrantIds = assistantResponse.recommendations.map((rec: { grantId: number }) => rec.grantId);
       const recommendedGrants = await Promise.all(
-        recommendedGrantIds.map(async (id) => {
+        recommendedGrantIds.map(async (id: number) => {
           const grant = await storage.getGrantById(Number(id));
-          const recommendation = assistantResponse.recommendations.find(rec => rec.grantId === id);
+          const recommendation = assistantResponse.recommendations.find((rec: { grantId: number }) => rec.grantId === id);
           if (!grant) return null;
           return {
             ...grant,
@@ -309,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ recommendations: recommendedGrants });
     } catch (error) {
       console.error("Grant recommendation error:", error);
-      res.status(500).json({ message: "Failed to get grant recommendations", error: error.message });
+      res.status(500).json({ message: "Failed to get grant recommendations", error: (error as Error).message });
     }
   });
   
