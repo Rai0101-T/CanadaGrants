@@ -285,7 +285,21 @@ export default function GrantDetails() {
               <div className="space-y-4">
                 <Button 
                   className="w-full h-12 text-base font-medium bg-primary text-white hover:bg-primary/90"
-                  onClick={() => window.open(grant.applicationLink || grant.websiteUrl, '_blank')}
+                  onClick={() => {
+                    // Check if application link exists and is not empty
+                    if (grant.applicationLink && grant.applicationLink.trim() !== '') {
+                      window.open(grant.applicationLink, '_blank');
+                    } else {
+                      // If no specific application link, default to the website URL
+                      window.open(grant.websiteUrl, '_blank');
+                    }
+                    
+                    // Show toast notification
+                    toast({
+                      title: "Redirecting to application",
+                      description: `You're being redirected to apply for ${grant.title}`,
+                    });
+                  }}
                 >
                   Apply for Grant
                 </Button>
