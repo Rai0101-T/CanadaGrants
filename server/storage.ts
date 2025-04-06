@@ -24,6 +24,7 @@ export interface IStorage {
   searchGrants(query: string): Promise<Grant[]>;
   addGrant(grant: InsertGrant): Promise<Grant>; // Add method for scraped grants
   updateGrantImage(id: number, imageUrl: string): Promise<Grant | undefined>; // Update grant image
+  deleteGrant(id: number): Promise<boolean>; // Delete a grant
   
   // User Grants methods (My List)
   getUserGrants(userId: number): Promise<Grant[]>;
@@ -283,6 +284,16 @@ export class MemStorage implements IStorage {
     
     this.grants.set(id, updatedGrant);
     return updatedGrant;
+  }
+  
+  // Delete a grant by ID
+  async deleteGrant(id: number): Promise<boolean> {
+    if (!this.grants.has(id)) {
+      return false;
+    }
+    
+    // Delete the grant
+    return this.grants.delete(id);
   }
 
   // Initialize with real grants data from Innovation Canada
@@ -1722,6 +1733,36 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return updatedGrant;
+  }
+  
+  // Delete a grant by ID
+  async deleteGrant(id: number): Promise<boolean> {
+    // Check if grant exists
+    const [existingGrant] = await db
+      .select()
+      .from(grants)
+      .where(eq(grants.id, id));
+      
+    if (!existingGrant) {
+      return false;
+    }
+    
+    try {
+      // First check if this grant is in any user lists and remove those entries
+      await db
+        .delete(userGrants)
+        .where(eq(userGrants.grantId, id));
+        
+      // Then delete the grant itself
+      await db
+        .delete(grants)
+        .where(eq(grants.id, id));
+        
+      return true;
+    } catch (error) {
+      console.error('Error deleting grant:', error);
+      return false;
+    }
   }
 }
 

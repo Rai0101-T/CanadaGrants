@@ -687,6 +687,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to delete a grant by ID
+  apiRouter.delete("/admin/grants/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid grant ID" });
+      }
+      
+      // Get the grant to verify it exists
+      const grant = await storage.getGrantById(id);
+      if (!grant) {
+        return res.status(404).json({ error: "Grant not found" });
+      }
+      
+      // Delete the grant
+      const success = await storage.deleteGrant(id);
+      
+      if (success) {
+        res.status(200).json({ success: true, message: `Grant ${id} deleted successfully` });
+      } else {
+        res.status(500).json({ error: "Failed to delete grant" });
+      }
+    } catch (error) {
+      console.error("Error deleting grant:", error);
+      res.status(500).json({ error: "Failed to delete grant" });
+    }
+  });
+  
   // Schedule the scraper to run weekly
   try {
     scheduleScrapingJob();
