@@ -147,14 +147,14 @@ export default function SearchResults() {
               <div>
                 <h3 className="font-medium text-white mb-2">Grant Type</h3>
                 <Select 
-                  value={typeFilter || ""} 
-                  onValueChange={(value) => setTypeFilter(value || null)}
+                  value={typeFilter || "all_types"} 
+                  onValueChange={(value) => setTypeFilter(value === "all_types" ? null : value)}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-700">
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all_types">All Types</SelectItem>
                     {types.map(type => (
                       <SelectItem key={type} value={type}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -167,14 +167,14 @@ export default function SearchResults() {
               <div>
                 <h3 className="font-medium text-white mb-2">Industry</h3>
                 <Select 
-                  value={industryFilter || ""} 
-                  onValueChange={(value) => setIndustryFilter(value || null)}
+                  value={industryFilter || "all_industries"} 
+                  onValueChange={(value) => setIndustryFilter(value === "all_industries" ? null : value)}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-700">
                     <SelectValue placeholder="All Industries" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="">All Industries</SelectItem>
+                    <SelectItem value="all_industries">All Industries</SelectItem>
                     {industries.map(industry => (
                       <SelectItem key={industry} value={industry}>
                         {industry}
@@ -187,14 +187,14 @@ export default function SearchResults() {
               <div>
                 <h3 className="font-medium text-white mb-2">Province</h3>
                 <Select 
-                  value={provinceFilter || ""} 
-                  onValueChange={(value) => setProvinceFilter(value || null)}
+                  value={provinceFilter || "all_provinces"} 
+                  onValueChange={(value) => setProvinceFilter(value === "all_provinces" ? null : value)}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-700">
                     <SelectValue placeholder="All Provinces" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="">All Provinces</SelectItem>
+                    <SelectItem value="all_provinces">All Provinces</SelectItem>
                     {provinces.map(province => (
                       <SelectItem key={province} value={province}>
                         {province}
@@ -240,14 +240,14 @@ export default function SearchResults() {
           <div>
             <h3 className="font-medium text-white mb-2">Grant Type</h3>
             <Select 
-              value={typeFilter || ""} 
-              onValueChange={(value) => setTypeFilter(value || null)}
+              value={typeFilter || "all_types"} 
+              onValueChange={(value) => setTypeFilter(value === "all_types" ? null : value)}
             >
               <SelectTrigger className="bg-gray-800 border-gray-700">
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all_types">All Types</SelectItem>
                 {types.map(type => (
                   <SelectItem key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -262,14 +262,14 @@ export default function SearchResults() {
           <div>
             <h3 className="font-medium text-white mb-2">Industry</h3>
             <Select 
-              value={industryFilter || ""} 
-              onValueChange={(value) => setIndustryFilter(value || null)}
+              value={industryFilter || "all_industries"} 
+              onValueChange={(value) => setIndustryFilter(value === "all_industries" ? null : value)}
             >
               <SelectTrigger className="bg-gray-800 border-gray-700">
                 <SelectValue placeholder="All Industries" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all_industries">All Industries</SelectItem>
                 {industries.map(industry => (
                   <SelectItem key={industry} value={industry}>
                     {industry}
@@ -284,14 +284,14 @@ export default function SearchResults() {
           <div>
             <h3 className="font-medium text-white mb-2">Province</h3>
             <Select 
-              value={provinceFilter || ""} 
-              onValueChange={(value) => setProvinceFilter(value || null)}
+              value={provinceFilter || "all_provinces"} 
+              onValueChange={(value) => setProvinceFilter(value === "all_provinces" ? null : value)}
             >
               <SelectTrigger className="bg-gray-800 border-gray-700">
                 <SelectValue placeholder="All Provinces" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="">All Provinces</SelectItem>
+                <SelectItem value="all_provinces">All Provinces</SelectItem>
                 {provinces.map(province => (
                   <SelectItem key={province} value={province}>
                     {province}
