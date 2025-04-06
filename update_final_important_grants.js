@@ -1,22 +1,6 @@
-// Script to update specific important grants by ID
+// Script to update the final remaining grants with generic images
 
 import fetch from 'node-fetch';
-
-// Define specific grant IDs and the images we want to use
-const grantsToUpdate = [
-  {
-    id: 267, // Canada Small Business Financing Program
-    imageUrl: "https://images.unsplash.com/photo-1551135049-8a33b5883817?auto=format&fit=crop&w=500&h=280&q=80"
-  },
-  {
-    id: 61, // Aboriginal Business and Entrepreneurship Development (ABED)
-    imageUrl: "https://images.unsplash.com/photo-1524069290683-0457abfe42c3?auto=format&fit=crop&w=500&h=280&q=80"
-  },
-  {
-    id: 72, // Strategic Innovation Fund
-    imageUrl: "https://images.unsplash.com/photo-1565373679579-96c6628e267a?auto=format&fit=crop&w=500&h=280&q=80"
-  }
-];
 
 // Function to update a grant's image
 async function updateGrantImage(id, imageUrl) {
@@ -42,16 +26,72 @@ async function updateGrantImage(id, imageUrl) {
   }
 }
 
-// Main function to update specific important grants
+// Define the last batch of grants to update
+const grantsToUpdate = [
+  {
+    id: 73, // Youth Employment and Skills Strategy
+    imageUrl: "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=500&h=280&q=80" // Youth employment
+  },
+  {
+    id: 140, // Bell Education and Skills Fund
+    imageUrl: "https://images.unsplash.com/photo-1557187666-4fd2a8c3439b?auto=format&fit=crop&w=500&h=280&q=80" // Education/telecom
+  },
+  {
+    id: 127, // Canadian Digital Media Market Expansion
+    imageUrl: "https://images.unsplash.com/photo-1496065187959-7f07b8353c55?auto=format&fit=crop&w=500&h=280&q=80" // Digital media
+  },
+  {
+    id: 146, // Canadian Retail Business Scale-up
+    imageUrl: "https://images.unsplash.com/photo-1610527003928-47afdccc34b0?auto=format&fit=crop&w=500&h=280&q=80" // Retail
+  },
+  {
+    id: 134, // BMO Environmental Sustainability Fund
+    imageUrl: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=500&h=280&q=80" // Environmental
+  },
+  {
+    id: 186, // Western Economic Diversification Canada
+    imageUrl: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?auto=format&fit=crop&w=500&h=280&q=80" // Western Canada
+  },
+  {
+    id: 198, // Canadian Northern Economic Development Agency
+    imageUrl: "https://images.unsplash.com/photo-1572128293406-c7b4df568083?auto=format&fit=crop&w=500&h=280&q=80" // Northern Canada
+  },
+  {
+    id: 206, // Indigenous Skills and Employment Training
+    imageUrl: "https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&w=500&h=280&q=80" // Indigenous training
+  },
+  {
+    id: 64, // Indigenous Skills and Employment Training Program
+    imageUrl: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=500&h=280&q=80" // Indigenous employment
+  },
+  {
+    id: 260, // BDC Small Business Loan
+    imageUrl: "https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=500&h=280&q=80" // Small business loan
+  },
+  {
+    id: 54, // Spin Master Innovation Fund
+    imageUrl: "https://images.unsplash.com/photo-1536148935331-408321065b18?auto=format&fit=crop&w=500&h=280&q=80" // Innovation/toys
+  },
+  {
+    id: 84, // Ontario Tourism Research and Innovation Fund
+    imageUrl: "https://images.unsplash.com/photo-1488515398041-8d6ce0d8ff57?auto=format&fit=crop&w=500&h=280&q=80" // Tourism research
+  },
+  {
+    id: 107, // Quebec Tourism Research and Innovation Fund
+    imageUrl: "https://images.unsplash.com/photo-1518128958364-65859d70aa41?auto=format&fit=crop&w=500&h=280&q=80" // Quebec tourism
+  }
+];
+
+// Main function to update important grant images
 async function updateImportantGrants() {
   try {
-    console.log(`Updating ${grantsToUpdate.length} important grants`);
+    console.log(`Updating images for ${grantsToUpdate.length} final grants`);
     
     let updatedCount = 0;
     
     // Update each grant in our list
     for (const grant of grantsToUpdate) {
-      console.log(`Updating grant ID ${grant.id} with new image URL`);
+      console.log(`\nUpdating grant ID ${grant.id} with unique image URL`);
       await updateGrantImage(grant.id, grant.imageUrl);
       updatedCount++;
       
@@ -59,7 +99,7 @@ async function updateImportantGrants() {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     
-    console.log(`Successfully updated ${updatedCount} important grants`);
+    console.log(`\nSuccessfully updated ${updatedCount} grants with unique, relevant images`);
     
   } catch (error) {
     console.error('Error updating grant images:', error);
