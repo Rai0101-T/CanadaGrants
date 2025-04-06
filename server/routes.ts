@@ -270,69 +270,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all grants to analyze
       const allGrants = await storage.getAllGrants();
       
-      // Create a context with the grant information
-      const grantsContext = allGrants.map(grant => {
-        return `
-          Grant ID: ${grant.id}
-          Title: ${grant.title}
-          Type: ${grant.type}
-          Description: ${grant.description}
-          Industry: ${grant.industry || "Any"}
-          Category: ${grant.category}
-          Eligibility: ${grant.eligibilityCriteria ? grant.eligibilityCriteria.join(", ") : "No specific criteria"}
-        `;
-      }).join("\n\n");
-      
-      // Create system message with instructions
-      const systemMessage = `
-        You are a grant recommendation system for Canadian businesses.
-        Based on the business description, analyze which grants would be most suitable.
-        Consider industry alignment, eligibility criteria, and business needs.
-        Provide a relevance score from 1-100 for each grant recommended, where 100 is a perfect match.
+      // Try to use OpenAI for recommendations
+      try {
+        // Create a context with the grant information
+        const grantsContext = allGrants.map(grant => {
+          return `
+            Grant ID: ${grant.id}
+            Title: ${grant.title}
+            Type: ${grant.type}
+            Description: ${grant.description}
+            Industry: ${grant.industry || "Any"}
+            Category: ${grant.category}
+            Eligibility: ${grant.eligibilityCriteria ? grant.eligibilityCriteria.join(", ") : "No specific criteria"}
+          `;
+        }).join("\n\n");
         
-        Here is information about available grants:
-        ${grantsContext}
-      `;
-      
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          { role: "system", content: systemMessage },
-          { role: "user", content: `Business Description: ${businessDescription}
+        // Create system message with instructions
+        const systemMessage = `
+          You are a grant recommendation system for Canadian businesses.
+          Based on the business description, analyze which grants would be most suitable.
+          Consider industry alignment, eligibility criteria, and business needs.
+          Provide a relevance score from 1-100 for each grant recommended, where 100 is a perfect match.
           
-          Please recommend the top 5 most relevant grants for this business with a relevance score (1-100).
-          Return the response in the following JSON format:
-          {
-            "recommendations": [
-              { "grantId": number, "relevanceScore": number, "reason": "string" },
-              ...
-            ]
-          }` }
-        ],
-        temperature: 0.5,
-        response_format: { type: "json_object" }
-      });
-      
-      // Parse the JSON response
-      const content = response.choices[0].message.content;
-      const assistantResponse = content ? JSON.parse(content) : { recommendations: [] };
-      
-      // Get the full grant details for the recommended grants
-      const recommendedGrantIds = assistantResponse.recommendations.map((rec: { grantId: number }) => rec.grantId);
-      const recommendedGrants = await Promise.all(
-        recommendedGrantIds.map(async (id: number) => {
-          const grant = await storage.getGrantById(Number(id));
-          const recommendation = assistantResponse.recommendations.find((rec: { grantId: number }) => rec.grantId === id);
-          if (!grant) return null;
+          Here is information about available grants:
+          ${grantsContext}
+        `;
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: "system", content: systemMessage },
+            { role: "user", content: `Business Description: ${businessDescription}
+            
+            Please recommend the top 5 most relevant grants for this business with a relevance score (1-100).
+            Return the response in the following JSON format:
+            {
+              "recommendations": [
+                { "grantId": number, "relevanceScore": number, "reason": "string" },
+                ...
+              ]
+            }` }
+          ],
+          temperature: 0.5,
+          response_format: { type: "json_object" }
+        });
+        
+        // Parse the JSON response
+        const content = response.choices[0].message.content;
+        const assistantResponse = content ? JSON.parse(content) : { recommendations: [] };
+        
+        // Get the full grant details for the recommended grants
+        const recommendedGrantIds = assistantResponse.recommendations.map((rec: { grantId: number }) => rec.grantId);
+        const recommendedGrants = await Promise.all(
+          recommendedGrantIds.map(async (id: number) => {
+            const grant = await storage.getGrantById(Number(id));
+            const recommendation = assistantResponse.recommendations.find((rec: { grantId: number }) => rec.grantId === id);
+            if (!grant) return null;
+            return {
+              ...grant,
+              relevanceScore: recommendation.relevanceScore,
+              reason: recommendation.reason
+            };
+          })
+        ).then(grants => grants.filter(Boolean)); // Filter out null values
+        
+        res.json({ recommendations: recommendedGrants });
+      } catch (aiError) {
+        // If OpenAI API fails, use a fallback recommendation engine
+        console.warn("OpenAI API error, using fallback recommendation engine:", aiError);
+        
+        // Parse business description for keywords
+        const keywords = businessDescription.toLowerCase().split(/\s+/);
+        const relevantIndustries: string[] = [];
+        
+        // Common industry keywords mapping
+        const industryKeywordMap: Record<string, string[]> = {
+          "technology": ["software", "tech", "digital", "computer", "it", "programming", "development", "app"],
+          "healthcare": ["health", "medical", "care", "clinic", "patient", "doctor", "hospital", "wellness"],
+          "manufacturing": ["manufacturing", "factory", "production", "industrial", "assembly", "fabrication"],
+          "retail": ["retail", "store", "shop", "merchandise", "ecommerce", "customer", "product", "selling"],
+          "agriculture": ["farm", "agriculture", "crop", "livestock", "organic", "agricultural", "farming"],
+          "construction": ["construction", "building", "contractor", "renovation", "property", "infrastructure"],
+          "education": ["education", "school", "training", "learning", "teach", "student", "course", "tutoring"],
+          "food": ["food", "restaurant", "catering", "culinary", "chef", "kitchen", "meal", "bakery"],
+          "arts": ["art", "design", "creative", "culture", "music", "film", "entertainment", "artist"],
+          "clean tech": ["green", "energy", "environmental", "sustainable", "clean", "renewable", "eco", "climate"],
+          "social": ["social", "nonprofit", "community", "charity", "service", "help", "support", "assistance"],
+          "research": ["research", "innovation", "development", "science", "scientific", "lab", "experiment", "study"],
+          "tourism": ["tourism", "travel", "hospitality", "hotel", "visitor", "destination", "experience", "tourist"]
+        };
+        
+        // Detect relevant industries based on keywords
+        for (const [industry, industryKeywords] of Object.entries(industryKeywordMap)) {
+          for (const keyword of industryKeywords) {
+            if (businessDescription.toLowerCase().includes(keyword)) {
+              // Add only if not already in the array to avoid duplicates
+              if (!relevantIndustries.includes(industry)) {
+                relevantIndustries.push(industry);
+              }
+              break;
+            }
+          }
+        }
+        
+        // Get all matching grants based on industries
+        const matchingGrants = allGrants.filter(grant => {
+          if (!grant.industry && !grant.category) return false;
+          
+          const grantIndustry = (grant.industry || '').toLowerCase();
+          const grantCategory = (grant.category || '').toLowerCase();
+          
+          // Check if any of the detected industries match the grant
+          for (const industry of relevantIndustries) {
+            if (grantIndustry.includes(industry) || grantCategory.includes(industry)) {
+              return true;
+            }
+          }
+          
+          // If no specific industry matches were found, look for keyword matches
+          for (const keyword of keywords) {
+            if (keyword.length < 4) continue; // Skip short words
+            
+            if (
+              grantIndustry.includes(keyword) || 
+              grantCategory.includes(keyword) || 
+              (grant.description && grant.description.toLowerCase().includes(keyword))
+            ) {
+              return true;
+            }
+          }
+          
+          return false;
+        });
+        
+        // Sort by relevance (first by exact industry matches, then by type)
+        // Prioritize federal and provincial grants over private ones
+        const scoredGrants = matchingGrants.map(grant => {
+          let score = 70; // Base score
+          
+          // Adjust score based on type
+          if (grant.type === "federal") score += 15;
+          else if (grant.type === "provincial") score += 10;
+          
+          // Boost score for exact industry matches
+          const grantIndustry = (grant.industry || '').toLowerCase();
+          for (const industry of relevantIndustries) {
+            if (grantIndustry === industry) {
+              score += 15;
+              break;
+            } else if (grantIndustry.includes(industry)) {
+              score += 10;
+              break;
+            }
+          }
+          
+          // Cap at 100
+          score = Math.min(score, 100);
+          
           return {
             ...grant,
-            relevanceScore: recommendation.relevanceScore,
-            reason: recommendation.reason
+            relevanceScore: score,
+            reason: `This ${grant.type} grant appears to align with your business description.`
           };
-        })
-      ).then(grants => grants.filter(Boolean)); // Filter out null values
-      
-      res.json({ recommendations: recommendedGrants });
+        });
+        
+        // Sort by score (descending) and get top 5
+        scoredGrants.sort((a, b) => b.relevanceScore - a.relevanceScore);
+        const recommendations = scoredGrants.slice(0, 5);
+        
+        res.json({ 
+          recommendations,
+          notice: "Using simplified recommendation engine due to AI service limitations."
+        });
+      }
     } catch (error) {
       console.error("Grant recommendation error:", error);
       res.status(500).json({ message: "Failed to get grant recommendations", error: (error as Error).message });
@@ -356,42 +466,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Grant not found" });
       }
       
-      // Use OpenAI to analyze and improve the application
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
-                     You provide constructive feedback and improvements to grant applications to help them succeed.
-                     Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.`
-          },
-          {
-            role: "user",
-            content: `Grant details:
-                     Title: ${grant.title}
-                     Description: ${grant.description}
-                     Type: ${grant.type}
-                     
-                     My draft application:
-                     ${applicationText}
-                     
-                     Please analyze my application and provide:
-                     1. Overall assessment
-                     2. Specific strengths
-                     3. Areas for improvement
-                     4. Suggested edits and rewording
-                     5. Additional points to consider including`
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-      });
-      
-      res.json({
-        feedback: response.choices[0].message.content,
-        grant: grant
-      });
+      try {
+        // Use OpenAI to analyze and improve the application
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
+                      You provide constructive feedback and improvements to grant applications to help them succeed.
+                      Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.`
+            },
+            {
+              role: "user",
+              content: `Grant details:
+                      Title: ${grant.title}
+                      Description: ${grant.description}
+                      Type: ${grant.type}
+                      
+                      My draft application:
+                      ${applicationText}
+                      
+                      Please analyze my application and provide:
+                      1. Overall assessment
+                      2. Specific strengths
+                      3. Areas for improvement
+                      4. Suggested edits and rewording
+                      5. Additional points to consider including`
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1500,
+        });
+        
+        res.json({
+          feedback: response.choices[0].message.content,
+          grant: grant
+        });
+      } catch (aiError) {
+        // Fallback mechanism for when OpenAI API fails
+        console.warn("OpenAI API error for grant assistance, using fallback:", aiError);
+        
+        // Generate basic feedback 
+        const wordCount = applicationText.split(/\s+/).length;
+        const paragraphCount = applicationText.split(/\n\s*\n/).length;
+        const sentenceCount = applicationText.split(/[.!?]+\s/).length;
+        
+        // Basic assessment
+        let assessment = "Your application has a good foundation and addresses some key points.";
+        if (wordCount < 200) {
+          assessment = "Your application is quite brief and could benefit from more detail and elaboration.";
+        } else if (wordCount > 800) {
+          assessment = "Your application is quite detailed, which is good, but consider condensing some sections for clarity.";
+        }
+        
+        // Structure assessment
+        let structureAssessment = "The application has a reasonable structure with paragraphs that help organize your thoughts.";
+        if (paragraphCount < 3) {
+          structureAssessment = "Consider breaking your application into more paragraphs to improve readability and organization.";
+        }
+        
+        const eligibilityCriteria = grant.eligibilityCriteria || [];
+        const criteria = eligibilityCriteria.join(", ");
+        
+        // Generate improvement points
+        const improvementPoints = [
+          "Consider referencing specific eligibility criteria mentioned in the grant description",
+          "Add quantifiable metrics to demonstrate the potential impact of your project",
+          "Include a clear timeline for implementation and milestones",
+          "Elaborate on how your project aligns with the grant's objectives",
+          "Mention how your project is innovative or addresses gaps in current approaches"
+        ];
+        
+        const feedback = `
+# Application Assessment
+
+## Overall Assessment
+${assessment}
+
+## Structure and Organization
+${structureAssessment}
+
+## Specific Strengths
+- You've provided ${wordCount} words which helps explain your project
+- Your application includes approximately ${sentenceCount} sentences, providing details about your proposal
+- You've created a readable format with ${paragraphCount} paragraphs
+
+## Areas for Improvement
+- Ensure you explicitly address all eligibility criteria: ${criteria}
+- Check if your application clearly articulates the problem, solution, and expected outcomes
+- Review for clarity and conciseness in your explanations
+
+## Suggestions for Improvement
+1. ${improvementPoints[0]}
+2. ${improvementPoints[1]}
+3. ${improvementPoints[2]}
+4. ${improvementPoints[3]}
+5. ${improvementPoints[4]}
+
+**Note:** This is a basic assessment. For more detailed feedback, please try again later when our advanced analysis system is available.
+`;
+        
+        res.json({
+          feedback,
+          grant,
+          notice: "Using basic assessment due to advanced analysis service limitations."
+        });
+      }
     } catch (error) {
       console.error("GrantScribe assistance error:", error);
       res.status(500).json({ message: "Failed to generate application assistance" });
@@ -407,45 +588,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Text to check is required" });
       }
       
-      // Use OpenAI to check for potential plagiarism
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are GrantScribe's plagiarism detection system. Your job is to analyze text for signs of potential plagiarism, 
-                     such as unusual phrasings, inconsistent tone/style, advanced vocabulary mixed with simple language, 
-                     or passages that appear to be written by different authors.
-                     
-                     Provide your analysis in JSON format with the following structure:
-                     {
-                       "plagiarismScore": [number between 0-100 indicating likelihood of plagiarism],
-                       "flaggedSections": [array of suspicious passages],
-                       "explanation": [detailed explanation of concerns],
-                       "recommendations": [suggestions to fix issues]
-                     }`
-          },
-          {
-            role: "user",
-            content: `Please analyze the following text for potential plagiarism:
-                     
-                     ${text}`
+      try {
+        // Use OpenAI to check for potential plagiarism
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: `You are GrantScribe's plagiarism detection system. Your job is to analyze text for signs of potential plagiarism, 
+                       such as unusual phrasings, inconsistent tone/style, advanced vocabulary mixed with simple language, 
+                       or passages that appear to be written by different authors.
+                       
+                       Provide your analysis in JSON format with the following structure:
+                       {
+                         "plagiarismScore": [number between 0-100 indicating likelihood of plagiarism],
+                         "flaggedSections": [array of suspicious passages],
+                         "explanation": [detailed explanation of concerns],
+                         "recommendations": [suggestions to fix issues]
+                       }`
+            },
+            {
+              role: "user",
+              content: `Please analyze the following text for potential plagiarism:
+                       
+                       ${text}`
+            }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.5,
+          max_tokens: 1500,
+        });
+        
+        // Get content from the response
+        const content = response.choices[0].message.content;
+        
+        // Safely parse the JSON if content exists
+        if (content) {
+          const analysisResult = JSON.parse(content);
+          res.json(analysisResult);
+        } else {
+          res.status(500).json({ message: "Failed to get response from AI service" });
+        }
+      } catch (aiError) {
+        // Fallback mechanism for when OpenAI API fails
+        console.warn("OpenAI API error for plagiarism check, using fallback:", aiError);
+        
+        // Basic plagiarism analysis
+        
+        // 1. Look for stylistic inconsistencies
+        const sentences: string[] = text.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0);
+        const paragraphs: string[] = text.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
+        
+        // 2. Calculate average sentence length 
+        const avgWordCount: number = sentences.reduce((sum: number, sentence: string) => {
+          return sum + sentence.split(/\s+/).length;
+        }, 0) / sentences.length;
+        
+        // 3. Check for stylistic shifts - very long vs very short sentences
+        const longSentences: string[] = sentences.filter((s: string) => s.split(/\s+/).length > avgWordCount * 1.5);
+        const shortSentences: string[] = sentences.filter((s: string) => s.split(/\s+/).length < avgWordCount * 0.5 && s.split(/\s+/).length > 3);
+        
+        // 4. Check for academic or overly formal language that might be copied
+        const academicPhrases: string[] = [
+          "moreover", "furthermore", "thus", "hence", "therefore", "consequently",
+          "in conclusion", "in summary", "to summarize", "in regards to", "with respect to",
+          "it can be concluded that", "the results demonstrate", "according to the findings"
+        ];
+        
+        const academicMatches: string[] = academicPhrases.filter((phrase: string) => 
+          text.toLowerCase().includes(phrase.toLowerCase())
+        );
+        
+        // 5. Generate a basic score based on these heuristics
+        let plagiarismScore: number = 15; // Base score - text is usually somewhat similar to other texts
+        
+        if (paragraphs.length > 1) {
+          // Check for style consistency between paragraphs
+          const styleDifferences: number[] = paragraphs.map((p: string) => {
+            const pWordCount: number = p.split(/\s+/).length;
+            const pSentenceCount: number = p.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0).length;
+            return pWordCount / Math.max(1, pSentenceCount); // words per sentence
+          });
+          
+          // Calculate variance in style
+          let sum: number = 0;
+          let mean: number = styleDifferences.reduce((a: number, b: number) => a + b, 0) / styleDifferences.length;
+          
+          styleDifferences.forEach((val: number) => {
+            sum += Math.pow(val - mean, 2);
+          });
+          
+          const variance: number = sum / styleDifferences.length;
+          
+          // High variance might indicate different writing styles
+          if (variance > 10) {
+            plagiarismScore += 20;
           }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.5,
-        max_tokens: 1500,
-      });
-      
-      // Get content from the response
-      const content = response.choices[0].message.content;
-      
-      // Safely parse the JSON if content exists
-      if (content) {
-        const analysisResult = JSON.parse(content);
+        }
+        
+        // Long sentences might be copied from academic sources
+        if (longSentences.length > sentences.length * 0.3) {
+          plagiarismScore += 15;
+        }
+        
+        // Frequent academic phrases might indicate copying from formal sources
+        if (academicMatches.length > 3) {
+          plagiarismScore += 15; 
+        }
+        
+        // Identify potentially problematic sections
+        const flaggedSections: string[] = [];
+        
+        // Flag exceptionally long sentences
+        longSentences.forEach((sentence: string) => {
+          if (sentence.split(/\s+/).length > avgWordCount * 2) {
+            flaggedSections.push(sentence.trim());
+          }
+        });
+        
+        // Flag paragraphs with unusual style compared to the rest
+        paragraphs.forEach((paragraph: string) => {
+          // Simple detection of very formal language that seems different
+          if (
+            academicMatches.some((phrase: string) => paragraph.toLowerCase().includes(phrase)) &&
+            paragraph.split(/\s+/).length > avgWordCount * 1.7
+          ) {
+            // Only add if not already added (avoid duplicate flagging)
+            if (!flaggedSections.includes(paragraph.trim())) {
+              flaggedSections.push(paragraph.trim());
+            }
+          }
+        });
+        
+        // Cap the score at 75 since we can't definitively detect plagiarism without comparing to sources
+        plagiarismScore = Math.min(75, plagiarismScore);
+        
+        const analysisResult = {
+          plagiarismScore,
+          flaggedSections: flaggedSections.slice(0, 3), // Limit to top 3 sections
+          explanation: `This basic analysis identified ${flaggedSections.length} potential issues with inconsistent style or unusually formal language. The text contains ${academicMatches.length} academic phrases and ${longSentences.length} sentences that are longer than average, which may indicate portions copied from other sources.`,
+          recommendations: [
+            "Review flagged sections for content that may have been copied from other sources",
+            "Ensure consistent writing style throughout your document",
+            "Rephrase overly complex or formal language to match your natural writing style",
+            "Consider adding citations for any information taken from external sources",
+            "Use quotation marks for direct quotes from other sources"
+          ],
+          notice: "This is a basic analysis. For more accurate plagiarism detection, please try again later when our advanced analysis system is available."
+        };
+        
         res.json(analysisResult);
-      } else {
-        res.status(500).json({ message: "Failed to get response from AI service" });
       }
     } catch (error) {
       console.error("Plagiarism check error:", error);
@@ -468,55 +760,197 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Grant not found" });
       }
       
-      // Use OpenAI to generate project ideas
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are GrantScribe's idea generation system, specializing in Canadian grant applications.
-                     You help applicants generate innovative, compelling project ideas that align with grant requirements.
-                     Your suggestions should be specific, relevant to the grant's focus, and tailored to meet eligibility criteria.
-                     
-                     Provide your response in JSON format with the following structure:
-                     {
-                       "projectIdeas": [array of 5 project ideas with title and description],
-                       "approachSuggestions": [array of implementation approaches],
-                       "alignmentNotes": [notes on how ideas align with grant objectives],
-                       "budgetConsiderations": [suggestions for budget allocation],
-                       "impactMetrics": [potential ways to measure project success]
-                     }`
-          },
-          {
-            role: "user",
-            content: `Generate project ideas for the following grant:
-                     
-                     Grant: ${grant.title}
-                     Description: ${grant.description}
-                     Type: ${grant.type}
-                     Amount: ${grant.fundingAmount}
-                     
-                     ${projectType ? `Project type: ${projectType}` : ''}
-                     ${keywords ? `Keywords: ${keywords}` : ''}`
-          }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.8,
-        max_tokens: 1500,
-      });
-      
-      // Get content from the response
-      const content = response.choices[0].message.content;
-      
-      // Safely parse the JSON if content exists
-      if (content) {
-        const ideasResult = JSON.parse(content);
+      try {
+        // Use OpenAI to generate project ideas
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: `You are GrantScribe's idea generation system, specializing in Canadian grant applications.
+                       You help applicants generate innovative, compelling project ideas that align with grant requirements.
+                       Your suggestions should be specific, relevant to the grant's focus, and tailored to meet eligibility criteria.
+                       
+                       Provide your response in JSON format with the following structure:
+                       {
+                         "projectIdeas": [array of 5 project ideas with title and description],
+                         "approachSuggestions": [array of implementation approaches],
+                         "alignmentNotes": [notes on how ideas align with grant objectives],
+                         "budgetConsiderations": [suggestions for budget allocation],
+                         "impactMetrics": [potential ways to measure project success]
+                       }`
+            },
+            {
+              role: "user",
+              content: `Generate project ideas for the following grant:
+                       
+                       Grant: ${grant.title}
+                       Description: ${grant.description}
+                       Type: ${grant.type}
+                       Amount: ${grant.fundingAmount}
+                       
+                       ${projectType ? `Project type: ${projectType}` : ''}
+                       ${keywords ? `Keywords: ${keywords}` : ''}`
+            }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.8,
+          max_tokens: 1500,
+        });
+        
+        // Get content from the response
+        const content = response.choices[0].message.content;
+        
+        // Safely parse the JSON if content exists
+        if (content) {
+          const ideasResult = JSON.parse(content);
+          res.json({
+            grant: grant,
+            ideas: ideasResult
+          });
+        } else {
+          res.status(500).json({ message: "Failed to get response from AI service" });
+        }
+      } catch (aiError) {
+        // Fallback mechanism for when OpenAI API fails
+        console.warn("OpenAI API error for idea generation, using fallback:", aiError);
+        
+        // Generate basic project ideas based on grant information
+        const grantType = grant.type || '';
+        const grantIndustry = grant.industry || '';
+        const grantTitle = grant.title || '';
+        const grantCategory = grant.category || '';
+        const grantDescription = grant.description || '';
+        
+        // Determine main focus areas from the grant
+        let mainFocus = '';
+        if (grantIndustry) {
+          mainFocus = grantIndustry;
+        } else if (grantCategory) {
+          mainFocus = grantCategory;
+        } else if (grantTitle.toLowerCase().includes('innovation')) {
+          mainFocus = 'innovation';
+        } else if (grantTitle.toLowerCase().includes('research')) {
+          mainFocus = 'research';
+        } else if (grantTitle.toLowerCase().includes('digital')) {
+          mainFocus = 'digital transformation';
+        } else if (grantTitle.toLowerCase().includes('green') || grantTitle.toLowerCase().includes('environmental')) {
+          mainFocus = 'sustainability';
+        } else {
+          mainFocus = 'business improvement';
+        }
+        
+        // Create generic project ideas based on grant type and focus
+        const projectIdeas: { title: string; description: string }[] = [];
+        
+        if (grantType === 'federal') {
+          projectIdeas.push({
+            title: `${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Expansion Initiative`,
+            description: `A comprehensive project to expand your ${mainFocus} capabilities with a focus on creating jobs and economic growth in your region.`
+          });
+          
+          projectIdeas.push({
+            title: `Canadian ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Innovation Program`,
+            description: `Develop new approaches or technologies that address gaps in the ${mainFocus} sector, with potential for commercialization and scaling across Canada.`
+          });
+          
+          projectIdeas.push({
+            title: `Cross-Provincial ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Collaboration`,
+            description: `Build partnerships with organizations across multiple provinces to create a nationwide approach to improving ${mainFocus} outcomes.`
+          });
+        } else if (grantType === 'provincial') {
+          projectIdeas.push({
+            title: `Regional ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Hub Development`,
+            description: `Establish a center of excellence for ${mainFocus} within your province, serving as a resource and innovation center for local organizations.`
+          });
+          
+          projectIdeas.push({
+            title: `Provincial ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Workforce Development`,
+            description: `Create a training program to build skills in ${mainFocus} for the local workforce, addressing provincial labor needs and economic goals.`
+          });
+          
+          projectIdeas.push({
+            title: `Community-Based ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Solution`,
+            description: `Implement a ${mainFocus} initiative that addresses specific needs within your local community, with clear metrics for measuring success.`
+          });
+        } else {
+          // Private grants
+          projectIdeas.push({
+            title: `Corporate ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Partnership`,
+            description: `Develop a collaborative project that aligns with the funding organization's ${mainFocus} goals while delivering measurable business outcomes.`
+          });
+          
+          projectIdeas.push({
+            title: `${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Market Expansion`,
+            description: `Use funding to enter new markets or develop new products related to ${mainFocus}, with clear revenue and growth projections.`
+          });
+          
+          projectIdeas.push({
+            title: `Innovative ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Solution`,
+            description: `Create a novel approach to addressing ${mainFocus} challenges that demonstrates potential for commercial success and stakeholder benefit.`
+          });
+        }
+        
+        // Add generic ideas that work for any grant type
+        projectIdeas.push({
+          title: `${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)} Research and Development Initiative`,
+          description: `Conduct targeted research to develop new methodologies, technologies, or approaches in the field of ${mainFocus} that can be implemented in real-world contexts.`
+        });
+        
+        projectIdeas.push({
+          title: `Digital Transformation for ${mainFocus.charAt(0).toUpperCase() + mainFocus.slice(1)}`,
+          description: `Implement digital tools and technologies to streamline and enhance ${mainFocus} processes, improving efficiency, data collection, and outcomes.`
+        });
+        
+        // Generate implementation approaches
+        const approachSuggestions: string[] = [
+          `Form a dedicated project team with clearly defined roles and responsibilities`,
+          `Create a detailed project timeline with milestones and deliverables`,
+          `Establish partnerships with relevant stakeholders and organizations`,
+          `Develop a comprehensive monitoring and evaluation framework`,
+          `Implement regular reporting and communication mechanisms`
+        ];
+        
+        // Generate alignment notes
+        const alignmentNotes: string[] = [
+          `This project directly addresses the grant's focus on ${mainFocus}`,
+          `The proposed initiatives align with the grant's objectives of promoting innovation and growth`,
+          `The project outcomes will contribute to the grant's goals of creating economic impact`,
+          `The approach is designed to meet the specific requirements outlined in the grant description`
+        ];
+        
+        // Generate budget considerations
+        const budgetConsiderations: string[] = [
+          `Allocate 30-40% for personnel costs including project management and implementation`,
+          `Reserve 20-30% for technology and equipment needs`,
+          `Set aside 15-20% for marketing, outreach, and communications`,
+          `Budget 10-15% for evaluation, reporting, and quality assurance`,
+          `Include 5-10% contingency for unexpected costs or opportunities`
+        ];
+        
+        // Generate impact metrics
+        const impactMetrics: string[] = [
+          `Number of new jobs created or positions supported`,
+          `Revenue growth or cost savings achieved`,
+          `Customer/client satisfaction and engagement metrics`,
+          `Market share or competitive position improvements`,
+          `Environmental or social impact indicators relevant to the project focus`
+        ];
+        
+        // Create fallback ideas result
+        const ideasResult = {
+          projectIdeas,
+          approachSuggestions,
+          alignmentNotes,
+          budgetConsiderations,
+          impactMetrics
+        };
+        
         res.json({
           grant: grant,
-          ideas: ideasResult
+          ideas: ideasResult,
+          notice: "Using template-based ideas due to advanced generation service limitations."
         });
-      } else {
-        res.status(500).json({ message: "Failed to get response from AI service" });
       }
     } catch (error) {
       console.error("Idea generation error:", error);
