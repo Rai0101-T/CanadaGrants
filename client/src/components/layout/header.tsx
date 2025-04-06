@@ -210,14 +210,7 @@ export default function Header() {
                 <Link href="/auth">
                   <a className="text-sm text-primary font-semibold whitespace-nowrap">Sign In</a>
                 </Link>
-              ) : (
-                <a 
-                  onClick={() => logoutMutation.mutate()} 
-                  className="text-sm text-red-500 cursor-pointer whitespace-nowrap"
-                >
-                  Logout
-                </a>
-              )}
+              ) : null}
             </li>
           </ul>
         </nav>

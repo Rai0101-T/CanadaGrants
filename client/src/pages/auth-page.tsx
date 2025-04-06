@@ -42,10 +42,17 @@ export default function AuthPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      isBusiness: true,
+      businessName: "",
+      businessType: "",
       businessDescription: "",
       industry: "",
       province: "",
-      isBusiness: true,
+      employeeCount: "",
+      yearFounded: "",
+      website: "",
+      phoneNumber: "",
+      address: "",
     },
   });
 
@@ -264,6 +271,46 @@ export default function AuthPage() {
                       
                       <FormField
                         control={registerForm.control}
+                        name="businessName"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Business Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your business name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="businessType"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Business Type</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white ring-offset-background focus:border-primary focus:outline-none"
+                                {...field}
+                              >
+                                <option value="">Select Business Type</option>
+                                <option value="sole_proprietorship">Sole Proprietorship</option>
+                                <option value="partnership">Partnership</option>
+                                <option value="corporation">Corporation</option>
+                                <option value="non_profit">Non-Profit</option>
+                                <option value="cooperative">Cooperative</option>
+                                <option value="startup">Startup</option>
+                                <option value="social_enterprise">Social Enterprise</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
                         name="industry"
                         render={({ field }) => (
                           <FormItem className="mb-4">
@@ -317,6 +364,88 @@ export default function AuthPage() {
                                 <option value="saskatchewan">Saskatchewan</option>
                                 <option value="yukon">Yukon</option>
                               </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="employeeCount"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Number of Employees</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white ring-offset-background focus:border-primary focus:outline-none"
+                                {...field}
+                              >
+                                <option value="">Select Employee Count</option>
+                                <option value="1-5">1-5</option>
+                                <option value="6-10">6-10</option>
+                                <option value="11-25">11-25</option>
+                                <option value="26-50">26-50</option>
+                                <option value="51-100">51-100</option>
+                                <option value="101-250">101-250</option>
+                                <option value="251+">251+</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="yearFounded"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Year Founded</FormLabel>
+                            <FormControl>
+                              <Input type="text" placeholder="e.g., 2020" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="website"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Website (Optional)</FormLabel>
+                            <FormControl>
+                              <Input type="url" placeholder="https://yourbusiness.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="phoneNumber"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Phone Number (Optional)</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="e.g., (123) 456-7890" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem className="mb-4">
+                            <FormLabel>Business Address (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your business address" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
