@@ -15,7 +15,7 @@ import {
 } from './site-scrapers';
 import { scrapeTradeFundingPrograms } from './trade-commissioner-scraper';
 
-interface ScrapedGrant {
+export interface ScrapedGrant {
   title: string;
   description: string;
   fundingAmount: string;

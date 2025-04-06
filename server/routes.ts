@@ -1,9 +1,9 @@
-import type { Express, Request, Response, NextFunction } from "express";
 import express from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertUserGrantSchema } from "@shared/schema";
+import { insertUserGrantSchema, InsertGrant } from "@shared/schema";
 import OpenAI from "openai";
 import { setupAuth } from "./auth";
 import puppeteer from "puppeteer";
@@ -11,7 +11,8 @@ import {
   runAllScrapers, 
   scheduleScrapingJob, 
   processGrants, 
-  saveGrantsToDatabase 
+  saveGrantsToDatabase,
+  ScrapedGrant
 } from "./scrapers/scraper";
 import { 
   scrapeAlbertaInnovates, 
@@ -626,10 +627,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Process and save the grants
             if (source === 'trade-funding-programs') {
               // This scraper returns InsertGrant objects directly
-              await saveGrantsToDatabase(scrapedGrants);
+              // Type assertion to ensure correct type for database
+              await saveGrantsToDatabase(scrapedGrants as unknown as InsertGrant[]);
             } else {
               // Other scrapers return ScrapedGrant objects that need processing
-              const processedGrants = await processGrants(scrapedGrants);
+              // Type assertion to ensure correct type for processing
+              const processedGrants = await processGrants(scrapedGrants as unknown as ScrapedGrant[]);
               await saveGrantsToDatabase(processedGrants);
             }
             
