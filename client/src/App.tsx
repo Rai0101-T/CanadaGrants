@@ -34,7 +34,7 @@ function Router() {
           <Route path="/federal-grants" component={FederalGrants} />
           <Route path="/provincial-grants" component={ProvincialGrants} />
           <Route path="/private-grants" component={PrivateGrants} />
-          <Route path="/grant/:id" component={GrantDetails} />
+          <Route path="/grants/:id" component={GrantDetails} />
           <Route path="/search/:query" component={SearchResults} />
           <ProtectedRoute path="/my-list" component={MyList} />
           <ProtectedRoute path="/profile" component={Profile} />

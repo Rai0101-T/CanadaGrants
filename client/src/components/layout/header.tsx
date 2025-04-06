@@ -44,44 +44,44 @@ export default function Header() {
     >
       <div className="px-4 md:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <Link href="/">
-            <a className="text-primary font-bold text-3xl md:text-4xl mr-10">GRANTFLIX</a>
+          <Link href="/" className="text-primary font-bold text-3xl md:text-4xl mr-10">
+            GRANTFLIX
           </Link>
           <nav className="hidden md:flex">
             <ul className="flex space-x-6">
               <li>
-                <Link href="/">
-                  <a className="text-white hover:text-primary transition-colors">Home</a>
+                <Link href="/" className="text-white hover:text-primary transition-colors">
+                  Home
                 </Link>
               </li>
               <li>
-                <Link href="/federal-grants">
-                  <a className="text-gray-300 hover:text-primary transition-colors">Federal Grants</a>
+                <Link href="/federal-grants" className="text-gray-300 hover:text-primary transition-colors">
+                  Federal Grants
                 </Link>
               </li>
               <li>
-                <Link href="/provincial-grants">
-                  <a className="text-gray-300 hover:text-primary transition-colors">Provincial Grants</a>
+                <Link href="/provincial-grants" className="text-gray-300 hover:text-primary transition-colors">
+                  Provincial Grants
                 </Link>
               </li>
               <li>
-                <Link href="/private-grants">
-                  <a className="text-gray-300 hover:text-primary transition-colors">Private Grants</a>
+                <Link href="/private-grants" className="text-gray-300 hover:text-primary transition-colors">
+                  Private Grants
                 </Link>
               </li>
               <li>
-                <Link href="/my-list">
-                  <a className="text-gray-300 hover:text-primary transition-colors">My List</a>
+                <Link href="/my-list" className="text-gray-300 hover:text-primary transition-colors">
+                  My List
                 </Link>
               </li>
               <li>
-                <Link href="/grant-scribe">
-                  <a className="text-gray-300 hover:text-primary transition-colors">GrantScribe</a>
+                <Link href="/grant-scribe" className="text-gray-300 hover:text-primary transition-colors">
+                  GrantScribe
                 </Link>
               </li>
               <li>
-                <Link href="/about-us">
-                  <a className="text-gray-300 hover:text-primary transition-colors">About Us</a>
+                <Link href="/about-us" className="text-gray-300 hover:text-primary transition-colors">
+                  About Us
                 </Link>
               </li>
             </ul>
@@ -164,51 +164,51 @@ export default function Header() {
         <nav>
           <ul className="flex space-x-4 overflow-x-auto scrollbar-none">
             <li>
-              <Link href="/">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Home</a>
+              <Link href="/" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                Home
               </Link>
             </li>
             <li>
-              <Link href="/federal-grants">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Federal</a>
+              <Link href="/federal-grants" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                Federal
               </Link>
             </li>
             <li>
-              <Link href="/provincial-grants">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Provincial</a>
+              <Link href="/provincial-grants" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                Provincial
               </Link>
             </li>
             <li>
-              <Link href="/private-grants">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Private</a>
+              <Link href="/private-grants" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                Private
               </Link>
             </li>
             <li>
-              <Link href="/my-list">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">My List</a>
+              <Link href="/my-list" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                My List
               </Link>
             </li>
             <li>
-              <Link href="/grant-scribe">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">GrantScribe</a>
+              <Link href="/grant-scribe" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                GrantScribe
               </Link>
             </li>
             {isAdmin && (
               <li>
-                <Link href="/admin/scraper">
-                  <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">Admin</a>
+                <Link href="/admin/scraper" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                  Admin
                 </Link>
               </li>
             )}
             <li>
-              <Link href="/about-us">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">About Us</a>
+              <Link href="/about-us" className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">
+                About Us
               </Link>
             </li>
             <li>
               {!user ? (
-                <Link href="/auth">
-                  <a className="text-sm text-primary font-semibold whitespace-nowrap">Sign In</a>
+                <Link href="/auth" className="text-sm text-primary font-semibold whitespace-nowrap">
+                  Sign In
                 </Link>
               ) : null}
             </li>

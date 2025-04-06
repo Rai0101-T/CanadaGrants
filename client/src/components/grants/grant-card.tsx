@@ -95,7 +95,7 @@ export default function GrantCard({ grant, showLessInfo = false }: GrantCardProp
       </CardContent>
       
       <CardFooter className="pb-4 pt-0">
-        <Link href={`/grant/${grant.id}`}>
+        <Link href={`/grants/${grant.id}`}>
           <Button variant="netflix" className="w-full">
             View Details
           </Button>
