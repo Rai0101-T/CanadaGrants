@@ -75,6 +75,11 @@ export default function Header() {
                 </Link>
               </li>
               <li>
+                <Link href="/grant-scribe">
+                  <a className="text-gray-300 hover:text-primary transition-colors">GrantScribe</a>
+                </Link>
+              </li>
+              <li>
                 <Link href="/about-us">
                   <a className="text-gray-300 hover:text-primary transition-colors">About Us</a>
                 </Link>
@@ -113,17 +118,17 @@ export default function Header() {
                   My List
                 </DropdownMenuItem>
                 <DropdownMenuItem 
+                  onClick={() => navigate("/grant-scribe")} 
+                  className="cursor-pointer"
+                >
+                  GrantScribe
+                </DropdownMenuItem>
+                <DropdownMenuItem 
                   onClick={() => navigate("/profile")} 
                   className="cursor-pointer flex items-center gap-2"
                 >
                   <User className="h-4 w-4" />
                   My Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate("/grant-scribe")} 
-                  className="cursor-pointer"
-                >
-                  GrantScribe
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem 
@@ -181,11 +186,6 @@ export default function Header() {
             <li>
               <Link href="/my-list">
                 <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">My List</a>
-              </Link>
-            </li>
-            <li>
-              <Link href="/profile">
-                <a className="text-sm text-gray-300 hover:text-primary whitespace-nowrap">My Profile</a>
               </Link>
             </li>
             <li>
