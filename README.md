@@ -45,6 +45,39 @@ The platform organizes grants into three main categories:
 2. **Provincial Grants**: Programs specific to each Canadian province and territory
 3. **Private Grants**: Corporate and foundation funding opportunities from private organizations
 
+## Project Structure
+
+The project is organized into the following directory structure:
+
+```
+canadian-grant-finder/
+├── assets/                     # Static assets and resources
+│   ├── images/                 # Image assets for the application
+│   └── documents/              # Documentation and reference materials
+├── backups/                    # Backup versions of important files
+├── client/                     # Frontend code
+│   └── src/
+│       ├── components/         # React components
+│       ├── hooks/              # Custom React hooks
+│       ├── lib/                # Utility libraries
+│       └── pages/              # Page components
+├── data/                       # Data-related files
+│   ├── raw_data/               # Raw data from scrapers
+│   └── temp/                   # Temporary data storage
+├── docs/                       # Project documentation
+│   ├── api/                    # API documentation
+│   └── development-guide/      # Development guides and standards
+├── scripts/                    # Utility scripts
+│   ├── data_validation/        # Scripts for validating grant data
+│   ├── grant_data_import/      # Scripts for importing grant data
+│   └── grant_image_management/ # Scripts for managing grant images
+├── server/                     # Backend code
+│   ├── scrapers/               # Web scrapers for grant data
+│   └── services/               # Server-side services
+└── shared/                     # Shared code between client and server
+    └── schema.ts               # Database schema definitions
+```
+
 ## Getting Started
 
 ### Prerequisites
