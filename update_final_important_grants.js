@@ -1,8 +1,6 @@
-// Script to update the final remaining grants with generic images
-
 import fetch from 'node-fetch';
 
-// Function to update a grant's image
+// Function to update a grant's image URL
 async function updateGrantImage(id, imageUrl) {
   try {
     const response = await fetch('http://localhost:5000/api/admin/grants/update-image', {
@@ -12,100 +10,175 @@ async function updateGrantImage(id, imageUrl) {
       },
       body: JSON.stringify({ id, imageUrl }),
     });
-    
+
     if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
+      throw new Error(`Error updating grant image: ${response.statusText}`);
     }
     
-    const result = await response.json();
-    console.log(`✓ Updated grant ID ${id} with new image URL`);
-    return result;
+    return await response.json();
   } catch (error) {
-    console.error(`Error updating grant image for ID ${id}:`, error);
-    throw error;
+    console.error(`Failed to update image for grant ID ${id}:`, error);
+    return null;
   }
 }
 
-// Define the last batch of grants to update
-const grantsToUpdate = [
-  {
-    id: 73, // Youth Employment and Skills Strategy
-    imageUrl: "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=500&h=280&q=80" // Youth employment
-  },
-  {
-    id: 140, // Bell Education and Skills Fund
-    imageUrl: "https://images.unsplash.com/photo-1557187666-4fd2a8c3439b?auto=format&fit=crop&w=500&h=280&q=80" // Education/telecom
-  },
-  {
-    id: 127, // Canadian Digital Media Market Expansion
-    imageUrl: "https://images.unsplash.com/photo-1496065187959-7f07b8353c55?auto=format&fit=crop&w=500&h=280&q=80" // Digital media
-  },
-  {
-    id: 146, // Canadian Retail Business Scale-up
-    imageUrl: "https://images.unsplash.com/photo-1610527003928-47afdccc34b0?auto=format&fit=crop&w=500&h=280&q=80" // Retail
-  },
-  {
-    id: 134, // BMO Environmental Sustainability Fund
-    imageUrl: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=500&h=280&q=80" // Environmental
-  },
-  {
-    id: 186, // Western Economic Diversification Canada
-    imageUrl: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?auto=format&fit=crop&w=500&h=280&q=80" // Western Canada
-  },
-  {
-    id: 198, // Canadian Northern Economic Development Agency
-    imageUrl: "https://images.unsplash.com/photo-1572128293406-c7b4df568083?auto=format&fit=crop&w=500&h=280&q=80" // Northern Canada
-  },
-  {
-    id: 206, // Indigenous Skills and Employment Training
-    imageUrl: "https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&w=500&h=280&q=80" // Indigenous training
-  },
-  {
-    id: 64, // Indigenous Skills and Employment Training Program
-    imageUrl: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=500&h=280&q=80" // Indigenous employment
-  },
-  {
-    id: 260, // BDC Small Business Loan
-    imageUrl: "https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=500&h=280&q=80" // Small business loan
-  },
-  {
-    id: 54, // Spin Master Innovation Fund
-    imageUrl: "https://images.unsplash.com/photo-1536148935331-408321065b18?auto=format&fit=crop&w=500&h=280&q=80" // Innovation/toys
-  },
-  {
-    id: 84, // Ontario Tourism Research and Innovation Fund
-    imageUrl: "https://images.unsplash.com/photo-1488515398041-8d6ce0d8ff57?auto=format&fit=crop&w=500&h=280&q=80" // Tourism research
-  },
-  {
-    id: 107, // Quebec Tourism Research and Innovation Fund
-    imageUrl: "https://images.unsplash.com/photo-1518128958364-65859d70aa41?auto=format&fit=crop&w=500&h=280&q=80" // Quebec tourism
-  }
-];
-
-// Main function to update important grant images
+// Main function to update important grants
 async function updateImportantGrants() {
-  try {
-    console.log(`Updating images for ${grantsToUpdate.length} final grants`);
+  console.log('Updating images for important federal grants...');
+
+  // Define grants to update with specific, high-quality images
+  const grantsToUpdate = [
+    {
+      // CSBFP (Canada Small Business Financing Program)
+      name: "Canada Small Business Financing Program",
+      searchTerms: ["Small Business Financing", "CSBFP", "Canada Small", "Small Business", "Financing Program"],
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Flag_of_Canada_%28Pantone%29.svg/1200px-Flag_of_Canada_%28Pantone%29.svg.png"
+    },
+    {
+      // NRC IRAP (National Research Council Industrial Research Assistance Program)
+      name: "National Research Council Industrial Research Assistance Program",
+      searchTerms: ["Research Assistance", "National Research Council", "NRC IRAP", "IRAP", "Industrial Research"],
+      imageUrl: "https://nrc.canada.ca/sites/default/files/2019-03/NRC_logo_colour_e_1140x400.jpg"
+    },
+    {
+      // Futurpreneur Canada
+      name: "Futurpreneur Canada",
+      searchTerms: ["Futurpreneur", "Start-Up", "Youth", "Young Entrepreneur"],
+      imageUrl: "https://www.futurpreneur.ca/wp-content/uploads/2018/12/futurpreneur-black-logo.svg"
+    },
+    {
+      // Women Entrepreneurship Strategy (WES)
+      name: "Women Entrepreneurship Strategy",
+      searchTerms: ["Women Entrepreneurship", "WES", "Women Business", "Female Entrepreneur"],
+      imageUrl: "https://ised-isde.canada.ca/site/women-entrepreneurship-strategy/sites/default/files/2021-05/WES-picture.jpg"
+    },
+    {
+      // Strategic Innovation Fund
+      name: "Strategic Innovation Fund",
+      searchTerms: ["Innovation Fund", "Strategic Innovation", "Federal Innovation", "Innovation Program"],
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Innovation%2C_Science_and_Economic_Development_Canada_logo.svg/1200px-Innovation%2C_Science_and_Economic_Development_Canada_logo.svg.png"
+    },
+    {
+      // Sustainable Development Technology Canada (SDTC)
+      name: "Sustainable Development Technology Canada",
+      searchTerms: ["Sustainable Development Technology", "SDTC", "Clean Technology", "Cleantech", "Green Technology"],
+      imageUrl: "https://www.sdtc.ca/wp-content/themes/sdtc/assets/images/sdtc-logo.svg"
+    },
+    {
+      // Ontario Centres of Excellence (OCE)
+      name: "Ontario Centres of Excellence",
+      searchTerms: ["Centres of Excellence", "OCE", "Ontario Innovation", "Ontario Technology"],
+      imageUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/5/52/OCI_logo.png/220px-OCI_logo.png"
+    }
+  ];
+
+  // Process each grant
+  for (const grant of grantsToUpdate) {
+    console.log(`Looking for grant: ${grant.name}...`);
     
-    let updatedCount = 0;
+    let allResults = [];
+    let foundMatch = false;
     
-    // Update each grant in our list
-    for (const grant of grantsToUpdate) {
-      console.log(`\nUpdating grant ID ${grant.id} with unique image URL`);
-      await updateGrantImage(grant.id, grant.imageUrl);
-      updatedCount++;
+    // Try each search term until we find a match
+    for (const searchTerm of grant.searchTerms) {
+      if (foundMatch) break;
       
-      // Add a small delay to avoid overloading the server
-      await new Promise(resolve => setTimeout(resolve, 100));
+      try {
+        console.log(`  Trying search term: "${searchTerm}"...`);
+        // Search for the grant
+        const searchResponse = await fetch(`http://localhost:5000/api/grants/search/${encodeURIComponent(searchTerm)}`);
+        
+        if (!searchResponse.ok) {
+          throw new Error(`Error searching for grant: ${searchResponse.statusText}`);
+        }
+        
+        const searchResults = await searchResponse.json();
+        
+        if (searchResults.length > 0) {
+          console.log(`  Found ${searchResults.length} potential matches.`);
+          allResults = [...searchResults];
+          foundMatch = true;
+        } else {
+          console.log(`  No grants found matching "${searchTerm}"`);
+        }
+      } catch (error) {
+        console.error(`  Error with search term "${searchTerm}":`, error);
+      }
     }
     
-    console.log(`\nSuccessfully updated ${updatedCount} grants with unique, relevant images`);
+    // If we didn't find any matches with any search term, continue to the next grant
+    if (allResults.length === 0) {
+      console.log(`No grants found matching any search terms for ${grant.name}`);
+      console.log('-------------------');
+      continue;
+    }
     
-  } catch (error) {
-    console.error('Error updating grant images:', error);
-    throw error;
+    // Find the best match in all results
+    let bestMatch = null;
+    
+    // First try to find exact match in title
+    for (const result of allResults) {
+      if (result.title.includes(grant.name)) {
+        bestMatch = result;
+        break;
+      }
+    }
+    
+    // If no exact match by name, try to find by any search term in title
+    if (!bestMatch) {
+      for (const result of allResults) {
+        for (const searchTerm of grant.searchTerms) {
+          if (result.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+            bestMatch = result;
+            break;
+          }
+        }
+        if (bestMatch) break;
+      }
+    }
+    
+    // Try to find by any search term in description
+    if (!bestMatch) {
+      for (const result of allResults) {
+        if (result.description) {
+          for (const searchTerm of grant.searchTerms) {
+            if (result.description.toLowerCase().includes(searchTerm.toLowerCase())) {
+              bestMatch = result;
+              break;
+            }
+          }
+          if (bestMatch) break;
+        }
+      }
+    }
+    
+    // If still no match, just take the first result
+    if (!bestMatch && allResults.length > 0) {
+      bestMatch = allResults[0];
+    }
+    
+    if (bestMatch) {
+      console.log(`Found best matching grant: ${bestMatch.title} (ID: ${bestMatch.id})`);
+      console.log(`Current image: ${bestMatch.imageUrl}`);
+      console.log(`New image: ${grant.imageUrl}`);
+      
+      // Update the grant image
+      const updateResult = await updateGrantImage(bestMatch.id, grant.imageUrl);
+      
+      if (updateResult) {
+        console.log(`Successfully updated image for ${bestMatch.title}`);
+      } else {
+        console.log(`Failed to update image for ${bestMatch.title}`);
+      }
+    } else {
+      console.log(`No matching grant found for ${grant.name}`);
+    }
+    
+    console.log('-------------------');
   }
+  
+  console.log('Grant image update process completed.');
 }
 
-// Run the main function
-updateImportantGrants().catch(console.error);
+// Run the script
+updateImportantGrants();
