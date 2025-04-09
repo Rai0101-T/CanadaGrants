@@ -535,10 +535,26 @@ export default function ProfilePage() {
 
             <div className="flex justify-end">
               <Button 
-                type="submit" 
+                type="button" // Change to button type 
                 variant="netflix" 
                 disabled={updateProfileMutation.isPending}
                 className="w-full md:w-auto"
+                onClick={() => {
+                  console.log("Direct button click");
+                  const values = form.getValues();
+                  console.log("Form values:", values);
+                  
+                  // Show immediate feedback
+                  toast({
+                    title: "Processing...",
+                    description: "Sending your profile information to the server...",
+                    variant: "default",
+                    className: "bottom-right-toast",
+                  });
+                  
+                  // Call the mutation directly
+                  updateProfileMutation.mutate(values);
+                }}
               >
                 {updateProfileMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
