@@ -38,27 +38,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all grants
   apiRouter.get("/grants", async (req: Request, res: Response) => {
     try {
-      const allGrants = await storage.getAllGrants();
-      
-      // Filter out grants with deadlines before April 9, 2025
-      const currentDate = new Date('2025-04-09');
-      
-      const activeGrants = allGrants.filter(grant => {
-        // If grant has no deadline or deadline is null/undefined, keep it
-        if (!grant.deadline) return true;
-        
-        // Try to parse the deadline
-        try {
-          const deadlineDate = new Date(grant.deadline);
-          // Keep the grant if its deadline is in the future
-          return deadlineDate >= currentDate;
-        } catch (e) {
-          // If we can't parse the date, keep the grant
-          return true;
-        }
-      });
-      
-      res.json(activeGrants);
+      const grants = await storage.getAllGrants();
+      res.json(grants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch grants" });
     }
@@ -67,27 +48,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get featured grants
   apiRouter.get("/grants/featured", async (req: Request, res: Response) => {
     try {
-      const featuredGrants = await storage.getFeaturedGrants();
-      
-      // Filter out grants with deadlines before April 9, 2025
-      const currentDate = new Date('2025-04-09');
-      
-      const activeFeaturedGrants = featuredGrants.filter(grant => {
-        // If grant has no deadline or deadline is null/undefined, keep it
-        if (!grant.deadline) return true;
-        
-        // Try to parse the deadline
-        try {
-          const deadlineDate = new Date(grant.deadline);
-          // Keep the grant if its deadline is in the future
-          return deadlineDate >= currentDate;
-        } catch (e) {
-          // If we can't parse the date, keep the grant
-          return true;
-        }
-      });
-      
-      res.json(activeFeaturedGrants);
+      const grants = await storage.getFeaturedGrants();
+      res.json(grants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch featured grants" });
     }
@@ -120,27 +82,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid grant type. Must be 'federal', 'provincial', or 'private'" });
       }
       
-      const typeGrants = await storage.getGrantsByType(type);
-      
-      // Filter out grants with deadlines before April 9, 2025
-      const currentDate = new Date('2025-04-09');
-      
-      const activeTypeGrants = typeGrants.filter(grant => {
-        // If grant has no deadline or deadline is null/undefined, keep it
-        if (!grant.deadline) return true;
-        
-        // Try to parse the deadline
-        try {
-          const deadlineDate = new Date(grant.deadline);
-          // Keep the grant if its deadline is in the future
-          return deadlineDate >= currentDate;
-        } catch (e) {
-          // If we can't parse the date, keep the grant
-          return true;
-        }
-      });
-      
-      res.json(activeTypeGrants);
+      const grants = await storage.getGrantsByType(type);
+      res.json(grants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch grants by type" });
     }
@@ -154,27 +97,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search query must be at least 2 characters" });
       }
       
-      const searchGrants = await storage.searchGrants(query);
-      
-      // Filter out grants with deadlines before April 9, 2025
-      const currentDate = new Date('2025-04-09');
-      
-      const activeSearchGrants = searchGrants.filter(grant => {
-        // If grant has no deadline or deadline is null/undefined, keep it
-        if (!grant.deadline) return true;
-        
-        // Try to parse the deadline
-        try {
-          const deadlineDate = new Date(grant.deadline);
-          // Keep the grant if its deadline is in the future
-          return deadlineDate >= currentDate;
-        } catch (e) {
-          // If we can't parse the date, keep the grant
-          return true;
-        }
-      });
-      
-      res.json(activeSearchGrants);
+      const grants = await storage.searchGrants(query);
+      res.json(grants);
     } catch (error) {
       res.status(500).json({ message: "Failed to search grants" });
     }
@@ -220,27 +144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      const userGrants = await storage.getUserGrants(userId);
-      
-      // Filter out grants with deadlines before April 9, 2025
-      const currentDate = new Date('2025-04-09');
-      
-      const activeUserGrants = userGrants.filter(grant => {
-        // If grant has no deadline or deadline is null/undefined, keep it
-        if (!grant.deadline) return true;
-        
-        // Try to parse the deadline
-        try {
-          const deadlineDate = new Date(grant.deadline);
-          // Keep the grant if its deadline is in the future
-          return deadlineDate >= currentDate;
-        } catch (e) {
-          // If we can't parse the date, keep the grant
-          return true;
-        }
-      });
-      
-      res.json(activeUserGrants);
+      const grants = await storage.getUserGrants(userId);
+      res.json(grants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user's grants" });
     }
@@ -363,25 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get all grants to analyze
-      const allGrantsData = await storage.getAllGrants();
-      
-      // Filter out grants with deadlines before April 9, 2025
-      const currentDate = new Date('2025-04-09');
-      
-      const allGrants = allGrantsData.filter(grant => {
-        // If grant has no deadline or deadline is null/undefined, keep it
-        if (!grant.deadline) return true;
-        
-        // Try to parse the deadline
-        try {
-          const deadlineDate = new Date(grant.deadline);
-          // Keep the grant if its deadline is in the future
-          return deadlineDate >= currentDate;
-        } catch (e) {
-          // If we can't parse the date, keep the grant
-          return true;
-        }
-      });
+      const allGrants = await storage.getAllGrants();
       
       // Try to use OpenAI for recommendations
       try {
