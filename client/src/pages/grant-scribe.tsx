@@ -487,16 +487,34 @@ export default function GrantScribe() {
               
               {ideas && (
                 <CardFooter className="block border-t border-gray-700 pt-6">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <Lightbulb className="h-5 w-5 mr-2 text-yellow-400" /> Generated Project Ideas
-                  </h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold flex items-center">
+                      <Lightbulb className="h-5 w-5 mr-2 text-yellow-400" /> Generated Project Ideas
+                    </h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // Download ideas as JSON file
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ideas, null, 2));
+                        const downloadAnchorNode = document.createElement('a');
+                        downloadAnchorNode.setAttribute("href", dataStr);
+                        downloadAnchorNode.setAttribute("download", "grant-project-ideas.json");
+                        document.body.appendChild(downloadAnchorNode);
+                        downloadAnchorNode.click();
+                        downloadAnchorNode.remove();
+                      }}
+                    >
+                      Save Ideas
+                    </Button>
+                  </div>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
                     <div>
-                      <h4 className="font-medium mb-3">Project Ideas</h4>
-                      <div className="space-y-4">
+                      <h4 className="font-medium mb-3 text-lg text-primary">Project Ideas</h4>
+                      <div className="grid md:grid-cols-2 gap-4">
                         {ideas.projectIdeas && ideas.projectIdeas.map((idea: any, index: number) => (
-                          <div key={index} className="bg-[#333] p-4 rounded-md">
+                          <div key={index} className="bg-[#333] p-4 rounded-md border border-gray-700 hover:border-primary transition-colors">
                             <h5 className="font-bold text-primary mb-2">{idea.title}</h5>
                             <p className="text-gray-300">{idea.description}</p>
                           </div>
@@ -504,45 +522,66 @@ export default function GrantScribe() {
                       </div>
                     </div>
                     
-                    {ideas.approachSuggestions && (
-                      <div>
-                        <h4 className="font-medium mb-3">Implementation Approaches</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-gray-300">
-                          {ideas.approachSuggestions.map((approach: string, index: number) => (
-                            <li key={index}>{approach}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {ideas.alignmentNotes && (
-                      <div>
-                        <h4 className="font-medium mb-3">Alignment with Grant Objectives</h4>
-                        <div className="bg-[#333] p-4 rounded-md text-gray-300">
-                          {ideas.alignmentNotes}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {ideas.approachSuggestions && (
+                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
+                          <h4 className="font-medium mb-3 text-lg text-primary">Implementation Approaches</h4>
+                          <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                            {ideas.approachSuggestions.map((approach: string, index: number) => (
+                              <li key={index} className="pb-2">{approach}</li>
+                            ))}
+                          </ul>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      
+                      {ideas.alignmentNotes && (
+                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
+                          <h4 className="font-medium mb-3 text-lg text-primary">Alignment with Grant Objectives</h4>
+                          <div className="text-gray-300">
+                            {typeof ideas.alignmentNotes === 'string' 
+                              ? ideas.alignmentNotes 
+                              : Array.isArray(ideas.alignmentNotes) 
+                                ? (
+                                  <ul className="list-disc pl-5 space-y-2">
+                                    {ideas.alignmentNotes.map((note: string, index: number) => (
+                                      <li key={index} className="pb-2">{note}</li>
+                                    ))}
+                                  </ul>
+                                ) 
+                                : null
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     
-                    {ideas.budgetConsiderations && (
-                      <div>
-                        <h4 className="font-medium mb-3">Budget Considerations</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-gray-300">
-                          {ideas.budgetConsiderations.map((budget: string, index: number) => (
-                            <li key={index}>{budget}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {ideas.budgetConsiderations && (
+                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
+                          <h4 className="font-medium mb-3 text-lg text-primary">Budget Considerations</h4>
+                          <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                            {ideas.budgetConsiderations.map((budget: string, index: number) => (
+                              <li key={index} className="pb-2">{budget}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {ideas.impactMetrics && (
+                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
+                          <h4 className="font-medium mb-3 text-lg text-primary">Impact Metrics</h4>
+                          <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                            {ideas.impactMetrics.map((metric: string, index: number) => (
+                              <li key={index} className="pb-2">{metric}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                     
-                    {ideas.impactMetrics && (
-                      <div>
-                        <h4 className="font-medium mb-3">Impact Measurement</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-gray-300">
-                          {ideas.impactMetrics.map((metric: string, index: number) => (
-                            <li key={index}>{metric}</li>
-                          ))}
-                        </ul>
+                    {ideas.notice && (
+                      <div className="mt-4 p-3 bg-gray-800 rounded-md text-gray-400 text-sm">
+                        <p><strong>Note:</strong> {ideas.notice}</p>
                       </div>
                     )}
                   </div>
