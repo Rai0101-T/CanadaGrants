@@ -611,57 +611,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // GrantScribe endpoints
   
-  // Generate application assistance
+  // Generate application assistance using fixed implementation
   apiRouter.post("/grantscribe/assist", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { grantId, applicationText } = req.body;
-      
-      if (!grantId || !applicationText) {
-        return res.status(400).json({ message: "Grant ID and application text are required" });
-      }
-      
-      // Get grant details to provide context
-      const grant = await storage.getGrantById(parseInt(grantId));
-      if (!grant) {
-        return res.status(404).json({ message: "Grant not found" });
-      }
-      
-      // Get user business information to provide personalized feedback
-      const user = req.user as User;
-      const userBusinessInfo = {
-        businessName: user.businessName || 'your business',
-        businessType: user.businessType || '',
-        industry: user.industry || '',
-        businessDescription: user.businessDescription || '',
-        province: user.province || '',
-        employeeCount: user.employeeCount || '',
-        yearFounded: user.yearFounded || ''
-      };
-      
-      try {
-        // Use Gemini service to generate application assistance
-        const result = await generateApplicationAssistance(applicationText, grant, userBusinessInfo);
-        
-        res.json({
-          feedback: result.feedback,
-          improvedText: result.improvedText,
-          grant: grant,
-          originalText: applicationText
-        });
-      } catch (geminiError) {
-        console.warn("Gemini API error for grant assistance, trying OpenAI as fallback:", geminiError);
-        
-        try {
-          // Use OpenAI as a fallback
-          const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
-            messages: [
-              {
-                role: "system",
-                content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
-                        You provide constructive feedback and improvements to grant applications to help them succeed.
-                        Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.
-                        Tailor your feedback to make the application more relevant to the applicant's business profile.`
+    // Import the fixed implementation
+    const { handleAssistEndpoint } = await import('./services/fixed-assist-endpoint');
+    
+    // Use the fixed implementation
+    return handleAssistEndpoint(req, res);
+  });
+  
+  // Generate idea suggestions
+  apiRouter.post("/grantscribe/generate-ideas", isAuthenticated, async (req: Request, res: Response) => {
+    // Import the fixed implementation
+    const { handleGenerateIdeasEndpoint } = await import('./services/fixed-generate-ideas');
+    
+    // Use the fixed implementation
+    return handleGenerateIdeasEndpoint(req, res);
+  });
               },
               {
                 role: "user",
@@ -1068,11 +1034,12 @@ This project directly addresses the core objectives of the ${grant.title} grant 
   
   // Check for plagiarism
   apiRouter.post("/grantscribe/plagiarism-check", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { text } = req.body;
-      
-      if (!text) {
-        return res.status(400).json({ message: "Text to check is required" });
+    // Import the fixed implementation
+    const { handlePlagiarismCheckEndpoint } = await import('./services/fixed-plagiarism-check');
+    
+    // Use the fixed implementation
+    return handlePlagiarismCheckEndpoint(req, res);
+  });
       }
       
       // Get user business profile information for more relevant analysis
@@ -1088,14 +1055,17 @@ This project directly addresses the core objectives of the ${grant.title} grant 
         yearFounded: user?.yearFounded || ''
       };
       
+      let result;
+      
       // First try Gemini API
       try {
-        const result = await checkPlagiarism(text, userBusinessInfo);
+        result = await checkPlagiarism(text, userBusinessInfo);
         return res.json(result);
       } catch (geminiError) {
         console.warn("Gemini API error for plagiarism check, trying OpenAI as fallback:", geminiError);
-        
-        // Try OpenAI as fallback
+      }
+      
+      // Try OpenAI as fallback
         try {
           // Use OpenAI for advanced plagiarism detection
           const openai = new OpenAI({
@@ -1450,43 +1420,11 @@ Text to analyze: ${text}`
     }
   });
   
-  // Generate ideas for grant applications
+  // Generate ideas endpoint (implemented via fixed implementation)
   apiRouter.post("/grantscribe/generate-ideas", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { grantId, projectType, keywords } = req.body;
-      
-      if (!grantId) {
-        return res.status(400).json({ message: "Grant ID is required" });
-      }
-      
-      // Get grant details
-      const grant = await storage.getGrantById(parseInt(grantId));
-      if (!grant) {
-        return res.status(404).json({ message: "Grant not found" });
-      }
-      
-      // Get user information to personalize ideas
-      const user = req.user as User;
-      const userBusinessInfo = {
-        businessName: user.businessName || 'your business',
-        businessType: user.businessType || '',
-        industry: user.industry || '',
-        businessDescription: user.businessDescription || '',
-        province: user.province || '',
-        employeeCount: user.employeeCount || '',
-        yearFounded: user.yearFounded || ''
-      };
-      
-      try {
-        // Use Gemini to generate project ideas
-        const result = await generateIdeas(grant, userBusinessInfo, projectType, keywords);
-        
-        return res.json(result);
-      } catch (geminiError) {
-        console.warn("Gemini API error for idea generation, trying OpenAI as fallback:", geminiError);
-        
-        // Fallback to OpenAI
-        try {
+    const { handleGenerateIdeasEndpoint } = await import('./services/fixed-generate-ideas');
+    return handleGenerateIdeasEndpoint(req, res);
+  });
           // Use OpenAI to generate project ideas
           const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
