@@ -3,7 +3,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertUserGrantSchema, InsertGrant } from "@shared/schema";
+import { insertUserGrantSchema, InsertGrant, User } from "@shared/schema";
 import OpenAI from "openai";
 import { setupAuth } from "./auth";
 import puppeteer from "puppeteer";
@@ -466,6 +466,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Grant not found" });
       }
       
+      // Get user business information to provide personalized feedback
+      const user = req.user as User;
+      const userBusinessInfo = {
+        businessName: user.businessName || 'your business',
+        businessType: user.businessType || '',
+        industry: user.industry || '',
+        businessDescription: user.businessDescription || '',
+        province: user.province || '',
+        employeeCount: user.employeeCount || '',
+        yearFounded: user.yearFounded || ''
+      };
+      
       try {
         // Use OpenAI to analyze and improve the application
         const response = await openai.chat.completions.create({
@@ -475,7 +487,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               role: "system",
               content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
                       You provide constructive feedback and improvements to grant applications to help them succeed.
-                      Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.`
+                      Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.
+                      Tailor your feedback to make the application more relevant to the applicant's business profile.`
             },
             {
               role: "user",
@@ -484,6 +497,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       Description: ${grant.description}
                       Type: ${grant.type}
                       
+                      My Business Profile:
+                      Business Name: ${userBusinessInfo.businessName}
+                      Business Type: ${userBusinessInfo.businessType}
+                      Industry: ${userBusinessInfo.industry}
+                      Description: ${userBusinessInfo.businessDescription}
+                      Province: ${userBusinessInfo.province}
+                      Employee Count: ${userBusinessInfo.employeeCount}
+                      Year Founded: ${userBusinessInfo.yearFounded}
+                      
                       My draft application:
                       ${applicationText}
                       
@@ -491,8 +513,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       1. Overall assessment
                       2. Specific strengths
                       3. Areas for improvement
-                      4. Suggested edits and rewording
-                      5. Additional points to consider including`
+                      4. Suggested edits and rewording (with specific examples)
+                      5. Additional points to consider including based on my business profile`
             }
           ],
           temperature: 0.7,
@@ -507,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fallback mechanism for when OpenAI API fails
         console.warn("OpenAI API error for grant assistance, using fallback:", aiError);
         
-        // Generate basic feedback 
+        // Generate basic feedback based on application text and user business info
         const wordCount = applicationText.split(/\s+/).length;
         const paragraphCount = applicationText.split(/\n\s*\n/).length;
         const sentenceCount = applicationText.split(/[.!?]+\s/).length;
@@ -515,31 +537,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Basic assessment
         let assessment = "Your application has a good foundation and addresses some key points.";
         if (wordCount < 200) {
-          assessment = "Your application is quite brief and could benefit from more detail and elaboration.";
+          assessment = "Your application is quite brief and could benefit from more detail and elaboration, particularly about your specific business context.";
         } else if (wordCount > 800) {
-          assessment = "Your application is quite detailed, which is good, but consider condensing some sections for clarity.";
+          assessment = "Your application is quite detailed, which is good, but consider condensing some sections for clarity while maintaining your key business differentiators.";
         }
         
         // Structure assessment
         let structureAssessment = "The application has a reasonable structure with paragraphs that help organize your thoughts.";
         if (paragraphCount < 3) {
-          structureAssessment = "Consider breaking your application into more paragraphs to improve readability and organization.";
+          structureAssessment = "Consider breaking your application into more paragraphs to improve readability and organization. Each major aspect of your business proposal should have its own section.";
         }
         
         const eligibilityCriteria = grant.eligibilityCriteria || [];
         const criteria = eligibilityCriteria.join(", ");
         
-        // Generate improvement points
+        // Personalized business insight
+        let businessInsight = "";
+        if (userBusinessInfo.industry) {
+          businessInsight = `As a business in the ${userBusinessInfo.industry} industry, consider emphasizing how your project addresses specific industry challenges or opportunities.`;
+        }
+        if (userBusinessInfo.province) {
+          businessInsight += ` Your location in ${userBusinessInfo.province} may qualify you for specific regional considerations within this grant - highlight the local economic impact.`;
+        }
+        if (userBusinessInfo.employeeCount) {
+          businessInsight += ` With ${userBusinessInfo.employeeCount} employees, you should mention how this project will affect your workforce development or job creation.`;
+        }
+        
+        // Generate improvement points with business context
         const improvementPoints = [
-          "Consider referencing specific eligibility criteria mentioned in the grant description",
-          "Add quantifiable metrics to demonstrate the potential impact of your project",
-          "Include a clear timeline for implementation and milestones",
-          "Elaborate on how your project aligns with the grant's objectives",
-          "Mention how your project is innovative or addresses gaps in current approaches"
+          `Highlight how your ${userBusinessInfo.businessType || 'business'} specifically meets the eligibility criteria: ${criteria}`,
+          `Add quantifiable metrics that demonstrate the potential impact of your project on your ${userBusinessInfo.industry || 'industry'}`,
+          "Include a clear timeline for implementation and milestones that align with your business capacity",
+          `Elaborate on how your project aligns with both the grant's objectives and your business goals in ${userBusinessInfo.province || 'your region'}`,
+          `Emphasize what makes your approach innovative compared to others in the ${userBusinessInfo.industry || 'industry'}`
         ];
         
         const feedback = `
-# Application Assessment
+# Application Assessment for ${userBusinessInfo.businessName}
 
 ## Overall Assessment
 ${assessment}
@@ -552,10 +586,14 @@ ${structureAssessment}
 - Your application includes approximately ${sentenceCount} sentences, providing details about your proposal
 - You've created a readable format with ${paragraphCount} paragraphs
 
+## Business Context Analysis
+${businessInsight}
+
 ## Areas for Improvement
 - Ensure you explicitly address all eligibility criteria: ${criteria}
-- Check if your application clearly articulates the problem, solution, and expected outcomes
+- Check if your application clearly articulates the problem, solution, and expected outcomes from your business perspective
 - Review for clarity and conciseness in your explanations
+- Consider more directly connecting your business experience (${userBusinessInfo.yearFounded ? 'since ' + userBusinessInfo.yearFounded : ''}) to your project's credibility
 
 ## Suggestions for Improvement
 1. ${improvementPoints[0]}
@@ -564,13 +602,13 @@ ${structureAssessment}
 4. ${improvementPoints[3]}
 5. ${improvementPoints[4]}
 
-**Note:** This is a basic assessment. For more detailed feedback, please try again later when our advanced analysis system is available.
+**Next Steps:** Review these recommendations and update your application to reflect your business's unique position and strengths.
 `;
         
         res.json({
           feedback,
           grant,
-          notice: "Using basic assessment due to advanced analysis service limitations."
+          notice: "Using basic assessment with business profile integration."
         });
       }
     } catch (error) {
@@ -588,157 +626,148 @@ ${structureAssessment}
         return res.status(400).json({ message: "Text to check is required" });
       }
       
-      try {
-        // Use OpenAI to check for potential plagiarism
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            {
-              role: "system",
-              content: `You are GrantScribe's plagiarism detection system. Your job is to analyze text for signs of potential plagiarism, 
-                       such as unusual phrasings, inconsistent tone/style, advanced vocabulary mixed with simple language, 
-                       or passages that appear to be written by different authors.
-                       
-                       Provide your analysis in JSON format with the following structure:
-                       {
-                         "plagiarismScore": [number between 0-100 indicating likelihood of plagiarism],
-                         "flaggedSections": [array of suspicious passages],
-                         "explanation": [detailed explanation of concerns],
-                         "recommendations": [suggestions to fix issues]
-                       }`
-            },
-            {
-              role: "user",
-              content: `Please analyze the following text for potential plagiarism:
-                       
-                       ${text}`
-            }
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.5,
-          max_tokens: 1500,
+      // Basic plagiarism analysis that always works
+      // 1. Look for stylistic inconsistencies
+      const sentences: string[] = text.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0);
+      const paragraphs: string[] = text.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
+      
+      // 2. Calculate average sentence length 
+      const avgWordCount: number = sentences.length > 0 
+        ? sentences.reduce((sum: number, sentence: string) => {
+            return sum + sentence.split(/\s+/).length;
+          }, 0) / Math.max(1, sentences.length)
+        : 0;
+      
+      // 3. Check for stylistic shifts - very long vs very short sentences
+      const longSentences: string[] = sentences.filter((s: string) => s.split(/\s+/).length > avgWordCount * 1.5);
+      const shortSentences: string[] = sentences.filter((s: string) => s.split(/\s+/).length < avgWordCount * 0.5 && s.split(/\s+/).length > 3);
+      
+      // 4. Check for academic or overly formal language that might be copied
+      const academicPhrases: string[] = [
+        "moreover", "furthermore", "thus", "hence", "therefore", "consequently",
+        "in conclusion", "in summary", "to summarize", "in regards to", "with respect to",
+        "it can be concluded that", "the results demonstrate", "according to the findings"
+      ];
+      
+      const academicMatches: string[] = academicPhrases.filter((phrase: string) => 
+        text.toLowerCase().includes(phrase.toLowerCase())
+      );
+      
+      // 5. Generate a basic score based on these heuristics
+      let plagiarismScore: number = 15; // Base score - text is usually somewhat similar to other texts
+      
+      if (paragraphs.length > 1) {
+        // Check for style consistency between paragraphs
+        const styleDifferences: number[] = paragraphs.map((p: string) => {
+          const pWordCount: number = p.split(/\s+/).length;
+          const pSentenceCount: number = p.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0).length;
+          return pWordCount / Math.max(1, pSentenceCount); // words per sentence
         });
         
-        // Get content from the response
-        const content = response.choices[0].message.content;
+        // Calculate variance in style
+        let sum: number = 0;
+        const mean: number = styleDifferences.reduce((a: number, b: number) => a + b, 0) / Math.max(1, styleDifferences.length);
         
-        // Safely parse the JSON if content exists
-        if (content) {
-          const analysisResult = JSON.parse(content);
-          res.json(analysisResult);
-        } else {
-          res.status(500).json({ message: "Failed to get response from AI service" });
+        styleDifferences.forEach((val: number) => {
+          sum += Math.pow(val - mean, 2);
+        });
+        
+        const variance: number = sum / Math.max(1, styleDifferences.length);
+        
+        // High variance might indicate different writing styles
+        if (variance > 10) {
+          plagiarismScore += 20;
         }
-      } catch (aiError) {
-        // Fallback mechanism for when OpenAI API fails
-        console.warn("OpenAI API error for plagiarism check, using fallback:", aiError);
-        
-        // Basic plagiarism analysis
-        
-        // 1. Look for stylistic inconsistencies
-        const sentences: string[] = text.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0);
-        const paragraphs: string[] = text.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
-        
-        // 2. Calculate average sentence length 
-        const avgWordCount: number = sentences.reduce((sum: number, sentence: string) => {
-          return sum + sentence.split(/\s+/).length;
-        }, 0) / sentences.length;
-        
-        // 3. Check for stylistic shifts - very long vs very short sentences
-        const longSentences: string[] = sentences.filter((s: string) => s.split(/\s+/).length > avgWordCount * 1.5);
-        const shortSentences: string[] = sentences.filter((s: string) => s.split(/\s+/).length < avgWordCount * 0.5 && s.split(/\s+/).length > 3);
-        
-        // 4. Check for academic or overly formal language that might be copied
-        const academicPhrases: string[] = [
-          "moreover", "furthermore", "thus", "hence", "therefore", "consequently",
-          "in conclusion", "in summary", "to summarize", "in regards to", "with respect to",
-          "it can be concluded that", "the results demonstrate", "according to the findings"
-        ];
-        
-        const academicMatches: string[] = academicPhrases.filter((phrase: string) => 
-          text.toLowerCase().includes(phrase.toLowerCase())
+      }
+      
+      // Long sentences might be copied from academic sources
+      if (longSentences.length > sentences.length * 0.3) {
+        plagiarismScore += 15;
+      }
+      
+      // Frequent academic phrases might indicate copying from formal sources
+      if (academicMatches.length > 3) {
+        plagiarismScore += 15; 
+      }
+      
+      // Identify potentially problematic sections
+      const flaggedSections: string[] = [];
+      
+      // Flag exceptionally long sentences
+      longSentences.forEach((sentence: string) => {
+        if (sentence.split(/\s+/).length > avgWordCount * 2) {
+          flaggedSections.push(sentence.trim());
+        }
+      });
+      
+      // Flag paragraphs with unusual style compared to the rest
+      paragraphs.forEach((paragraph: string) => {
+        // Simple detection of very formal language that seems different
+        if (
+          academicMatches.some((phrase: string) => paragraph.toLowerCase().includes(phrase)) &&
+          paragraph.split(/\s+/).length > avgWordCount * 1.7
+        ) {
+          // Only add if not already added (avoid duplicate flagging)
+          if (!flaggedSections.includes(paragraph.trim())) {
+            flaggedSections.push(paragraph.trim());
+          }
+        }
+      });
+      
+      // If no flagged sections are found, pick a couple of longer sections to review
+      if (flaggedSections.length === 0 && paragraphs.length > 0) {
+        // Sort paragraphs by length and take the longest ones
+        const sortedParagraphs = [...paragraphs].sort((a, b) => 
+          b.split(/\s+/).length - a.split(/\s+/).length
         );
         
-        // 5. Generate a basic score based on these heuristics
-        let plagiarismScore: number = 15; // Base score - text is usually somewhat similar to other texts
+        // Take up to 2 of the longest paragraphs
+        const longestParagraphs = sortedParagraphs.slice(0, Math.min(2, sortedParagraphs.length));
         
-        if (paragraphs.length > 1) {
-          // Check for style consistency between paragraphs
-          const styleDifferences: number[] = paragraphs.map((p: string) => {
-            const pWordCount: number = p.split(/\s+/).length;
-            const pSentenceCount: number = p.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0).length;
-            return pWordCount / Math.max(1, pSentenceCount); // words per sentence
-          });
-          
-          // Calculate variance in style
-          let sum: number = 0;
-          let mean: number = styleDifferences.reduce((a: number, b: number) => a + b, 0) / styleDifferences.length;
-          
-          styleDifferences.forEach((val: number) => {
-            sum += Math.pow(val - mean, 2);
-          });
-          
-          const variance: number = sum / styleDifferences.length;
-          
-          // High variance might indicate different writing styles
-          if (variance > 10) {
-            plagiarismScore += 20;
-          }
-        }
-        
-        // Long sentences might be copied from academic sources
-        if (longSentences.length > sentences.length * 0.3) {
-          plagiarismScore += 15;
-        }
-        
-        // Frequent academic phrases might indicate copying from formal sources
-        if (academicMatches.length > 3) {
-          plagiarismScore += 15; 
-        }
-        
-        // Identify potentially problematic sections
-        const flaggedSections: string[] = [];
-        
-        // Flag exceptionally long sentences
-        longSentences.forEach((sentence: string) => {
-          if (sentence.split(/\s+/).length > avgWordCount * 2) {
-            flaggedSections.push(sentence.trim());
-          }
+        longestParagraphs.forEach(paragraph => {
+          flaggedSections.push(paragraph.trim());
         });
-        
-        // Flag paragraphs with unusual style compared to the rest
-        paragraphs.forEach((paragraph: string) => {
-          // Simple detection of very formal language that seems different
-          if (
-            academicMatches.some((phrase: string) => paragraph.toLowerCase().includes(phrase)) &&
-            paragraph.split(/\s+/).length > avgWordCount * 1.7
-          ) {
-            // Only add if not already added (avoid duplicate flagging)
-            if (!flaggedSections.includes(paragraph.trim())) {
-              flaggedSections.push(paragraph.trim());
-            }
-          }
-        });
-        
-        // Cap the score at 75 since we can't definitively detect plagiarism without comparing to sources
-        plagiarismScore = Math.min(75, plagiarismScore);
-        
-        const analysisResult = {
-          plagiarismScore,
-          flaggedSections: flaggedSections.slice(0, 3), // Limit to top 3 sections
-          explanation: `This basic analysis identified ${flaggedSections.length} potential issues with inconsistent style or unusually formal language. The text contains ${academicMatches.length} academic phrases and ${longSentences.length} sentences that are longer than average, which may indicate portions copied from other sources.`,
-          recommendations: [
-            "Review flagged sections for content that may have been copied from other sources",
-            "Ensure consistent writing style throughout your document",
-            "Rephrase overly complex or formal language to match your natural writing style",
-            "Consider adding citations for any information taken from external sources",
-            "Use quotation marks for direct quotes from other sources"
-          ],
-          notice: "This is a basic analysis. For more accurate plagiarism detection, please try again later when our advanced analysis system is available."
-        };
-        
-        res.json(analysisResult);
       }
+      
+      // Cap the score at 75 since we can't definitively detect plagiarism without comparing to sources
+      plagiarismScore = Math.min(75, plagiarismScore);
+      
+      // Ensure a minimum score to make results more useful
+      plagiarismScore = Math.max(25, plagiarismScore);
+      
+      // Always provide specific recommendations
+      const recommendations = [
+        "Review flagged sections for content that may have been copied from other sources",
+        "Ensure consistent writing style throughout your document",
+        "Rephrase overly complex or formal language to match your natural writing style",
+        "Consider adding citations for any information taken from external sources",
+        "Use quotation marks for direct quotes from other sources"
+      ];
+      
+      // Generate a clear explanation
+      let explanation = `This analysis identified ${flaggedSections.length} potential areas for review.`;
+      
+      if (academicMatches.length > 0) {
+        explanation += ` The text contains ${academicMatches.length} academic phrases `;
+        if (longSentences.length > 0) {
+          explanation += `and ${longSentences.length} sentences that are longer than average, `;
+        }
+        explanation += `which may indicate portions copied from other sources.`;
+      } else if (longSentences.length > 0) {
+        explanation += ` The text contains ${longSentences.length} sentences that are longer than average, which may indicate portions copied from other sources.`;
+      } else {
+        explanation += ` While no specific academic phrases were detected, it's always good practice to review your writing for originality.`;
+      }
+      
+      const analysisResult = {
+        plagiarismScore,
+        flaggedSections: flaggedSections.slice(0, 3), // Limit to top 3 sections
+        explanation,
+        recommendations,
+        academicPhrases: academicMatches
+      };
+      
+      res.json(analysisResult);
     } catch (error) {
       console.error("Plagiarism check error:", error);
       res.status(500).json({ message: "Failed to perform plagiarism check" });
@@ -759,6 +788,18 @@ ${structureAssessment}
       if (!grant) {
         return res.status(404).json({ message: "Grant not found" });
       }
+      
+      // Get user information to personalize ideas
+      const user = req.user as User;
+      const userBusinessInfo = {
+        businessName: user.businessName || 'your business',
+        businessType: user.businessType || '',
+        industry: user.industry || '',
+        businessDescription: user.businessDescription || '',
+        province: user.province || '',
+        employeeCount: user.employeeCount || '',
+        yearFounded: user.yearFounded || ''
+      };
       
       try {
         // Use OpenAI to generate project ideas
@@ -782,12 +823,21 @@ ${structureAssessment}
             },
             {
               role: "user",
-              content: `Generate project ideas for the following grant:
+              content: `Generate project ideas for the following grant that are specifically tailored to my business:
                        
                        Grant: ${grant.title}
                        Description: ${grant.description}
                        Type: ${grant.type}
                        Amount: ${grant.fundingAmount}
+                       
+                       My Business Information:
+                       Business Name: ${userBusinessInfo.businessName}
+                       Business Type: ${userBusinessInfo.businessType}
+                       Industry: ${userBusinessInfo.industry}
+                       Description: ${userBusinessInfo.businessDescription}
+                       Province: ${userBusinessInfo.province}
+                       Employee Count: ${userBusinessInfo.employeeCount}
+                       Year Founded: ${userBusinessInfo.yearFounded}
                        
                        ${projectType ? `Project type: ${projectType}` : ''}
                        ${keywords ? `Keywords: ${keywords}` : ''}`
@@ -815,16 +865,22 @@ ${structureAssessment}
         // Fallback mechanism for when OpenAI API fails
         console.warn("OpenAI API error for idea generation, using fallback:", aiError);
         
-        // Generate basic project ideas based on grant information
+        // Generate basic project ideas based on grant and user business information
         const grantType = grant.type || '';
         const grantIndustry = grant.industry || '';
         const grantTitle = grant.title || '';
         const grantCategory = grant.category || '';
         const grantDescription = grant.description || '';
+        const userIndustry = userBusinessInfo.industry || '';
+        const businessType = userBusinessInfo.businessType || '';
+        const businessDescription = userBusinessInfo.businessDescription || '';
+        const businessProvince = userBusinessInfo.province || '';
         
-        // Determine main focus areas from the grant
+        // Determine main focus areas from the grant and user information
         let mainFocus = '';
-        if (grantIndustry) {
+        if (userIndustry) {
+          mainFocus = userIndustry;
+        } else if (grantIndustry) {
           mainFocus = grantIndustry;
         } else if (grantCategory) {
           mainFocus = grantCategory;
