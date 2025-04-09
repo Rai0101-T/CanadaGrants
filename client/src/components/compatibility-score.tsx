@@ -51,18 +51,21 @@ export function CompatibilityScore({ grantId }: CompatibilityScoreProps) {
           Grant Compatibility
         </h3>
         <p className="text-gray-300 mb-4">Complete your business profile to check your compatibility with this grant.</p>
-        <Button 
-          variant="outline" 
-          className="w-full border-white/20 hover:bg-white/10"
-          onClick={() => {
-            // Directly navigate to profile page with business tab
-            navigate("/profile");
-            // Store in sessionStorage that we want the business tab
-            sessionStorage.setItem("profileActiveTab", "business");
-          }}
-        >
-          Update Profile
-        </Button>
+        <a href="/profile" id="compatibilityProfileLink">
+          <Button 
+            variant="outline" 
+            className="w-full border-white/20 hover:bg-white/10"
+            onClick={(e) => {
+              e.preventDefault();
+              // First set the session storage
+              sessionStorage.setItem("profileActiveTab", "business");
+              // Then navigate using a more direct approach
+              document.location.href = '/profile';
+            }}
+          >
+            Update Profile
+          </Button>
+        </a>
       </div>
     );
   }
