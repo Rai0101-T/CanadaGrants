@@ -521,9 +521,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           max_tokens: 1500,
         });
         
+        // Get AI to generate improved version of the application text
+        const improvedResponse = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+          messages: [
+            {
+              role: "system",
+              content: `You are GrantScribe, an expert grant application writer specializing in Canadian grants.
+                      Take the user's draft application and improve it to maximize chances of success.
+                      Keep the core ideas but enhance the language, structure, and alignment with grant objectives.
+                      Make sure to incorporate relevant details from the applicant's business profile.`
+            },
+            {
+              role: "user",
+              content: `Grant details:
+                      Title: ${grant.title}
+                      Description: ${grant.description}
+                      Type: ${grant.type}
+                      
+                      My Business Profile:
+                      Business Name: ${userBusinessInfo.businessName}
+                      Business Type: ${userBusinessInfo.businessType}
+                      Industry: ${userBusinessInfo.industry}
+                      Description: ${userBusinessInfo.businessDescription}
+                      Province: ${userBusinessInfo.province}
+                      Employee Count: ${userBusinessInfo.employeeCount}
+                      Year Founded: ${userBusinessInfo.yearFounded}
+                      
+                      My draft application:
+                      ${applicationText}
+                      
+                      Please rewrite my application to make it stronger, more compelling and better aligned with the grant requirements.`
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1500,
+        });
+        
+        const improvedText = improvedResponse.choices[0].message.content;
+        
         res.json({
           feedback: response.choices[0].message.content,
-          grant: grant
+          improvedText: improvedText,
+          grant: grant,
+          originalText: applicationText
         });
       } catch (aiError) {
         // Fallback mechanism for when OpenAI API fails

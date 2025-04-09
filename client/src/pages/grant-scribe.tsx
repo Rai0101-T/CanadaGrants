@@ -20,6 +20,8 @@ export default function GrantScribe() {
   const [selectedGrantId, setSelectedGrantId] = useState<number | "">("");
   const [applicationText, setApplicationText] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [improvedText, setImprovedText] = useState<string | null>(null);
+  const [originalText, setOriginalText] = useState<string | null>(null);
   
   // Plagiarism check form
   const [textToCheck, setTextToCheck] = useState("");
@@ -46,6 +48,8 @@ export default function GrantScribe() {
     },
     onSuccess: (data: any) => {
       setFeedback(data.feedback);
+      setImprovedText(data.improvedText);
+      setOriginalText(data.originalText);
       toast({
         title: "Analysis Complete",
         description: "Your grant application has been analyzed by GrantScribe."
@@ -280,9 +284,53 @@ export default function GrantScribe() {
                   <h3 className="text-xl font-semibold mb-4 flex items-center">
                     <CheckCircle2 className="h-5 w-5 mr-2 text-green-500" /> Analysis Results
                   </h3>
-                  <div className="whitespace-pre-line bg-[#333] p-4 rounded-md text-gray-200">
+                  <div className="whitespace-pre-line bg-[#333] p-4 rounded-md text-gray-200 mb-6">
                     {feedback}
                   </div>
+                  
+                  {improvedText && (
+                    <div className="mt-8">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center">
+                        <Wand2 className="h-5 w-5 mr-2 text-primary" /> AI-Enhanced Application
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-medium mb-2 text-gray-300">Original Text</h4>
+                          <div className="bg-[#333] p-4 rounded-md text-gray-400 h-[400px] overflow-y-auto border border-gray-700">
+                            {originalText}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-medium mb-2 text-gray-300 flex items-center">
+                            Improved Version <span className="ml-2 text-xs bg-primary text-black px-2 py-0.5 rounded">AI Enhanced</span>
+                          </h4>
+                          <div className="bg-[#272727] p-4 rounded-md text-white h-[400px] overflow-y-auto border border-primary">
+                            {improvedText}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Copy improved text to clipboard
+                            navigator.clipboard.writeText(improvedText || "");
+                            toast({
+                              title: "Copied to clipboard",
+                              description: "The improved application text has been copied to your clipboard."
+                            });
+                          }}
+                          className="text-sm"
+                        >
+                          Copy Improved Version
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardFooter>
               )}
             </Card>
