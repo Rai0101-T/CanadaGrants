@@ -576,18 +576,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const sentenceCount = applicationText.split(/[.!?]+\s/).length;
         
         // Analyze application structure and content more thoroughly
-        const sentences = applicationText.split(/[.!?]+\s/).filter(s => s.trim().length > 0);
-        const paragraphs = applicationText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+        const sentences = applicationText.split(/[.!?]+\s/).filter((s: string) => s.trim().length > 0);
+        const paragraphs = applicationText.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
         
         // Calculate average sentence and paragraph lengths
-        const avgSentenceLength = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0) / Math.max(1, sentences.length);
-        const avgParagraphLength = paragraphs.reduce((sum, p) => sum + p.split(/\s+/).length, 0) / Math.max(1, paragraphs.length);
+        const avgSentenceLength = sentences.reduce((sum: number, s: string) => sum + s.split(/\s+/).length, 0) / Math.max(1, sentences.length);
+        const avgParagraphLength = paragraphs.reduce((sum: number, p: string) => sum + p.split(/\s+/).length, 0) / Math.max(1, paragraphs.length);
         
         // Identify keywords from the grant description and eligibility criteria
         const grantKeywords = new Set<string>();
         if (grant.description) {
           const words = grant.description.toLowerCase().split(/\s+/);
-          words.forEach(word => {
+          words.forEach((word: string) => {
             if (word.length > 4 && !['and', 'that', 'this', 'with', 'from', 'have', 'your'].includes(word)) {
               grantKeywords.add(word);
             }
@@ -858,8 +858,31 @@ ${contentSuggestions.map(suggestion => `- ${suggestion}`).join('\n')}
 **Next Steps:** Review these recommendations and update your application to reflect your business's unique position and strengths. Focus particularly on how your ${userBusinessInfo.businessType || 'business'} in ${userBusinessInfo.province || 'your region'} is ideally positioned to deliver exceptional results with this funding.
 `;
         
+        // Generate an improved version of the text in the fallback mechanism
+        const improvedText = `${applicationText}
+
+// Enhanced introduction with context
+As ${userBusinessInfo.businessName || 'a business'} operating in the ${userBusinessInfo.industry || 'industry'} since ${userBusinessInfo.yearFounded || 'founding'}, we are uniquely positioned to address key challenges in ${userBusinessInfo.province || 'our region'}. Our application for the ${grant.title} grant aligns with our mission to ${userBusinessInfo.businessDescription ? userBusinessInfo.businessDescription.substring(0, 100) + '...' : 'deliver innovative solutions'}.
+
+// Strengthened problem statement
+The challenge we address is significant and timely. Our approach combines industry expertise with innovative methodology to ensure sustainable outcomes.
+
+// Clear implementation plan
+Our implementation strategy includes carefully planned phases with measurable milestones to track progress. We have identified key stakeholders and established a communication framework to ensure collaborative success.
+
+// Detailed budget justification
+The requested funding will be allocated strategically across essential project components, with each expense directly contributing to our ability to deliver impactful results.
+
+// Measurable outcomes
+Upon successful implementation, we will evaluate success through specific metrics including: market impact, community benefit, innovation advancement, and sustainable growth indicators.
+
+// Alignment with grant objectives
+This project directly addresses the core objectives of the ${grant.title} grant by focusing on ${grant.description ? grant.description.substring(0, 100) + '...' : 'the stated priorities'}. Our team's qualifications and experience make us ideally suited to deliver exceptional value through this funding opportunity.`;
+
         res.json({
           feedback,
+          improvedText,
+          originalText: applicationText,
           grant,
           notice: "Using enhanced application assessment with business profile integration."
         });
