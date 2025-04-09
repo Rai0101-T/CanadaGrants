@@ -24,13 +24,16 @@ Canadian Grant Finder helps businesses and entrepreneurs easily discover grants,
 - React Query for data fetching
 - React Hook Form for form handling
 - Wouter for client-side routing
+- Shadcn/UI components 
 
 ### Backend
 - Node.js/Express
 - PostgreSQL with Drizzle ORM
+- Drizzle ORM for database interactions
 - Passport.js for authentication
 - OpenAI API integration for grant recommendations and GrantScribe
 - Node-cron for scheduled background tasks
+- Puppeteer for web scraping to populate the grants database
 
 ### Infrastructure
 - Database backup and migration tools
