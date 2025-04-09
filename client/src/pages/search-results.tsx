@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Filter, X } from "lucide-react";
-import GrantCard from "@/components/grants/grant-card";
+import GrantCard from "@/components/grant-card";
 import { Grant } from "@shared/schema";
 import { 
   Select, 
