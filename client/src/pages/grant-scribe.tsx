@@ -47,18 +47,27 @@ export default function GrantScribe() {
       });
     },
     onSuccess: (data: any) => {
-      setFeedback(data.feedback);
+      // We won't set feedback as we're using the original/improved text side-by-side display
+      setFeedback(null);
       setImprovedText(data.improvedText);
       setOriginalText(data.originalText);
       toast({
         title: "Analysis Complete",
-        description: "Your grant application has been analyzed by GrantScribe."
+        description: "Your grant application has been analyzed and improved by GrantScribe."
       });
+      
+      // Scroll to the results section
+      setTimeout(() => {
+        const resultsSection = document.getElementById('application-results-section');
+        if (resultsSection) {
+          resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to analyze your application. Please try again.",
+        description: error?.errorMessage || "Failed to analyze your application. Please try again.",
         variant: "destructive"
       });
     }
@@ -279,58 +288,45 @@ export default function GrantScribe() {
                 </form>
               </CardContent>
               
-              {feedback && (
-                <CardFooter className="block border-t border-gray-700 pt-6">
+              {improvedText && (
+                <CardFooter id="application-results-section" className="block border-t border-gray-700 pt-6">
                   <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <CheckCircle2 className="h-5 w-5 mr-2 text-green-500" /> Analysis Results
+                    <Wand2 className="h-5 w-5 mr-2 text-primary" /> Application Assistant Results
                   </h3>
-                  <div className="whitespace-pre-line bg-[#333] p-4 rounded-md text-gray-200 mb-6">
-                    {feedback}
-                  </div>
                   
-                  {improvedText && (
-                    <div className="mt-8">
-                      <h3 className="text-xl font-semibold mb-4 flex items-center">
-                        <Wand2 className="h-5 w-5 mr-2 text-primary" /> AI-Enhanced Application
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-medium mb-2 text-gray-300">Original Text</h4>
-                          <div className="bg-[#333] p-4 rounded-md text-gray-400 h-[400px] overflow-y-auto border border-gray-700">
-                            {originalText}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium mb-2 text-gray-300 flex items-center">
-                            Improved Version <span className="ml-2 text-xs bg-primary text-black px-2 py-0.5 rounded">AI Enhanced</span>
-                          </h4>
-                          <div className="bg-[#272727] p-4 rounded-md text-white h-[400px] overflow-y-auto border border-primary">
-                            {improvedText}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 flex justify-end">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Copy improved text to clipboard
-                            navigator.clipboard.writeText(improvedText || "");
-                            toast({
-                              title: "Copied to clipboard",
-                              description: "The improved application text has been copied to your clipboard."
-                            });
-                          }}
-                          className="text-sm"
-                        >
-                          Copy Improved Version
-                        </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-medium mb-2 text-gray-300">Original Text</h4>
+                      <div className="bg-[#333] p-4 rounded-md text-gray-400 h-[400px] overflow-y-auto border border-gray-700">
+                        {originalText}
                       </div>
                     </div>
-                  )}
+                    
+                    <div>
+                      <h4 className="font-medium mb-2 text-gray-300 flex items-center">
+                        Improved Version <span className="ml-2 text-xs bg-primary text-black px-2 py-0.5 rounded">AI Enhanced</span>
+                      </h4>
+                      <div className="bg-[#272727] p-4 rounded-md text-white h-[400px] overflow-y-auto border border-primary">
+                        {improvedText}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 flex justify-end">
+                    <Button
+                      variant="netflix"
+                      onClick={() => {
+                        // Copy improved text to clipboard
+                        navigator.clipboard.writeText(improvedText || "");
+                        toast({
+                          title: "Copied to clipboard",
+                          description: "The improved application text has been copied to your clipboard."
+                        });
+                      }}
+                    >
+                      Copy Improved Version
+                    </Button>
+                  </div>
                 </CardFooter>
               )}
             </Card>
