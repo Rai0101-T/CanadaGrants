@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Link } from "wouter";
 import HeroSection from "@/components/hero-section";
 import GrantRow from "@/components/grant-row";
 import { Grant } from "@shared/schema";
@@ -127,9 +128,11 @@ export default function Home() {
                   Add a business description to your profile to get personalized grant recommendations 
                   that match your business needs and goals.
                 </p>
-                <Button className="bg-primary hover:bg-primary/90">
-                  Update Profile
-                </Button>
+                <Link href="/profile">
+                  <Button className="bg-primary hover:bg-primary/90">
+                    Update Profile
+                  </Button>
+                </Link>
               </div>
             ) : recommendationsMutation.isPending ? (
               <div className="flex justify-center items-center h-40">

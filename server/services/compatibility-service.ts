@@ -58,7 +58,7 @@ export async function calculateGrantCompatibility(
 
     // Call OpenAI API to analyze compatibility
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
       messages: [
         { role: "system", content: "You are an expert grant analyst helping businesses find compatible funding opportunities." },
         { role: "user", content: prompt }

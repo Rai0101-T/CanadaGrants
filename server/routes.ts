@@ -297,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
         
         const response = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             { role: "system", content: systemMessage },
             { role: "user", content: `Business Description: ${businessDescription}
@@ -481,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Use OpenAI to analyze and improve the application
         const response = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             {
               role: "system",
@@ -523,7 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Get AI to generate improved version of the application text
         const improvedResponse = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             {
               role: "system",
@@ -923,7 +923,7 @@ This project directly addresses the core objectives of the ${grant.title} grant 
         });
         
         const response = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             { 
               role: "system", 
@@ -1299,7 +1299,7 @@ Text to analyze: ${text}`
       try {
         // Use OpenAI to generate project ideas
         const response = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             {
               role: "system",
