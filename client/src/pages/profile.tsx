@@ -123,7 +123,15 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState(() => {
-    // Check URL parameters for tab selection
+    // First check session storage for the tab preference
+    const storedTab = sessionStorage.getItem("profileActiveTab");
+    if (storedTab === "business") {
+      // Clear it so it's a one-time use
+      sessionStorage.removeItem("profileActiveTab");
+      return "business";
+    }
+    
+    // If not in session storage, check URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
     return tabParam === 'business' ? 'business' : 'account';

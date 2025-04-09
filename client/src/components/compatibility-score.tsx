@@ -54,7 +54,12 @@ export function CompatibilityScore({ grantId }: CompatibilityScoreProps) {
         <Button 
           variant="outline" 
           className="w-full border-white/20 hover:bg-white/10"
-          onClick={() => window.location.href = "/profile?tab=business"}
+          onClick={() => {
+            // Directly navigate to profile page with business tab
+            navigate("/profile");
+            // Store in sessionStorage that we want the business tab
+            sessionStorage.setItem("profileActiveTab", "business");
+          }}
         >
           Update Profile
         </Button>

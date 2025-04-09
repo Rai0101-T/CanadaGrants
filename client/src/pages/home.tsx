@@ -130,7 +130,12 @@ export default function Home() {
                 </p>
                 <Button 
                   className="bg-primary hover:bg-primary/90"
-                  onClick={() => window.location.href = '/profile?tab=business'}
+                  onClick={() => {
+                    // Store in sessionStorage that we want the business tab
+                    sessionStorage.setItem("profileActiveTab", "business");
+                    // Navigate to profile page
+                    window.location.href = '/profile';
+                  }}
                 >
                   Update Profile
                 </Button>
