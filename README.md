@@ -10,32 +10,37 @@ Canadian Grant Finder helps businesses and entrepreneurs easily discover grants,
 
 - **Comprehensive Grant Database**: Access to over 250 unique grants across federal, provincial, and private funding sources
 - **AI-Powered Grant Matching**: Compatibility scores based on business profiles to find the most relevant opportunities
-- **GrantScribe Assistance**: AI service for application assistance, plagiarism checking, and idea generation
-- **Industry Filtering**: Browse grants by specific industries and sectors
-- **Personalized "My List"**: Save and organize grants for future reference
+- **GrantScribe Assistance**: AI service for application assistance, plagiarism checking, and idea generation that leverages user business profiles
+- **Dynamic Filtering**: Toggle filters for Featured, Federal, and Provincial grants by type, industry, or region
+- **Personalized "My List"**: Save and organize grants for future reference with application status tracking
 - **Multi-criteria Search**: Find grants based on location, industry, funding amount, and more
 - **Automated Grant Updating**: Weekly background scraping to ensure all information is current
+- **Contextually Relevant Images**: Each grant features a unique, industry-appropriate image to enhance recognition
 
 ## Technical Stack
 
 ### Frontend
-- TypeScript React
-- Tailwind CSS with shadcn/ui components
-- React Query for data fetching
-- React Hook Form for form handling
-- Wouter for client-side routing
+- TypeScript React for UI components
+- Tailwind CSS with shadcn/ui for Netflix-inspired UI
+- TanStack Query (React Query) for data fetching and state management
+- React Hook Form with Zod validation for form handling
+- Wouter for lightweight client-side routing
+- Responsive layouts for mobile, tablet, and desktop viewing
 
 ### Backend
-- Node.js/Express
-- PostgreSQL with Drizzle ORM
-- Passport.js for authentication
-- OpenAI API integration for grant recommendations and GrantScribe
+- Node.js/Express with TypeScript for the API server
+- PostgreSQL with Drizzle ORM for database operations
+- Passport.js for authentication and session management
+- OpenAI GPT-4o integration for AI-powered features
+- Puppeteer for automated web scraping 
 - Node-cron for scheduled background tasks
 
 ### Infrastructure
+- Robust error handling with fallback mechanisms
 - Database backup and migration tools
-- Automated web scraping infrastructure
-- Image optimization and diversification system
+- Automated grant updating through web scraping
+- Image optimization and classification system
+- Protected routes with authentication middleware
 
 ## Grant Categories
 
@@ -102,6 +107,7 @@ npm install
 ```
 DATABASE_URL=postgresql://username:password@localhost:5432/grant_finder_db
 OPENAI_API_KEY=your_openai_api_key
+SESSION_SECRET=your_secure_session_secret
 ```
 
 4. Run the database migrations
@@ -114,14 +120,44 @@ npm run db:push
 npm run dev
 ```
 
+## Key Features in Detail
+
+### Dynamic Grant Filtering 
+The application features toggle buttons that enable users to filter:
+- Featured grants by Federal/Provincial type
+- Federal grants by Industry or Region
+- Provincial grants by Industry or Province
+
+### GrantScribe AI Assistant
+The GrantScribe feature offers three specialized tools:
+1. **Application Assistant**: Analyzes grant application drafts and provides personalized feedback based on business profiles
+2. **Plagiarism Checker**: Examines text for potential plagiarism with robust detection that works even when AI services are unavailable
+3. **Idea Generator**: Creates personalized project ideas for grant applications using business profile information
+
+### Business Profile Integration
+User business profiles are deeply integrated throughout the platform:
+- Grant compatibility scores are calculated based on business details
+- Grant recommendations are personalized to industry and region
+- GrantScribe tools tailor suggestions to the specific business context
+
 ## Administration
 
 The platform includes administrative tools for:
-- Adding new grants
-- Updating grant information
-- Managing user accounts
-- Running and scheduling scrapers
-- Checking and optimizing grant images
+- Adding new grants through the admin interface
+- Updating grant information and images
+- Managing user accounts and permissions
+- Running and scheduling scrapers for fresh data
+- Validating and optimizing grant images for relevancy
+
+## Recent Updates
+
+### April 2025 Updates
+- **Fixed GrantScribe Features**: Enhanced idea generator and application assistant to incorporate business profile information for more personalized suggestions
+- **Improved Plagiarism Checker**: Implemented robust analysis that works reliably with direct text processing
+- **Enhanced Image Relevance**: Updated images for grants to ensure contextual relevance, particularly for specialized grants like the "Indigenous Skills and Employment Training Program"
+- **Implemented Toggle Filtering**: Added intuitive toggle buttons to filter grants by type, industry, region, or province
+- **Added Fallback Mechanisms**: Ensured all AI-powered features have reliable fallbacks for uninterrupted service
+- **Optimized Database Queries**: Improved performance for faster grant discovery and matching
 
 ## License
 
