@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertUserGrantSchema, InsertGrant, User } from "@shared/schema";
 import OpenAI from "openai";
-import { setupAuth } from "./auth";
+import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import puppeteer from "puppeteer";
 import { 
   runAllScrapers, 

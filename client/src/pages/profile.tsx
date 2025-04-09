@@ -171,13 +171,33 @@ export default function ProfilePage() {
       const updateData = currentPassword 
         ? { ...profileData, currentPassword, newPassword }
         : profileData;
+      
+      // Log before request  
+      console.log("Sending update request with data:", JSON.stringify(updateData, null, 2));
+      
+      try {
+        const response = await fetch("/api/user/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+          credentials: "include"
+        });
         
-      const response = await apiRequest("POST", "/api/user/update", updateData);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update profile");
+        console.log("Response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Error text:", errorText);
+          throw new Error(errorText || "Failed to update profile");
+        }
+        
+        const responseData = await response.json();
+        console.log("Response data:", responseData);
+        return responseData;
+      } catch (err) {
+        console.error("Fetch error:", err);
+        throw err;
       }
-      return await response.json();
     },
     onSuccess: (updatedUser) => {
       console.log("Profile update success:", updatedUser);
@@ -208,6 +228,14 @@ export default function ProfilePage() {
 
   function onSubmit(data: ProfileFormValues) {
     console.log("Form submitted with data:", data);
+    // Show immediate feedback that the form was submitted
+    toast({
+      title: "Processing...",
+      description: "Sending your profile information to the server...",
+      variant: "default",
+      className: "bottom-right-toast",
+    });
+    
     updateProfileMutation.mutate(data);
   }
 
