@@ -1,0 +1,232 @@
+  apiRouter.post("/admin/scraper/run", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      // Check if user is an admin (you can add more robust admin checks)
+      if (req.user && req.user.email && (req.user.email.includes('admin') || req.user.email === 'admin@grantflix.com')) {
+        // Run the scraper
+        console.log('Grant scraper manually triggered by admin');
+        
+        // Run the scraper in the background so we don't block the response
+        runAllScrapers().catch(err => {
+          console.error('Error during manual scraping:', err);
+        });
+        
+        res.json({ message: "Grant scraping process started in the background. Check server logs for progress." });
+      } else {
+        res.status(403).json({ message: "Admin access required" });
+      }
+    } catch (error) {
+      console.error('Error triggering scraper:', error);
+      res.status(500).json({ message: "Failed to trigger scraper" });
+    }
+  });
+  
+  // Admin endpoint to run specific scrapers
+  apiRouter.post("/admin/scraper/run/:source", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      // Check if user is an admin
+      if (req.user && req.user.email && (req.user.email.includes('admin') || req.user.email === 'admin@grantflix.com')) {
+        const { source } = req.params;
+        
+        console.log(`Specific scraper '${source}' manually triggered by admin`);
+        
+        // Run the specific scraper in the background
+        (async () => {
+          try {
+            // Initialize browser
+            console.log('Launching browser for specific scraper...');
+            const browser = await puppeteer.launch({
+              headless: true,
+              args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-extensions'
+              ]
+            });
+            
+            let scraperFunction;
+            let scraperName = '';
+            
+            // Select the appropriate scraper based on the source parameter
+            switch(source) {
+              case 'alberta-innovates':
+                scraperFunction = scrapeAlbertaInnovates;
+                scraperName = 'Alberta Innovates';
+                break;
+              case 'innovation-canada':
+                scraperFunction = scrapeInnovationCanada;
+                scraperName = 'Innovation Canada';
+                break;
+              case 'trade-commissioner':
+                scraperFunction = scrapeTradeCommissioner;
+                scraperName = 'Trade Commissioner';
+                break;
+              case 'trade-funding-programs':
+                scraperFunction = scrapeTradeFundingPrograms;
+                scraperName = 'Trade Funding Programs';
+                break;
+              case 'futurpreneur':
+                scraperFunction = scrapeFuturpreneur;
+                scraperName = 'Futurpreneur';
+                break;
+              case 'women-entrepreneurship':
+                scraperFunction = scrapeWomenEntrepreneurship;
+                scraperName = 'Women Entrepreneurship Strategy';
+                break;
+              case 'launch-online':
+                scraperFunction = scrapeLaunchOnline;
+                scraperName = 'Launch Online';
+                break;
+              case 'alberta-health':
+                scraperFunction = scrapeAlbertaHealth;
+                scraperName = 'Alberta Health';
+                break;
+              default:
+                console.error(`Invalid scraper source: ${source}`);
+                await browser.close();
+                return;
+            }
+            
+            console.log(`Running ${scraperName} scraper...`);
+            
+            // Run the specific scraper
+            const scrapedGrants = await scraperFunction(browser);
+            console.log(`${scraperName} scraper completed with ${scrapedGrants.length} grants`);
+            
+            // Process and save the grants
+            if (source === 'trade-funding-programs') {
+              // This scraper returns InsertGrant objects directly
+              // Type assertion to ensure correct type for database
+              await saveGrantsToDatabase(scrapedGrants as unknown as InsertGrant[]);
+            } else {
+              // Other scrapers return ScrapedGrant objects that need processing
+              // Type assertion to ensure correct type for processing
+              const processedGrants = await processGrants(scrapedGrants as unknown as ScrapedGrant[]);
+              await saveGrantsToDatabase(processedGrants);
+            }
+            
+            await browser.close();
+            console.log(`${scraperName} scraper job completed successfully`);
+          } catch (error) {
+            console.error(`Error running specific scraper '${source}':`, error);
+          }
+        })();
+        
+        res.json({ message: `${source} scraping process started in the background. Check server logs for progress.` });
+      } else {
+        res.status(403).json({ message: "Admin access required" });
+      }
+    } catch (error) {
+      console.error("Error triggering specific scraper:", error);
+      res.status(500).json({ message: "Failed to trigger specific grant scraper" });
+    }
+  });
+  
+  // Add a new grant (admin endpoint - no auth for demonstration purposes)
+  apiRouter.post("/admin/grants/add", async (req: Request, res: Response) => {
+    try {
+      const grantData = req.body;
+      
+      // Ensure required fields
+      if (!grantData.title || !grantData.description || !grantData.type) {
+        return res.status(400).json({ error: "Missing required fields: title, description, or type" });
+      }
+
+      // Add defaults for required fields if missing
+      const processedGrant = {
+        ...grantData,
+        createdAt: grantData.createdAt || new Date().toISOString(),
+        featured: grantData.featured !== undefined ? grantData.featured : false,
+        pros: Array.isArray(grantData.pros) ? grantData.pros : [],
+        cons: Array.isArray(grantData.cons) ? grantData.cons : [],
+        eligibilityCriteria: Array.isArray(grantData.eligibilityCriteria) ? grantData.eligibilityCriteria : [],
+        documents: Array.isArray(grantData.documents) ? grantData.documents : [],
+        imageUrl: grantData.imageUrl || "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=500&h=280&q=80",
+        competitionLevel: grantData.competitionLevel || "Medium",
+        faqQuestions: null,
+        faqAnswers: null
+      };
+      
+      const grant = await storage.addGrant(processedGrant);
+      res.status(201).json(grant);
+    } catch (error) {
+      console.error("Error adding grant:", error);
+      res.status(500).json({ error: "Failed to add grant" });
+    }
+  });
+  
+  // Update grant image (admin endpoint - no auth for demonstration purposes)
+  apiRouter.post("/admin/grants/update-image", async (req: Request, res: Response) => {
+    try {
+      const { id, imageUrl } = req.body;
+      
+      if (!id || !imageUrl) {
+        return res.status(400).json({ error: "Missing required fields: id or imageUrl" });
+      }
+      
+      // Get the grant to verify it exists
+      const grant = await storage.getGrantById(Number(id));
+      if (!grant) {
+        return res.status(404).json({ error: "Grant not found" });
+      }
+      
+      // Update the grant's image
+      const updatedGrant = await storage.updateGrantImage(Number(id), imageUrl);
+      
+      if (!updatedGrant) {
+        return res.status(500).json({ error: "Failed to update grant image" });
+      }
+      
+      res.status(200).json(updatedGrant);
+    } catch (error) {
+      console.error("Error updating grant image:", error);
+      res.status(500).json({ error: "Failed to update grant image" });
+    }
+  });
+  
+  // Endpoint to delete a grant by ID
+  apiRouter.delete("/admin/grants/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid grant ID" });
+      }
+      
+      // Get the grant to verify it exists
+      const grant = await storage.getGrantById(id);
+      if (!grant) {
+        return res.status(404).json({ error: "Grant not found" });
+      }
+      
+      // Delete the grant
+      const success = await storage.deleteGrant(id);
+      
+      if (success) {
+        res.status(200).json({ success: true, message: `Grant ${id} deleted successfully` });
+      } else {
+        res.status(500).json({ error: "Failed to delete grant" });
+      }
+    } catch (error) {
+      console.error("Error deleting grant:", error);
+      res.status(500).json({ error: "Failed to delete grant" });
+    }
+  });
+  
+  // Schedule the scraper to run weekly
+  try {
+    scheduleScrapingJob();
+    console.log('Grant scraper scheduled successfully');
+  } catch (error) {
+    console.error('Error scheduling scraper:', error);
+  }
+
+  // Mount API routes with prefix
+  app.use("/api", apiRouter);
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
