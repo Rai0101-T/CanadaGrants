@@ -122,7 +122,12 @@ const provinces = [
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("account");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check URL parameters for tab selection
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    return tabParam === 'business' ? 'business' : 'account';
+  });
 
   // Form setup
   const form = useForm<ProfileFormValues>({

@@ -54,8 +54,7 @@ export function CompatibilityScore({ grantId }: CompatibilityScoreProps) {
         <Button 
           variant="outline" 
           className="w-full border-white/20 hover:bg-white/10"
-          // This would navigate to a profile edit page
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate("/profile?tab=business")}
         >
           Update Profile
         </Button>

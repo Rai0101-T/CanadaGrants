@@ -128,7 +128,7 @@ export default function Home() {
                   Add a business description to your profile to get personalized grant recommendations 
                   that match your business needs and goals.
                 </p>
-                <Link href="/profile">
+                <Link href="/profile?tab=business">
                   <Button className="bg-primary hover:bg-primary/90">
                     Update Profile
                   </Button>
