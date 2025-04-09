@@ -54,7 +54,7 @@ export function CompatibilityScore({ grantId }: CompatibilityScoreProps) {
         <Button 
           variant="outline" 
           className="w-full border-white/20 hover:bg-white/10"
-          onClick={() => navigate("/profile?tab=business")}
+          onClick={() => window.location.href = "/profile?tab=business"}
         >
           Update Profile
         </Button>

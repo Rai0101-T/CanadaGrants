@@ -128,11 +128,12 @@ export default function Home() {
                   Add a business description to your profile to get personalized grant recommendations 
                   that match your business needs and goals.
                 </p>
-                <Link href="/profile?tab=business">
-                  <Button className="bg-primary hover:bg-primary/90">
-                    Update Profile
-                  </Button>
-                </Link>
+                <Button 
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => window.location.href = '/profile?tab=business'}
+                >
+                  Update Profile
+                </Button>
               </div>
             ) : recommendationsMutation.isPending ? (
               <div className="flex justify-center items-center h-40">
