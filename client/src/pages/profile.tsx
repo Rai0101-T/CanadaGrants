@@ -162,6 +162,8 @@ export default function ProfilePage() {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormValues) => {
+      console.log("Submitting profile update:", data);
+      
       // Extract password-related fields to handle separately if needed
       const { currentPassword, newPassword, confirmNewPassword, ...profileData } = data;
       
@@ -171,26 +173,41 @@ export default function ProfilePage() {
         : profileData;
         
       const response = await apiRequest("POST", "/api/user/update", updateData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
       return await response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
-        variant: "default",
-      });
+    onSuccess: (updatedUser) => {
+      console.log("Profile update success:", updatedUser);
+      // Set the updated user data directly in the cache
+      queryClient.setQueryData(["/api/user"], updatedUser);
+      
+      // Additionally invalidate the query to ensure everything is in sync
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Show success toast
+      toast({
+        title: "Profile Updated Successfully",
+        description: "Your information has been saved to the database.",
+        variant: "default",
+        className: "bottom-right-toast",
+      });
     },
     onError: (error: Error) => {
+      console.error("Profile update error:", error);
       toast({
         title: "Profile Update Failed",
         description: error.message || "An error occurred while updating your profile.",
         variant: "destructive",
+        className: "bottom-right-toast",
       });
     },
   });
 
   function onSubmit(data: ProfileFormValues) {
+    console.log("Form submitted with data:", data);
     updateProfileMutation.mutate(data);
   }
 

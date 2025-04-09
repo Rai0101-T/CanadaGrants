@@ -38,8 +38,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all grants
   apiRouter.get("/grants", async (req: Request, res: Response) => {
     try {
-      const grants = await storage.getAllGrants();
-      res.json(grants);
+      const allGrants = await storage.getAllGrants();
+      
+      // Filter out grants with specific deadlines before April 9, 2025
+      // But keep grants with ongoing deadlines, periodic calls for proposals, and annual deadlines
+      const currentDate = new Date('2025-04-09');
+      
+      const activeGrants = allGrants.filter(grant => {
+        // If grant has no deadline or deadline is null/undefined, keep it
+        if (!grant.deadline) return true;
+        
+        // Keep grants with ongoing deadlines, periodic calls for proposals, or annual deadlines (indicated by keywords)
+        if (/ongoing|rolling|continuous|open|multiple|any time|periodic|call for proposals|annual|quarterly|biannual|semi-annual|yearly|monthly/i.test(grant.deadline)) {
+          return true;
+        }
+        
+        // Try to parse the deadline
+        try {
+          const deadlineDate = new Date(grant.deadline);
+          // Keep the grant if its deadline is in the future
+          return deadlineDate >= currentDate;
+        } catch (e) {
+          // If we can't parse the date, assume it's an ongoing deadline and keep it
+          return true;
+        }
+      });
+      
+      res.json(activeGrants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch grants" });
     }
@@ -48,8 +73,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get featured grants
   apiRouter.get("/grants/featured", async (req: Request, res: Response) => {
     try {
-      const grants = await storage.getFeaturedGrants();
-      res.json(grants);
+      const featuredGrants = await storage.getFeaturedGrants();
+      
+      // Filter out grants with specific deadlines before April 9, 2025
+      // But keep grants with ongoing deadlines, periodic calls for proposals, and annual deadlines
+      const currentDate = new Date('2025-04-09');
+      
+      const activeFeaturedGrants = featuredGrants.filter(grant => {
+        // If grant has no deadline or deadline is null/undefined, keep it
+        if (!grant.deadline) return true;
+        
+        // Keep grants with ongoing deadlines, periodic calls for proposals, or annual deadlines (indicated by keywords)
+        if (/ongoing|rolling|continuous|open|multiple|any time|periodic|call for proposals|annual|quarterly|biannual|semi-annual|yearly|monthly/i.test(grant.deadline)) {
+          return true;
+        }
+        
+        // Try to parse the deadline
+        try {
+          const deadlineDate = new Date(grant.deadline);
+          // Keep the grant if its deadline is in the future
+          return deadlineDate >= currentDate;
+        } catch (e) {
+          // If we can't parse the date, assume it's an ongoing deadline and keep it
+          return true;
+        }
+      });
+      
+      res.json(activeFeaturedGrants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch featured grants" });
     }
@@ -82,8 +132,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid grant type. Must be 'federal', 'provincial', or 'private'" });
       }
       
-      const grants = await storage.getGrantsByType(type);
-      res.json(grants);
+      const typeGrants = await storage.getGrantsByType(type);
+      
+      // Filter out grants with specific deadlines before April 9, 2025
+      // But keep grants with ongoing deadlines, periodic calls for proposals, and annual deadlines
+      const currentDate = new Date('2025-04-09');
+      
+      const activeTypeGrants = typeGrants.filter(grant => {
+        // If grant has no deadline or deadline is null/undefined, keep it
+        if (!grant.deadline) return true;
+        
+        // Keep grants with ongoing deadlines, periodic calls for proposals, or annual deadlines (indicated by keywords)
+        if (/ongoing|rolling|continuous|open|multiple|any time|periodic|call for proposals|annual|quarterly|biannual|semi-annual|yearly|monthly/i.test(grant.deadline)) {
+          return true;
+        }
+        
+        // Try to parse the deadline
+        try {
+          const deadlineDate = new Date(grant.deadline);
+          // Keep the grant if its deadline is in the future
+          return deadlineDate >= currentDate;
+        } catch (e) {
+          // If we can't parse the date, assume it's an ongoing deadline and keep it
+          return true;
+        }
+      });
+      
+      res.json(activeTypeGrants);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch grants by type" });
     }
@@ -97,8 +172,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search query must be at least 2 characters" });
       }
       
-      const grants = await storage.searchGrants(query);
-      res.json(grants);
+      const searchGrants = await storage.searchGrants(query);
+      
+      // Filter out grants with specific deadlines before April 9, 2025
+      // But keep grants with ongoing deadlines, periodic calls for proposals, and annual deadlines
+      const currentDate = new Date('2025-04-09');
+      
+      const activeSearchGrants = searchGrants.filter(grant => {
+        // If grant has no deadline or deadline is null/undefined, keep it
+        if (!grant.deadline) return true;
+        
+        // Keep grants with ongoing deadlines, periodic calls for proposals, or annual deadlines (indicated by keywords)
+        if (/ongoing|rolling|continuous|open|multiple|any time|periodic|call for proposals|annual|quarterly|biannual|semi-annual|yearly|monthly/i.test(grant.deadline)) {
+          return true;
+        }
+        
+        // Try to parse the deadline
+        try {
+          const deadlineDate = new Date(grant.deadline);
+          // Keep the grant if its deadline is in the future
+          return deadlineDate >= currentDate;
+        } catch (e) {
+          // If we can't parse the date, assume it's an ongoing deadline and keep it
+          return true;
+        }
+      });
+      
+      res.json(activeSearchGrants);
     } catch (error) {
       res.status(500).json({ message: "Failed to search grants" });
     }
@@ -116,7 +216,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   apiRouter.post("/user/update", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id; // Type assertion with ! since isAuthenticated ensures user exists
-      const userData = req.body;
+      const userData = { ...req.body };
+      
+      console.log("Updating user profile:", userId, "Data:", JSON.stringify(userData, null, 2));
+      
+      // Handle password change if present
+      if (userData.currentPassword && userData.newPassword) {
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Verify current password
+        const validPassword = await comparePasswords(userData.currentPassword, user.passwordHash);
+        if (!validPassword) {
+          return res.status(400).json({ message: "Current password is incorrect" });
+        }
+        
+        // Hash new password
+        userData.passwordHash = await hashPassword(userData.newPassword);
+        
+        // Remove password fields from what gets stored
+        delete userData.currentPassword;
+        delete userData.newPassword;
+        delete userData.confirmNewPassword;
+      }
       
       // Update the user data
       const updatedUser = await storage.updateUser(userId, userData);
@@ -125,10 +249,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      // Return user without sensitive data
+      const { passwordHash, ...userWithoutPassword } = updatedUser;
+      
       // Update the session user object
       req.login(updatedUser, (err) => {
         if (err) return res.status(500).json({ message: "Failed to update session" });
-        res.status(200).json(updatedUser);
+        res.status(200).json(userWithoutPassword);
       });
     } catch (error) {
       console.error("User update error:", error);
