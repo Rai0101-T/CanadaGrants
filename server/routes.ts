@@ -7,6 +7,7 @@ import { insertUserGrantSchema, InsertGrant, User } from "@shared/schema";
 import OpenAI from "openai";
 import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import puppeteer from "puppeteer";
+import { generateApplicationAssistance, checkPlagiarism, generateIdeas, calculateGrantCompatibility as geminiCalculateGrantCompatibility } from "./services/gemini-service";
 import { 
   runAllScrapers, 
   scheduleScrapingJob, 
@@ -638,99 +639,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       try {
-        // Use OpenAI to analyze and improve the application
-        const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
-          messages: [
-            {
-              role: "system",
-              content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
-                      You provide constructive feedback and improvements to grant applications to help them succeed.
-                      Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.
-                      Tailor your feedback to make the application more relevant to the applicant's business profile.`
-            },
-            {
-              role: "user",
-              content: `Grant details:
-                      Title: ${grant.title}
-                      Description: ${grant.description}
-                      Type: ${grant.type}
-                      
-                      My Business Profile:
-                      Business Name: ${userBusinessInfo.businessName}
-                      Business Type: ${userBusinessInfo.businessType}
-                      Industry: ${userBusinessInfo.industry}
-                      Description: ${userBusinessInfo.businessDescription}
-                      Province: ${userBusinessInfo.province}
-                      Employee Count: ${userBusinessInfo.employeeCount}
-                      Year Founded: ${userBusinessInfo.yearFounded}
-                      
-                      My draft application:
-                      ${applicationText}
-                      
-                      Please analyze my application and provide:
-                      1. Overall assessment
-                      2. Specific strengths
-                      3. Areas for improvement
-                      4. Suggested edits and rewording (with specific examples)
-                      5. Additional points to consider including based on my business profile`
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        });
-        
-        // Get AI to generate improved version of the application text
-        const improvedResponse = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
-          messages: [
-            {
-              role: "system",
-              content: `You are GrantScribe, an expert grant application writer specializing in Canadian grants.
-                      Take the user's draft application and improve it to maximize chances of success.
-                      Keep the core ideas but enhance the language, structure, and alignment with grant objectives.
-                      Make sure to incorporate relevant details from the applicant's business profile.`
-            },
-            {
-              role: "user",
-              content: `Grant details:
-                      Title: ${grant.title}
-                      Description: ${grant.description}
-                      Type: ${grant.type}
-                      
-                      My Business Profile:
-                      Business Name: ${userBusinessInfo.businessName}
-                      Business Type: ${userBusinessInfo.businessType}
-                      Industry: ${userBusinessInfo.industry}
-                      Description: ${userBusinessInfo.businessDescription}
-                      Province: ${userBusinessInfo.province}
-                      Employee Count: ${userBusinessInfo.employeeCount}
-                      Year Founded: ${userBusinessInfo.yearFounded}
-                      
-                      My draft application:
-                      ${applicationText}
-                      
-                      Please rewrite my application to make it stronger, more compelling and better aligned with the grant requirements.`
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        });
-        
-        const improvedText = improvedResponse.choices[0].message.content;
+        // Use Gemini service to generate application assistance
+        const result = await generateApplicationAssistance(applicationText, grant, userBusinessInfo);
         
         res.json({
-          feedback: response.choices[0].message.content,
-          improvedText: improvedText,
+          feedback: result.feedback,
+          improvedText: result.improvedText,
           grant: grant,
           originalText: applicationText
         });
-      } catch (aiError) {
-        // Fallback mechanism for when OpenAI API fails
-        console.warn("OpenAI API error for grant assistance, using fallback:", aiError);
+      } catch (geminiError) {
+        console.warn("Gemini API error for grant assistance, trying OpenAI as fallback:", geminiError);
         
-        // Generate comprehensive feedback based on application text and user business profile
-        const wordCount = applicationText.split(/\s+/).length;
+        try {
+          // Use OpenAI as a fallback
+          const response = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
+            messages: [
+              {
+                role: "system",
+                content: `You are GrantScribe, an expert grant application consultant specializing in Canadian grants. 
+                        You provide constructive feedback and improvements to grant applications to help them succeed.
+                        Analyze the application text for the ${grant.title} grant and provide detailed, actionable advice.
+                        Tailor your feedback to make the application more relevant to the applicant's business profile.`
+              },
+              {
+                role: "user",
+                content: `Grant details:
+                        Title: ${grant.title}
+                        Description: ${grant.description}
+                        Type: ${grant.type}
+                        
+                        My Business Profile:
+                        Business Name: ${userBusinessInfo.businessName}
+                        Business Type: ${userBusinessInfo.businessType}
+                        Industry: ${userBusinessInfo.industry}
+                        Description: ${userBusinessInfo.businessDescription}
+                        Province: ${userBusinessInfo.province}
+                        Employee Count: ${userBusinessInfo.employeeCount}
+                        Year Founded: ${userBusinessInfo.yearFounded}
+                        
+                        My draft application:
+                        ${applicationText}
+                        
+                        Please analyze my application and provide:
+                        1. Overall assessment
+                        2. Specific strengths
+                        3. Areas for improvement
+                        4. Suggested edits and rewording (with specific examples)
+                        5. Additional points to consider including based on my business profile`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+          });
+          
+          // Get AI to generate improved version of the application text
+          const improvedResponse = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
+            messages: [
+              {
+                role: "system",
+                content: `You are GrantScribe, an expert grant application writer specializing in Canadian grants.
+                        Take the user's draft application and improve it to maximize chances of success.
+                        Keep the core ideas but enhance the language, structure, and alignment with grant objectives.
+                        Make sure to incorporate relevant details from the applicant's business profile.`
+              },
+              {
+                role: "user",
+                content: `Grant details:
+                        Title: ${grant.title}
+                        Description: ${grant.description}
+                        Type: ${grant.type}
+                        
+                        My Business Profile:
+                        Business Name: ${userBusinessInfo.businessName}
+                        Business Type: ${userBusinessInfo.businessType}
+                        Industry: ${userBusinessInfo.industry}
+                        Description: ${userBusinessInfo.businessDescription}
+                        Province: ${userBusinessInfo.province}
+                        Employee Count: ${userBusinessInfo.employeeCount}
+                        Year Founded: ${userBusinessInfo.yearFounded}
+                        
+                        My draft application:
+                        ${applicationText}
+                        
+                        Please rewrite my application to make it stronger, more compelling and better aligned with the grant requirements.`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+          });
+          
+          const improvedText = improvedResponse.choices[0].message.content;
+          
+          res.json({
+            feedback: response.choices[0].message.content,
+            improvedText: improvedText,
+            grant: grant,
+            originalText: applicationText
+          });
+        } catch (openaiError) {
+          console.warn("OpenAI API error after Gemini failure, using fallback:", openaiError);
+          // Fallback mechanism for when both AI APIs fail
+          
+          // Generate comprehensive feedback based on application text and user business profile
+          const wordCount = applicationText.split(/\s+/).length;
         const paragraphCount = applicationText.split(/\n\s*\n/).length;
         const sentenceCount = applicationText.split(/[.!?]+\s/).length;
         
@@ -1074,14 +1088,21 @@ This project directly addresses the core objectives of the ${grant.title} grant 
         yearFounded: user?.yearFounded || ''
       };
       
-      // Try the OpenAI approach first if available
+      // First try Gemini API
       try {
-        // Use OpenAI for advanced plagiarism detection
-        const openai = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
+        const result = await checkPlagiarism(text, userBusinessInfo);
+        return res.json(result);
+      } catch (geminiError) {
+        console.warn("Gemini API error for plagiarism check, trying OpenAI as fallback:", geminiError);
         
-        const response = await openai.chat.completions.create({
+        // Try OpenAI as fallback
+        try {
+          // Use OpenAI for advanced plagiarism detection
+          const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+          });
+          
+          const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             { 
@@ -1099,7 +1120,8 @@ Text to analyze: ${text}`
         });
         
         // Parse and return the results
-        const result = JSON.parse(response.choices[0].message.content);
+        const content = response.choices[0].message.content || "{}";
+        const result = JSON.parse(content);
         return res.json(result);
       } catch (aiError) {
         console.warn("OpenAI API error for plagiarism check, using enhanced fallback:", aiError);
@@ -1119,7 +1141,7 @@ Text to analyze: ${text}`
         : 0;
       
       // Calculate vocabulary richness (unique words / total words)
-      const allWords = text.toLowerCase().split(/\s+/).filter(word => word.length > 3);
+      const allWords = text.toLowerCase().split(/\s+/).filter((word: string) => word.length > 3);
       const uniqueWords = new Set(allWords);
       const vocabularyRichness = uniqueWords.size / Math.max(1, allWords.length);
       
@@ -1456,8 +1478,17 @@ Text to analyze: ${text}`
       };
       
       try {
-        // Use OpenAI to generate project ideas
-        const response = await openai.chat.completions.create({
+        // Use Gemini to generate project ideas
+        const result = await generateIdeas(grant, userBusinessInfo, projectType, keywords);
+        
+        return res.json(result);
+      } catch (geminiError) {
+        console.warn("Gemini API error for idea generation, trying OpenAI as fallback:", geminiError);
+        
+        // Fallback to OpenAI
+        try {
+          // Use OpenAI to generate project ideas
+          const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo", // Using GPT-3.5 Turbo to avoid hitting quota limits
           messages: [
             {
@@ -1528,7 +1559,7 @@ Text to analyze: ${text}`
         const grantAmount = grant.fundingAmount || '';
         const grantEligibility = Array.isArray(grant.eligibilityCriteria) ? grant.eligibilityCriteria.join(', ') : '';
         const grantDeadline = grant.deadline || '';
-        const grantFundingAgency = grant.fundingAgency || '';
+        const grantFundingAgency = grant.fundingOrganization || grant.department || '';
         
         const userIndustry = userBusinessInfo.industry || '';
         const businessType = userBusinessInfo.businessType || '';
