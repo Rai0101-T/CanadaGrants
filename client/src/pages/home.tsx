@@ -8,9 +8,15 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const { user } = useAuth();
+  
+  // State for toggling grant filters
+  const [activeFeaturedFilter, setActiveFeaturedFilter] = useState<'all' | 'federal' | 'provincial'>('all');
+  const [activeFederalFilter, setActiveFederalFilter] = useState<'all' | 'industry' | 'region'>('all');
+  const [activeProvincialFilter, setActiveProvincialFilter] = useState<'all' | 'industry' | 'region'>('all');
   
   // Fetch featured grants
   const featuredQuery = useQuery<Grant[]>({
@@ -26,6 +32,61 @@ export default function Home() {
   const provincialQuery = useQuery<Grant[]>({
     queryKey: ["/api/grants/type/provincial"],
   });
+  
+  // Filter grants based on active filters
+  const filteredFeaturedGrants = () => {
+    if (!featuredQuery.data) return [];
+    if (activeFeaturedFilter === 'all') return featuredQuery.data;
+    return featuredQuery.data.filter(grant => grant.type === activeFeaturedFilter);
+  };
+
+  const filteredFederalGrants = () => {
+    if (!federalQuery.data) return [];
+    
+    const federalGrants = federalQuery.data.slice(0, 6);
+    
+    if (activeFederalFilter === 'all') return federalGrants;
+    
+    if (activeFederalFilter === 'industry') {
+      // Sort by industry (alphabetical)
+      return [...federalGrants].sort((a, b) => {
+        return (a.industry || '').localeCompare(b.industry || '');
+      });
+    }
+    
+    if (activeFederalFilter === 'region') {
+      // Sort by province/region
+      return [...federalGrants].sort((a, b) => {
+        return (a.province || 'All').localeCompare(b.province || 'All');
+      });
+    }
+    
+    return federalGrants;
+  };
+
+  const filteredProvincialGrants = () => {
+    if (!provincialQuery.data) return [];
+    
+    const provincialGrants = provincialQuery.data.slice(0, 6);
+    
+    if (activeProvincialFilter === 'all') return provincialGrants;
+    
+    if (activeProvincialFilter === 'industry') {
+      // Sort by industry (alphabetical)
+      return [...provincialGrants].sort((a, b) => {
+        return (a.industry || '').localeCompare(b.industry || '');
+      });
+    }
+    
+    if (activeProvincialFilter === 'region') {
+      // Sort by province
+      return [...provincialGrants].sort((a, b) => {
+        return (a.province || 'All').localeCompare(b.province || 'All');
+      });
+    }
+    
+    return provincialGrants;
+  };
   
   // Get personalized recommendations based on business description
   const recommendationsMutation = useMutation({
@@ -105,10 +166,37 @@ export default function Home() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-white">Featured Grants</h2>
             <div className="flex">
-              <button className="text-xs uppercase font-medium text-gray-200 bg-gray-700 rounded-sm px-3 py-1 mr-2 hover:bg-gray-600">
+              <button 
+                className={cn(
+                  "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 mr-2 transition-colors",
+                  activeFeaturedFilter === 'all' 
+                    ? "bg-primary hover:bg-primary/90" 
+                    : "bg-gray-700 hover:bg-gray-600"
+                )}
+                onClick={() => setActiveFeaturedFilter('all')}
+              >
+                All
+              </button>
+              <button 
+                className={cn(
+                  "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 mr-2 transition-colors",
+                  activeFeaturedFilter === 'federal' 
+                    ? "bg-primary hover:bg-primary/90" 
+                    : "bg-gray-700 hover:bg-gray-600"
+                )}
+                onClick={() => setActiveFeaturedFilter('federal')}
+              >
                 Federal
               </button>
-              <button className="text-xs uppercase font-medium text-gray-200 bg-gray-700 rounded-sm px-3 py-1 hover:bg-gray-600">
+              <button 
+                className={cn(
+                  "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 transition-colors",
+                  activeFeaturedFilter === 'provincial' 
+                    ? "bg-primary hover:bg-primary/90" 
+                    : "bg-gray-700 hover:bg-gray-600"
+                )}
+                onClick={() => setActiveFeaturedFilter('provincial')}
+              >
                 Provincial
               </button>
             </div>
@@ -123,7 +211,7 @@ export default function Home() {
               Error loading featured grants
             </div>
           ) : (
-            <GrantRow grants={featuredQuery.data || []} />
+            <GrantRow grants={filteredFeaturedGrants()} />
           )}
         </section>
 
@@ -131,9 +219,46 @@ export default function Home() {
         <section className="mb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-white">Federal Grants</h2>
-            <a href="/federal-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
-              View All <span className="ml-1">→</span>
-            </a>
+            <div className="flex items-center">
+              <div className="mr-3 hidden md:flex">
+                <button 
+                  className={cn(
+                    "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 mr-2 transition-colors",
+                    activeFederalFilter === 'all' 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-700 hover:bg-gray-600"
+                  )}
+                  onClick={() => setActiveFederalFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={cn(
+                    "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 mr-2 transition-colors",
+                    activeFederalFilter === 'industry' 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-700 hover:bg-gray-600"
+                  )}
+                  onClick={() => setActiveFederalFilter('industry')}
+                >
+                  By Industry
+                </button>
+                <button 
+                  className={cn(
+                    "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 transition-colors",
+                    activeFederalFilter === 'region' 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-700 hover:bg-gray-600"
+                  )}
+                  onClick={() => setActiveFederalFilter('region')}
+                >
+                  By Region
+                </button>
+              </div>
+              <a href="/federal-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
+                View All <span className="ml-1">→</span>
+              </a>
+            </div>
           </div>
 
           {federalQuery.isLoading ? (
@@ -145,7 +270,7 @@ export default function Home() {
               Error loading federal grants
             </div>
           ) : (
-            <GrantRow grants={(federalQuery.data || []).slice(0, 6)} />
+            <GrantRow grants={filteredFederalGrants()} />
           )}
         </section>
 
@@ -153,9 +278,46 @@ export default function Home() {
         <section className="mb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-white">Provincial Grants</h2>
-            <a href="/provincial-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
-              View All <span className="ml-1">→</span>
-            </a>
+            <div className="flex items-center">
+              <div className="mr-3 hidden md:flex">
+                <button 
+                  className={cn(
+                    "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 mr-2 transition-colors",
+                    activeProvincialFilter === 'all' 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-700 hover:bg-gray-600"
+                  )}
+                  onClick={() => setActiveProvincialFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={cn(
+                    "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 mr-2 transition-colors",
+                    activeProvincialFilter === 'industry' 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-700 hover:bg-gray-600"
+                  )}
+                  onClick={() => setActiveProvincialFilter('industry')}
+                >
+                  By Industry
+                </button>
+                <button 
+                  className={cn(
+                    "text-xs uppercase font-medium text-gray-200 rounded-sm px-3 py-1 transition-colors",
+                    activeProvincialFilter === 'region' 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-700 hover:bg-gray-600"
+                  )}
+                  onClick={() => setActiveProvincialFilter('region')}
+                >
+                  By Province
+                </button>
+              </div>
+              <a href="/provincial-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
+                View All <span className="ml-1">→</span>
+              </a>
+            </div>
           </div>
 
           {provincialQuery.isLoading ? (
@@ -167,7 +329,7 @@ export default function Home() {
               Error loading provincial grants
             </div>
           ) : (
-            <GrantRow grants={(provincialQuery.data || []).slice(0, 6)} />
+            <GrantRow grants={filteredProvincialGrants()} />
           )}
         </section>
         
