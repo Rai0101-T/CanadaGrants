@@ -215,48 +215,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile
   apiRouter.post("/user/update", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id; // Type assertion with ! since isAuthenticated ensures user exists
+      if (!req.user) {
+        console.error("No user in request despite isAuthenticated middleware");
+        return res.status(401).json({ message: "No authenticated user found" });
+      }
+      
+      const userId = req.user.id;
       const userData = { ...req.body };
       
       console.log("Updating user profile:", userId, "Data:", JSON.stringify(userData, null, 2));
       
+      // Remove fields that shouldn't be directly updated
+      delete userData.id;
+      delete userData.createdAt;
+      
       // Handle password change if present
       if (userData.currentPassword && userData.newPassword) {
+        console.log("Password change requested");
         const user = await storage.getUser(userId);
         if (!user) {
+          console.error("User not found for password update:", userId);
           return res.status(404).json({ message: "User not found" });
         }
         
         // Verify current password
-        const validPassword = await comparePasswords(userData.currentPassword, user.passwordHash);
-        if (!validPassword) {
-          return res.status(400).json({ message: "Current password is incorrect" });
+        try {
+          const validPassword = await comparePasswords(userData.currentPassword, user.passwordHash);
+          if (!validPassword) {
+            console.error("Invalid current password for user:", userId);
+            return res.status(400).json({ message: "Current password is incorrect" });
+          }
+          
+          // Hash new password
+          userData.passwordHash = await hashPassword(userData.newPassword);
+          console.log("Password successfully hashed");
+        } catch (err) {
+          console.error("Password validation error:", err);
+          return res.status(500).json({ message: "Error validating password" });
         }
-        
-        // Hash new password
-        userData.passwordHash = await hashPassword(userData.newPassword);
-        
-        // Remove password fields from what gets stored
-        delete userData.currentPassword;
-        delete userData.newPassword;
-        delete userData.confirmNewPassword;
       }
+      
+      // Always remove password fields from what gets stored
+      delete userData.currentPassword;
+      delete userData.newPassword;
+      delete userData.confirmNewPassword;
+      
+      console.log("Final update data:", JSON.stringify(userData, null, 2));
       
       // Update the user data
-      const updatedUser = await storage.updateUser(userId, userData);
-      
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
+      try {
+        const updatedUser = await storage.updateUser(userId, userData);
+        
+        if (!updatedUser) {
+          console.error("No user returned after update for id:", userId);
+          return res.status(404).json({ message: "User not found or update failed" });
+        }
+        
+        console.log("User updated successfully:", updatedUser.id);
+        
+        // Return user without sensitive data
+        const { passwordHash, ...userWithoutPassword } = updatedUser;
+        
+        // Update the session user object
+        req.login(updatedUser, (err) => {
+          if (err) {
+            console.error("Session update error:", err);
+            return res.status(500).json({ message: "Profile updated but failed to update session" });
+          }
+          console.log("Session updated successfully");
+          res.status(200).json(userWithoutPassword);
+        });
+      } catch (dbError) {
+        console.error("Database update error:", dbError);
+        res.status(500).json({ message: "Database error during profile update" });
       }
-      
-      // Return user without sensitive data
-      const { passwordHash, ...userWithoutPassword } = updatedUser;
-      
-      // Update the session user object
-      req.login(updatedUser, (err) => {
-        if (err) return res.status(500).json({ message: "Failed to update session" });
-        res.status(200).json(userWithoutPassword);
-      });
     } catch (error) {
       console.error("User update error:", error);
       res.status(500).json({ message: "Failed to update user profile" });
