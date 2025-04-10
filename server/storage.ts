@@ -25,6 +25,7 @@ export interface IStorage {
   addGrant(grant: InsertGrant): Promise<Grant>; // Add method for scraped grants
   updateGrantImage(id: number, imageUrl: string): Promise<Grant | undefined>; // Update grant image
   deleteGrant(id: number): Promise<boolean>; // Delete a grant
+  deleteExpiredGrants(): Promise<{ deletedIds: number[], count: number }>; // Delete all expired grants
   
   // User Grants methods (My List)
   getUserGrants(userId: number): Promise<Grant[]>;
@@ -294,6 +295,45 @@ export class MemStorage implements IStorage {
     
     // Delete the grant
     return this.grants.delete(id);
+  }
+  
+  // Delete expired grants from 2024
+  async deleteExpiredGrants(): Promise<{ deletedIds: number[], count: number }> {
+    try {
+      // Get all grants
+      const allGrants = await this.getAllGrants();
+      
+      // Filter grants with deadlines in 2024 (since current project context is April 2025)
+      const expiredGrants = allGrants.filter(grant => 
+        grant.deadline.includes("2024") && 
+        // Exclude grants with "Ongoing" or similar deadlines even if they mention 2024
+        !grant.deadline.toLowerCase().includes("ongoing") &&
+        !grant.deadline.toLowerCase().includes("continuous") &&
+        !grant.deadline.toLowerCase().includes("rolling") &&
+        !grant.deadline.toLowerCase().includes("varies") &&
+        !grant.deadline.toLowerCase().includes("check with")
+      );
+      
+      const deletedIds: number[] = [];
+      let successCount = 0;
+      
+      // Delete each expired grant
+      for (const grant of expiredGrants) {
+        const success = await this.deleteGrant(grant.id);
+        if (success) {
+          successCount++;
+          deletedIds.push(grant.id);
+        }
+      }
+      
+      return { 
+        deletedIds, 
+        count: successCount 
+      };
+    } catch (error) {
+      console.error("Error deleting expired grants:", error);
+      return { deletedIds: [], count: 0 };
+    }
   }
 
   // Initialize with real grants data from Innovation Canada
@@ -1762,6 +1802,44 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error deleting grant:', error);
       return false;
+    }
+  }
+
+  async deleteExpiredGrants(): Promise<{ deletedIds: number[], count: number }> {
+    try {
+      // Get all grants
+      const allGrants = await this.getAllGrants();
+      
+      // Filter grants with deadlines in 2024 (since current project context is April 2025)
+      const expiredGrants = allGrants.filter(grant => 
+        grant.deadline.includes("2024") && 
+        // Exclude grants with "Ongoing" or similar deadlines even if they mention 2024
+        !grant.deadline.toLowerCase().includes("ongoing") &&
+        !grant.deadline.toLowerCase().includes("continuous") &&
+        !grant.deadline.toLowerCase().includes("rolling") &&
+        !grant.deadline.toLowerCase().includes("varies") &&
+        !grant.deadline.toLowerCase().includes("check with")
+      );
+      
+      const deletedIds: number[] = [];
+      let successCount = 0;
+      
+      // Delete each expired grant
+      for (const grant of expiredGrants) {
+        const success = await this.deleteGrant(grant.id);
+        if (success) {
+          successCount++;
+          deletedIds.push(grant.id);
+        }
+      }
+      
+      return { 
+        deletedIds, 
+        count: successCount 
+      };
+    } catch (error) {
+      console.error("Error deleting expired grants:", error);
+      return { deletedIds: [], count: 0 };
     }
   }
 }

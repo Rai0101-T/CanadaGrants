@@ -646,6 +646,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to delete all expired grants with deadlines in 2024 (admin endpoint)
+  apiRouter.post("/admin/grants/delete-expired", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      // Check if user is an admin
+      if (req.user && req.user.email && (req.user.email.includes('admin') || req.user.email === 'admin@grantflix.com')) {
+        console.log("Starting expired grants deletion process (removing grants that expired in 2024)");
+        
+        // Delete expired grants
+        const result = await storage.deleteExpiredGrants();
+        
+        console.log(`Deleted ${result.count} expired grants with IDs: ${result.deletedIds.join(', ')}`);
+        
+        res.status(200).json({ 
+          success: true, 
+          message: `Successfully deleted ${result.count} expired grants from 2024`,
+          deletedCount: result.count,
+          deletedIds: result.deletedIds
+        });
+      } else {
+        res.status(403).json({ message: "Admin access required" });
+      }
+    } catch (error) {
+      console.error("Error deleting expired grants:", error);
+      res.status(500).json({ error: "Failed to delete expired grants" });
+    }
+  });
+  
   // Schedule the scraper to run weekly
   try {
     scheduleScrapingJob();
