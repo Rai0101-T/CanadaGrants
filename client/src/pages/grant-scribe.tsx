@@ -41,30 +41,44 @@ export default function GrantScribe() {
   // Mutation for application assistance
   const assistMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/grantscribe/assist", {
+      const response = await apiRequest("POST", "/api/grantscribe/assist", {
         grantId: selectedGrantId,
         applicationText
       });
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log("Received data from assist endpoint:", data); // Debug log
       // We won't set feedback as we're using the original/improved text side-by-side display
       setFeedback(null);
-      setImprovedText(data.improvedText);
-      setOriginalText(data.originalText);
-      toast({
-        title: "Analysis Complete",
-        description: "Your grant application has been analyzed and improved by GrantScribe."
-      });
       
-      // Scroll to the results section
-      setTimeout(() => {
-        const resultsSection = document.getElementById('application-results-section');
-        if (resultsSection) {
-          resultsSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 300);
+      if (data.improvedText) {
+        setImprovedText(data.improvedText);
+        setOriginalText(data.originalText);
+        
+        toast({
+          title: "Analysis Complete",
+          description: "Your grant application has been analyzed and improved by GrantScribe."
+        });
+        
+        // Scroll to the results section
+        setTimeout(() => {
+          const resultsSection = document.getElementById('application-results-section');
+          if (resultsSection) {
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 300);
+      } else {
+        toast({
+          title: "Error",
+          description: "No improved text was returned. Please try again.",
+          variant: "destructive"
+        });
+      }
     },
     onError: (error: any) => {
+      console.error("Error in assist mutation:", error); // Debug log
       toast({
         title: "Error",
         description: error?.errorMessage || "Failed to analyze your application. Please try again.",
@@ -76,21 +90,25 @@ export default function GrantScribe() {
   // Mutation for plagiarism check
   const plagiarismMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/grantscribe/plagiarism-check", {
+      const response = await apiRequest("POST", "/api/grantscribe/plagiarism-check", {
         text: textToCheck
       });
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log("Received data from plagiarism check:", data); // Debug log
       setPlagiarismResult(data);
       toast({
         title: "Check Complete",
         description: "Your text has been checked for potential plagiarism."
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error in plagiarism check:", error); // Debug log
       toast({
         title: "Error",
-        description: "Failed to check for plagiarism. Please try again.",
+        description: error?.errorMessage || "Failed to check for plagiarism. Please try again.",
         variant: "destructive"
       });
     }
@@ -99,23 +117,35 @@ export default function GrantScribe() {
   // Mutation for idea generation
   const ideasMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/grantscribe/generate-ideas", {
+      const response = await apiRequest("POST", "/api/grantscribe/generate-ideas", {
         grantId: selectedIdeaGrantId,
         projectType,
         keywords
       });
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data: any) => {
-      setIdeas(data.ideas);
-      toast({
-        title: "Ideas Generated",
-        description: "Project ideas have been generated for your grant."
-      });
+      console.log("Received data from idea generation:", data); // Debug log
+      if (data.ideas) {
+        setIdeas(data.ideas);
+        toast({
+          title: "Ideas Generated",
+          description: "Project ideas have been generated for your grant."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "No ideas were returned. Please try again.",
+          variant: "destructive"
+        });
+      }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error in idea generation:", error); // Debug log
       toast({
         title: "Error",
-        description: "Failed to generate ideas. Please try again.",
+        description: error?.errorMessage || "Failed to generate ideas. Please try again.",
         variant: "destructive"
       });
     }
