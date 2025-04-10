@@ -1,15 +1,46 @@
 import { useQuery } from "@tanstack/react-query";
-import { Grant } from "@shared/schema";
+import { Grant, UserGrant } from "@shared/schema";
 import GrantCard from "@/components/grant-card";
+import { useAuth } from "@/hooks/use-auth";
+import { useState, useEffect } from "react";
+import { Redirect } from "wouter";
+import { Loader2 } from "lucide-react";
+import { getQueryFn } from "@/lib/queryClient";
 
 export default function MyList() {
-  // Dummy user ID (in a real app, this would come from auth)
-  const userId = 1;
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const { data: grants, isLoading, isError } = useQuery<Grant[]>({
-    queryKey: [`/api/mylist/${userId}`],
+  useEffect(() => {
+    if (!isAuthLoading) {
+      setAuthChecked(true);
+    }
+  }, [isAuthLoading]);
+
+  // Only fetch the grants if we have a logged-in user
+  const { data: userGrants, isLoading, isError } = useQuery<(UserGrant & { grant: Grant })[]>({
+    queryKey: [`/api/mylist/${user?.id}`],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!user,
   });
 
+  // Wait for auth to complete before rendering
+  if (!authChecked) {
+    return (
+      <div className="bg-black text-white min-h-screen pt-24 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Redirect to auth page if not authenticated
+  if (authChecked && !user) {
+    return <Redirect to="/auth" />;
+  }
+
+  // Extract just the grant data from the user grants
+  const grants = userGrants?.map(userGrant => userGrant.grant) || [];
+  
   return (
     <div className="bg-black text-white min-h-screen pt-24 px-4 pb-16">
       <div className="container mx-auto">

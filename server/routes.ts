@@ -345,9 +345,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This is a simplified example - implement your actual compatibility algorithm
       const compatibilityFactors = [
         { name: "Industry", weight: 0.25, score: user.industry && grant.industry ? (user.industry === grant.industry ? 1 : 0.5) : 0.5 },
-        { name: "Location", weight: 0.2, score: user.province && grant.provinces ? (grant.provinces.includes(user.province) ? 1 : 0.3) : 0.5 },
-        { name: "Business Size", weight: 0.15, score: user.employeeCount && grant.eligibleBusinessSize ? (grant.eligibleBusinessSize.includes(user.employeeCount) ? 1 : 0.5) : 0.5 },
-        { name: "Business Type", weight: 0.15, score: user.businessType && grant.eligibleBusinessTypes ? (grant.eligibleBusinessTypes.includes(user.businessType) ? 1 : 0.4) : 0.5 },
+        { name: "Location", weight: 0.2, score: user.province && grant.province ? (grant.province === user.province ? 1 : 0.3) : 0.5 },
+        { name: "Business Size", weight: 0.15, score: user.employeeCount ? 0.7 : 0.5 }, // Simplified since schema doesn't have eligibleBusinessSize
+        { name: "Business Type", weight: 0.15, score: user.businessType ? 0.7 : 0.5 }, // Simplified since schema doesn't have eligibleBusinessTypes
         { name: "Purpose", weight: 0.15, score: 0.7 }, // Default to medium compatibility for purpose
         { name: "Funding Amount", weight: 0.1, score: 0.8 } // Default to high compatibility for funding amount
       ];
@@ -396,20 +396,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Location match
-        if (user.province && grant.provinces) {
-          score += grant.provinces.includes(user.province) ? 25 : 10;
+        if (user.province && grant.province) {
+          score += grant.province === user.province ? 25 : 10;
           factors++;
         }
         
         // Business size match
-        if (user.employeeCount && grant.eligibleBusinessSize) {
-          score += grant.eligibleBusinessSize.includes(user.employeeCount) ? 20 : 10;
+        if (user.employeeCount) {
+          // Simplified business size matching since schema doesn't have eligibleBusinessSize
+          score += 20;
           factors++;
         }
         
         // Business type match
-        if (user.businessType && grant.eligibleBusinessTypes) {
-          score += grant.eligibleBusinessTypes.includes(user.businessType) ? 20 : 8;
+        if (user.businessType) {
+          // Simplified business type matching since schema doesn't have eligibleBusinessTypes
+          score += 20;
           factors++;
         }
         
