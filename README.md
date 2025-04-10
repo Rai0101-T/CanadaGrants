@@ -1,3 +1,4 @@
+
 # Canadian Grant Finder
 
 A comprehensive Canadian grant discovery platform that simplifies and personalizes government funding opportunity searches through advanced AI and intelligent matching technologies.
