@@ -4,6 +4,9 @@ import { User, Grant } from '@shared/schema';
 // Initialize Gemini API client
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
+// Log Gemini API key status
+console.log("Gemini API key status:", process.env.GEMINI_API_KEY ? "Available" : "Missing");
+
 /**
  * GrantScribe Application Assistant using Gemini AI
  * Analyzes grant application text and provides improvements
