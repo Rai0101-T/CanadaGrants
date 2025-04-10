@@ -427,8 +427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Sort grants by compatibility score (highest first)
       scoredGrants.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
       
-      // Return top recommended grants
-      res.json(scoredGrants.slice(0, 10));
+      // Return top recommended grants in a 'recommendations' property to match client expectations
+      res.json({ recommendations: scoredGrants.slice(0, 10) });
     } catch (error) {
       console.error("Error recommending grants:", error);
       res.status(500).json({ error: "Failed to recommend grants" });
