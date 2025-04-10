@@ -128,20 +128,17 @@ export default function Home() {
                   Add a business description to your profile to get personalized grant recommendations 
                   that match your business needs and goals.
                 </p>
-                <a href="/profile" id="profileLink">
-                  <Button 
-                    className="bg-primary hover:bg-primary/90"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // First set the session storage
-                      sessionStorage.setItem("profileActiveTab", "business");
-                      // Then navigate using a more direct approach
-                      document.location.href = '/profile';
-                    }}
-                  >
-                    Update Profile
-                  </Button>
-                </a>
+                <Button 
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    // First set the session storage
+                    sessionStorage.setItem("profileActiveTab", "business");
+                    // Then navigate using a more direct approach
+                    document.location.href = '/profile';
+                  }}
+                >
+                  Update Profile
+                </Button>
               </div>
             ) : recommendationsMutation.isPending ? (
               <div className="flex justify-center items-center h-40">

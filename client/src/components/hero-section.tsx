@@ -12,24 +12,27 @@ export default function HeroSection() {
           Find the perfect funding opportunities for your projects, business, or research across Canada.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
-          <Link href="/federal-grants">
-            <a>
-              <Button variant="netflix" size="lg" className="flex items-center w-full sm:w-auto justify-center">
-                <Play className="mr-2 h-5 w-5" /> Browse Grants
-              </Button>
-            </a>
-          </Link>
-          <Link href="/about-us#how-it-works">
-            <a>
-              <Button 
-                variant="netflixSecondary" 
-                size="lg" 
-                className="flex items-center w-full sm:w-auto justify-center"
-              >
-                <Info className="mr-2 h-5 w-5" /> Learn More
-              </Button>
-            </a>
-          </Link>
+          <Button 
+            variant="netflix" 
+            size="lg" 
+            className="flex items-center w-full sm:w-auto justify-center"
+            asChild
+          >
+            <Link href="/federal-grants">
+              <Play className="mr-2 h-5 w-5" /> Browse Grants
+            </Link>
+          </Button>
+          
+          <Button 
+            variant="netflixSecondary" 
+            size="lg" 
+            className="flex items-center w-full sm:w-auto justify-center"
+            asChild
+          >
+            <Link href="/about-us#how-it-works">
+              <Info className="mr-2 h-5 w-5" /> Learn More
+            </Link>
+          </Button>
         </div>
       </div>
       <img 

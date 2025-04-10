@@ -26,12 +26,14 @@ export default function GrantCard({ grant }: GrantCardProps) {
     // Reset states when grant changes
     setImageError(false);
     setImageLoaded(false);
-    setImageUrl(grant.imageUrl);
     
-    // No need to check image if it doesn't exist
-    if (!grant.imageUrl) {
-      setImageError(true);
-      return;
+    // Ensure we always have an image URL by falling back to a reliable placeholder
+    if (!grant.imageUrl || grant.imageUrl.trim() === '') {
+      // Use placeholder based on grant type
+      const fallbackImage = getFallbackImageForGrantType(grant.type);
+      setImageUrl(fallbackImage);
+    } else {
+      setImageUrl(grant.imageUrl);
     }
     
     // Simple way to check if image loads correctly
@@ -47,15 +49,31 @@ export default function GrantCard({ grant }: GrantCardProps) {
       
       tempImg.onerror = () => {
         if (isMounted.current) {
-          setImageError(true);
+          // If the image fails to load, fallback to a reliable placeholder
+          setImageUrl(getFallbackImageForGrantType(grant.type));
+          setImageLoaded(true); // Set to true since we're using a reliable fallback
         }
       };
       
-      tempImg.src = grant.imageUrl;
+      tempImg.src = imageUrl;
     };
     
     checkImage();
   }, [grant.id, grant.imageUrl]);
+  
+  // Helper function to get a fallback image based on grant type
+  const getFallbackImageForGrantType = (type: string): string => {
+    switch(type) {
+      case 'federal':
+        return 'https://images.unsplash.com/photo-1572025442646-866d16c84a54?q=80&w=1000';
+      case 'provincial':
+        return 'https://images.unsplash.com/photo-1506811977880-9c1fe57e3153?q=80&w=1000';
+      case 'private':
+        return 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1000';
+      default:
+        return 'https://images.unsplash.com/photo-1618044619888-009e412ff12a?q=80&w=1000';
+    }
+  };
 
   // Generate a color gradient based on grant type
   const getPlaceholderGradient = () => {

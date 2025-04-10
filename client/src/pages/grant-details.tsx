@@ -84,8 +84,13 @@ export default function GrantDetails() {
             src={grant.imageUrl} 
             alt={grant.title}
             onError={(e) => {
-              // Fallback for image load errors
-              e.currentTarget.src = `https://placehold.co/800x400/1a1a1a/ffffff?text=${encodeURIComponent(grant.type === 'federal' ? 'Federal Grant' : grant.type === 'provincial' ? 'Provincial Grant' : 'Private Grant')}`;
+              // Fallback for image load errors using reliable Unsplash images instead of placeholders
+              const fallbackImages = {
+                'federal': 'https://images.unsplash.com/photo-1572025442646-866d16c84a54?q=80&w=1000',
+                'provincial': 'https://images.unsplash.com/photo-1506811977880-9c1fe57e3153?q=80&w=1000',
+                'private': 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1000'
+              };
+              e.currentTarget.src = fallbackImages[grant.type] || 'https://images.unsplash.com/photo-1618044619888-009e412ff12a?q=80&w=1000';
             }}
             className="w-full h-full object-cover"
           />
