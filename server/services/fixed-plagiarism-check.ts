@@ -173,11 +173,13 @@ export async function handlePlagiarismCheckEndpoint(req: Request, res: Response)
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    const { applicationText } = req.body;
+    const { text } = req.body;
 
-    if (!applicationText) {
-      return res.status(400).json({ error: "Application text is required" });
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
     }
+    
+    const applicationText = text; // Use the text parameter from the client
 
     // Try with Gemini first (our preferred provider)
     try {

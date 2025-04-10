@@ -206,11 +206,14 @@ export default function GrantScribe() {
   const formattedPlagiarismResult = useMemo(() => {
     if (!plagiarismResult) return null;
     
+    console.log("Formatting plagiarism result:", plagiarismResult);
+    
+    // Map the API response to our UI model
     return {
-      score: plagiarismResult.plagiarismScore,
-      sections: plagiarismResult.flaggedSections || [],
-      explanation: plagiarismResult.explanation,
-      recommendations: plagiarismResult.recommendations || []
+      score: 100 - (plagiarismResult.originalityScore || 0), // Convert originality score to plagiarism score
+      sections: [], // Our API doesn't return flagged sections
+      explanation: plagiarismResult.analysis || "No detailed analysis available.",
+      recommendations: plagiarismResult.suggestions || []
     };
   }, [plagiarismResult]);
   
