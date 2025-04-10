@@ -90,10 +90,13 @@ export default function GrantScribe() {
   // Mutation for plagiarism check
   const plagiarismMutation = useMutation({
     mutationFn: async () => {
+      console.log("Sending plagiarism check request with text:", textToCheck.substring(0, 50) + "...");
       const response = await apiRequest("POST", "/api/grantscribe/plagiarism-check", {
         text: textToCheck
       });
+      console.log("Plagiarism check response status:", response.status);
       const data = await response.json();
+      console.log("Plagiarism check response data:", data);
       return data;
     },
     onSuccess: (data: any) => {
@@ -117,12 +120,15 @@ export default function GrantScribe() {
   // Mutation for idea generation
   const ideasMutation = useMutation({
     mutationFn: async () => {
+      console.log("Sending idea generation request with grantId:", selectedIdeaGrantId);
       const response = await apiRequest("POST", "/api/grantscribe/generate-ideas", {
         grantId: selectedIdeaGrantId,
         projectType,
         keywords
       });
+      console.log("Idea generation response status:", response.status);
       const data = await response.json();
+      console.log("Idea generation response data:", data);
       return data;
     },
     onSuccess: (data: any) => {
