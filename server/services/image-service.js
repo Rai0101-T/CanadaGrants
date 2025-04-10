@@ -1,5 +1,5 @@
 // Service to manage grant image verification and assignment
-import { storage } from '../storage.js';
+import { storage } from '../storage';
 
 /**
  * Mapping of industry/category to relevant, contextual images

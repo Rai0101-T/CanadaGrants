@@ -8,6 +8,7 @@ import { setupAuth } from "./auth";
 import { WebSocketServer } from "ws";
 import puppeteer from "puppeteer";
 import cron from "node-cron";
+import { verifyAndFixGrantImage } from "./services/image-service";
 
 // Import scraper functions and types based on your project structure
 // This can be adapted to your specific needs
@@ -38,7 +39,20 @@ async function saveGrantsToDatabase(grants: any[]) {
   console.log(`Saving ${grants.length} grants to database`);
   for (const grant of grants) {
     try {
-      await storage.addGrant(grant);
+      // Make sure grant has a valid imageUrl before saving
+      if (!grant.imageUrl || grant.imageUrl === "" || 
+          grant.imageUrl.toLowerCase().includes("logo") || 
+          grant.imageUrl.toLowerCase().includes("icon") ||
+          grant.imageUrl.toLowerCase().includes("placeholder")) {
+        console.log(`Grant "${grant.title}" has missing or generic image, assigning relevant image...`);
+        // Import the image service to assign a relevant image
+        const { getRelevantImageUrl } = await import("./services/image-service");
+        grant.imageUrl = getRelevantImageUrl(grant);
+      }
+      
+      // Save the grant with the valid image
+      const savedGrant = await storage.addGrant(grant);
+      console.log(`Saved grant: ${savedGrant.title} with image: ${savedGrant.imageUrl}`);
     } catch (error) {
       console.error(`Error saving grant: ${grant.title}`, error);
     }
