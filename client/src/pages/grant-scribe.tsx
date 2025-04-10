@@ -294,10 +294,10 @@ export default function GrantScribe() {
                     <Wand2 className="h-5 w-5 mr-2 text-primary" /> Application Assistant Results
                   </h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="font-medium mb-2 text-gray-300">Original Text</h4>
-                      <div className="bg-[#333] p-4 rounded-md text-gray-400 h-[400px] overflow-y-auto border border-gray-700">
+                      <h4 className="font-medium mb-2 text-gray-300">Your Application Draft</h4>
+                      <div className="bg-[#333] p-4 rounded-md text-gray-400 overflow-y-auto border border-gray-700">
                         {originalText}
                       </div>
                     </div>
@@ -306,7 +306,7 @@ export default function GrantScribe() {
                       <h4 className="font-medium mb-2 text-gray-300 flex items-center">
                         Improved Version <span className="ml-2 text-xs bg-primary text-black px-2 py-0.5 rounded">AI Enhanced</span>
                       </h4>
-                      <div className="bg-[#272727] p-4 rounded-md text-white h-[400px] overflow-y-auto border border-primary">
+                      <div className="bg-[#272727] p-4 rounded-md text-white overflow-y-auto border border-primary">
                         {improvedText}
                       </div>
                     </div>
