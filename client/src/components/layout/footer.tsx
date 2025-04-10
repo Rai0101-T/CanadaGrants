@@ -20,18 +20,18 @@ export default function Footer() {
               <h3 className="text-white font-bold mb-4">Categories</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/federal-grants">
-                    <a className="hover:text-primary transition-colors">Federal Grants</a>
+                  <Link href="/federal-grants" className="hover:text-primary transition-colors">
+                    Federal Grants
                   </Link>
                 </li>
                 <li>
-                  <Link href="/provincial-grants">
-                    <a className="hover:text-primary transition-colors">Provincial Grants</a>
+                  <Link href="/provincial-grants" className="hover:text-primary transition-colors">
+                    Provincial Grants
                   </Link>
                 </li>
                 <li>
-                  <Link href="/private-grants">
-                    <a className="hover:text-primary transition-colors">Private Grants</a>
+                  <Link href="/private-grants" className="hover:text-primary transition-colors">
+                    Private Grants
                   </Link>
                 </li>
               </ul>
@@ -41,18 +41,30 @@ export default function Footer() {
               <h3 className="text-white font-bold mb-4">About</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/about-us#how-it-works">
-                    <a className="hover:text-primary transition-colors special-anchor" data-section="how-it-works">How It Works</a>
+                  <Link 
+                    href="/about-us#how-it-works" 
+                    className="hover:text-primary transition-colors special-anchor" 
+                    data-section="how-it-works"
+                  >
+                    How It Works
                   </Link>
                 </li>
                 <li>
-                  <Link href="/about-us#faq">
-                    <a className="hover:text-primary transition-colors special-anchor" data-section="faq">FAQ</a>
+                  <Link 
+                    href="/about-us#faq" 
+                    className="hover:text-primary transition-colors special-anchor" 
+                    data-section="faq"
+                  >
+                    FAQ
                   </Link>
                 </li>
                 <li>
-                  <Link href="/about-us#contact-us">
-                    <a className="hover:text-primary transition-colors special-anchor" data-section="contact-us">Contact Us</a>
+                  <Link 
+                    href="/about-us#contact-us" 
+                    className="hover:text-primary transition-colors special-anchor" 
+                    data-section="contact-us"
+                  >
+                    Contact Us
                   </Link>
                 </li>
               </ul>

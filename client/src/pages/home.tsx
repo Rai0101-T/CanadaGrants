@@ -264,9 +264,9 @@ export default function Home() {
                   By Region
                 </button>
               </div>
-              <a href="/federal-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
+              <Link href="/federal-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
                 View All <span className="ml-1">→</span>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -323,9 +323,9 @@ export default function Home() {
                   By Province
                 </button>
               </div>
-              <a href="/provincial-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
+              <Link href="/provincial-grants" className="text-sm text-gray-300 hover:text-white flex items-center">
                 View All <span className="ml-1">→</span>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -371,17 +371,21 @@ export default function Home() {
               </ul>
               {user ? (
                 <Button 
-                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2" 
-                  onClick={() => window.location.href = '/grant-scribe'}
+                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2"
+                  asChild
                 >
-                  Start Using GrantScribe
+                  <Link href="/grant-scribe">
+                    Start Using GrantScribe
+                  </Link>
                 </Button>
               ) : (
                 <Button 
-                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2" 
-                  onClick={() => window.location.href = '/auth'}
+                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2"
+                  asChild
                 >
-                  Sign Up to Use GrantScribe
+                  <Link href="/auth">
+                    Sign Up to Use GrantScribe
+                  </Link>
                 </Button>
               )}
             </div>
