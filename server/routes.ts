@@ -196,7 +196,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add grant to user's list
   apiRouter.post("/mylist", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const { userId, grantId, status = "Saved", notes = "" } = req.body;
+      const { userId, grantId, status: rawStatus = "Saved", notes = "" } = req.body;
+      
+      // Convert status to lowercase to match the schema expectations
+      const status = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : "saved";
       
       if (!userId || !grantId) {
         return res.status(400).json({ error: "User ID and Grant ID are required" });
@@ -293,7 +296,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId, 10);
       const grantId = parseInt(req.params.grantId, 10);
-      const { status, notes } = req.body;
+      const { status: rawStatus, notes } = req.body;
+      
+      // Convert status to lowercase to match schema expectations
+      const status = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : undefined;
       
       if (isNaN(userId) || isNaN(grantId) || !status) {
         return res.status(400).json({ error: "Invalid user ID, grant ID, or status" });
@@ -355,10 +361,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalScore = compatibilityFactors.reduce((acc, factor) => acc + (factor.score * factor.weight), 0);
       const normalizedScore = Math.round(totalScore * 100);
       
-      // Return compatibility score and factors
+      // Return compatibility score and factors in the format expected by the client
       res.json({
-        compatibilityScore: normalizedScore,
-        factors: compatibilityFactors
+        compatibility: {
+          score: normalizedScore,
+          reasoning: "Based on your business profile and this grant's requirements",
+          strengths: compatibilityFactors.filter(f => f.score >= 0.7).map(f => `Strong match in ${f.name}`),
+          weaknesses: compatibilityFactors.filter(f => f.score < 0.5).map(f => `Weak match in ${f.name}`),
+          improvementTips: compatibilityFactors.filter(f => f.score < 0.7).map(f => `Consider improving your ${f.name.toLowerCase()} information`)
+        }
       });
     } catch (error) {
       console.error("Error calculating grant compatibility:", error);
