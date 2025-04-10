@@ -208,12 +208,23 @@ export default function GrantScribe() {
     
     console.log("Formatting plagiarism result:", plagiarismResult);
     
+    // Clean up recommendations - remove any backslashes and handle formatting
+    const cleanRecommendations = plagiarismResult.suggestions 
+      ? plagiarismResult.suggestions.map((rec: string) => {
+          // Remove backslashes
+          let cleaned = rec.replace(/\\/g, '');
+          // Remove any markdown bullet points
+          cleaned = cleaned.replace(/^\s*[\*\-]\s+/, '');
+          return cleaned;
+        })
+      : [];
+    
     // Map the API response to our UI model
     return {
       score: 100 - (plagiarismResult.originalityScore || 0), // Convert originality score to plagiarism score
       sections: [], // Our API doesn't return flagged sections
       explanation: plagiarismResult.analysis || "No detailed analysis available.",
-      recommendations: plagiarismResult.suggestions || []
+      recommendations: cleanRecommendations
     };
   }, [plagiarismResult]);
   

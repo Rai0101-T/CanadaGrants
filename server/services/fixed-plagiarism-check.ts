@@ -130,28 +130,55 @@ async function checkPlagiarismGemini(applicationText: string): Promise<{
       // If the response isn't valid JSON, attempt to extract information manually
       console.error("Failed to parse Gemini response as JSON, attempting manual extraction:", jsonError);
       
+      // Try to extract the response from a code block if present
+      let cleanedText = text;
+      const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]+?\})\s*```/);
+      if (codeBlockMatch) {
+        try {
+          const jsonResult = JSON.parse(codeBlockMatch[1]);
+          return {
+            originalityScore: jsonResult.originalityScore,
+            analysis: jsonResult.analysis,
+            suggestions: jsonResult.suggestions.map((s: string) => s.replace(/\\/g, ''))
+          };
+        } catch (e) {
+          console.error("Failed to parse JSON from code block:", e);
+          cleanedText = codeBlockMatch[1]; // Use the code block content for extraction
+        }
+      }
+      
       // Fallback extraction logic
-      const scoreMatch = text.match(/originalityScore["\s:]+(\d+)/);
-      const analysisMatch = text.match(/analysis["\s:]+["'](.+?)["']/s);
-      const suggestionsMatch = text.match(/suggestions["\s:]+\[(.+?)\]/s);
+      const scoreMatch = cleanedText.match(/originalityScore["\s:]+(\d+)/);
+      const analysisMatch = cleanedText.match(/analysis["\s:]+["'](.+?)["']/s);
+      const suggestionsMatch = cleanedText.match(/suggestions["\s:]+\[(.+?)\]/s);
       
       const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 75;
-      const analysis = analysisMatch ? analysisMatch[1] : "Unable to perform detailed analysis. The text appears to be generally original, but consider reviewing for common phrasings.";
+      const analysis = analysisMatch 
+        ? analysisMatch[1].replace(/\\/g, '') 
+        : "Unable to perform detailed analysis. The text appears to be generally original, but consider reviewing for common phrasings.";
       
       let suggestions: string[] = [];
       if (suggestionsMatch) {
         const suggestionsText = suggestionsMatch[1];
         suggestions = suggestionsText
           .split(/,(?=["'])/)
-          .map(s => s.trim().replace(/^["']|["']$/g, ''))
+          .map(s => s.trim().replace(/^["']|["']$/g, '').replace(/\\/g, ''))
           .filter(s => s.length > 0);
+      }
+      
+      // Extract any bullet point list that might contain suggestions
+      if (suggestions.length === 0 && text.includes('*')) {
+        const bulletPoints = text.match(/\*\s+([^*\n]+)/g);
+        if (bulletPoints) {
+          suggestions = bulletPoints.map(point => point.replace(/^\*\s+/, '').replace(/\\/g, ''));
+        }
       }
       
       if (suggestions.length === 0) {
         suggestions = [
-          "Review your text for generic phrases and replace with more specific language.",
-          "Add more details unique to your business and project.",
-          "Use industry-specific terminology that shows your expertise."
+          "Review your text for generic phrases and replace with more specific language",
+          "Add more details unique to your business and project",
+          "Use industry-specific terminology that shows your expertise"
         ];
       }
       
