@@ -91,7 +91,7 @@ async function getProjectIdeasGemini(grantData: any, userProfile: any): Promise<
       throw new Error("Gemini API not initialized");
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // Using gemini-pro as it's more widely available
 
     const prompt = `
     As an AI-powered grant assistant, analyze the grant details and business profile below to generate 5 compelling project ideas that would be highly competitive for this funding opportunity.
@@ -137,12 +137,17 @@ async function getProjectIdeasGemini(grantData: any, userProfile: any): Promise<
 
 export async function handleGenerateIdeasEndpoint(req: Request, res: Response) {
   try {
+    console.log("Generate ideas endpoint called");
+    
     if (!req.user) {
+      console.log("Authentication required for idea generation");
       return res.status(401).json({ error: "Authentication required" });
     }
 
+    console.log("User authenticated:", req.user.id);
     const user = req.user as User;
-    const { grantId } = req.body;
+    const { grantId, projectType, keywords } = req.body;
+    console.log("Idea generation parameters:", { grantId, projectType, keywords });
 
     if (!grantId) {
       return res.status(400).json({ error: "Grant ID is required" });
