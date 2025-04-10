@@ -131,14 +131,25 @@ export default function GrantScribe() {
       console.log("Idea generation response data:", data);
       return data;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       console.log("Received data from idea generation:", data); // Debug log
       if (data.ideas && Array.isArray(data.ideas)) {
         setIdeas(data.ideas);
-        toast({
-          title: "Ideas Generated",
-          description: `${data.ideas.length} project ideas have been generated for your grant.`
-        });
+        
+        if (data.source === "fallback") {
+          toast({
+            title: "Ideas Generated Using Fallback System",
+            description: `${data.ideas.length} project ideas have been generated based on your business profile and grant type.`,
+            variant: "default",
+            duration: 6000
+          });
+        } else {
+          toast({
+            title: "Ideas Generated",
+            description: `${data.ideas.length} project ideas have been generated for your grant.`,
+            variant: "default"
+          });
+        }
       } else {
         toast({
           title: "Error",
@@ -147,7 +158,7 @@ export default function GrantScribe() {
         });
       }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error("Error in idea generation:", error); // Debug log
       toast({
         title: "Error",
