@@ -77,7 +77,7 @@ async function getProjectIdeasOpenAI(grantData: any, userProfile: any): Promise<
     }
 
     // Parse the numbered list into separate ideas
-    const ideas = content.split(/\\d+\\./).slice(1).map(idea => idea.trim());
+    const ideas = content.split(/\d+\./).slice(1).map(idea => idea.trim());
     return ideas.length > 0 ? ideas : [content]; // Fallback to the whole content if parsing fails
   } catch (error) {
     console.error("Error generating project ideas with OpenAI:", error);
@@ -127,7 +127,7 @@ async function getProjectIdeasGemini(grantData: any, userProfile: any): Promise<
     const text = result.response.text();
 
     // Parse the numbered list into separate ideas
-    const ideas = text.split(/\\d+\\./).slice(1).map(idea => idea.trim());
+    const ideas = text.split(/\d+\./).slice(1).map(idea => idea.trim());
     return ideas.length > 0 ? ideas : [text]; // Fallback to the whole content if parsing fails
   } catch (error) {
     console.error("Error generating project ideas with Gemini:", error);

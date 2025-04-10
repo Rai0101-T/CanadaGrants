@@ -127,11 +127,11 @@ export default function GrantScribe() {
     },
     onSuccess: (data: any) => {
       console.log("Received data from idea generation:", data); // Debug log
-      if (data.ideas) {
+      if (data.ideas && Array.isArray(data.ideas)) {
         setIdeas(data.ideas);
         toast({
           title: "Ideas Generated",
-          description: "Project ideas have been generated for your grant."
+          description: `${data.ideas.length} project ideas have been generated for your grant.`
         });
       } else {
         toast({
@@ -600,78 +600,22 @@ export default function GrantScribe() {
                   <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
                     <div>
                       <h4 className="font-medium mb-3 text-lg text-primary">Project Ideas</h4>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {ideas.projectIdeas && ideas.projectIdeas.map((idea: any, index: number) => (
-                          <div key={index} className="bg-[#333] p-4 rounded-md border border-gray-700 hover:border-primary transition-colors">
-                            <h5 className="font-bold text-primary mb-2">{idea.title}</h5>
-                            <p className="text-gray-300">{idea.description}</p>
+                      <div className="grid md:grid-cols-1 gap-4">
+                        {Array.isArray(ideas) ? (
+                          ideas.map((idea: string, index: number) => (
+                            <div key={index} className="bg-[#333] p-4 rounded-md border border-gray-700 hover:border-primary transition-colors">
+                              <p className="text-gray-300">{idea}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="bg-[#333] p-4 rounded-md border border-gray-700">
+                            <p className="text-gray-300">No ideas were generated. Please try again.</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
                     
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {ideas.approachSuggestions && (
-                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
-                          <h4 className="font-medium mb-3 text-lg text-primary">Implementation Approaches</h4>
-                          <ul className="list-disc pl-5 space-y-2 text-gray-300">
-                            {ideas.approachSuggestions.map((approach: string, index: number) => (
-                              <li key={index} className="pb-2">{approach}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {ideas.alignmentNotes && (
-                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
-                          <h4 className="font-medium mb-3 text-lg text-primary">Alignment with Grant Objectives</h4>
-                          <div className="text-gray-300">
-                            {typeof ideas.alignmentNotes === 'string' 
-                              ? ideas.alignmentNotes 
-                              : Array.isArray(ideas.alignmentNotes) 
-                                ? (
-                                  <ul className="list-disc pl-5 space-y-2">
-                                    {ideas.alignmentNotes.map((note: string, index: number) => (
-                                      <li key={index} className="pb-2">{note}</li>
-                                    ))}
-                                  </ul>
-                                ) 
-                                : null
-                            }
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {ideas.budgetConsiderations && (
-                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
-                          <h4 className="font-medium mb-3 text-lg text-primary">Budget Considerations</h4>
-                          <ul className="list-disc pl-5 space-y-2 text-gray-300">
-                            {ideas.budgetConsiderations.map((budget: string, index: number) => (
-                              <li key={index} className="pb-2">{budget}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {ideas.impactMetrics && (
-                        <div className="bg-[#2A2A2A] p-4 rounded-md border border-gray-700">
-                          <h4 className="font-medium mb-3 text-lg text-primary">Impact Metrics</h4>
-                          <ul className="list-disc pl-5 space-y-2 text-gray-300">
-                            {ideas.impactMetrics.map((metric: string, index: number) => (
-                              <li key={index} className="pb-2">{metric}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {ideas.notice && (
-                      <div className="mt-4 p-3 bg-gray-800 rounded-md text-gray-400 text-sm">
-                        <p><strong>Note:</strong> {ideas.notice}</p>
-                      </div>
-                    )}
+                    {/* Additional sections removed as they're not provided by the API */}
                   </div>
                 </CardFooter>
               )}
